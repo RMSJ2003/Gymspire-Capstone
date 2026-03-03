@@ -216,7 +216,7 @@ block scripts
           });
 
           const res = await fetch(
-            /api/v1/workout-logs/${"#{log._id}"}/sets/bulk,
+            `/api/v1/workout-logs/${"#{log._id}"}/sets/bulk`,
             {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
