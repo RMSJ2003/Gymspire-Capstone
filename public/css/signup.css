@@ -6,7 +6,6 @@
 /* Center page content */
 body {
   background-color: #dddddd;
-
   display: flex;
   justify-content: center;
   align-items: center;
@@ -40,8 +39,11 @@ h2 {
   color: black;
 }
 
-/* Inputs */
-#signupForm input {
+/* ✅ Inputs (ONLY text-like inputs, NOT checkbox) */
+#signupForm input[type="email"],
+#signupForm input[type="text"],
+#signupForm input[type="password"],
+#signupForm input[type="file"] {
   width: 100%;
   padding: 12px;
   margin-top: 6px;
@@ -106,6 +108,41 @@ h2 {
 
 .form-message.success {
   color: #22c55e;
+}
+
+/* Warning text */
+.warning-text {
+  color: #f87171;
+
+  margin-top: 12px;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+/* Waiver link */
+.waiver-section a {
+  color: blue;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+/* ✅ Checkbox + text alignment */
+.waiver-section label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* ✅ Checkbox size (clean, no override conflict) */
+.waiver-section input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  transform: scale(1.1);
+  cursor: pointer;
 }
 
 /* ========================= */

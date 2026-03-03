@@ -114,6 +114,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     "host",
   )}/api/v1/auth/verify-email/${verificationToken}`;
 
+  console.log("before sending email");
+
   await sendEmail({
     to: newUser.email,
     subject: "Verify your iACADEMY email",
@@ -577,32 +579,32 @@ exports.requestEmailVerification = catchAsync(async (req, res, next) => {
   });
 });
 
-// exports.verifyIacademyEmail = catchAsync(async (req, res, next) => {
-//   const hashedToken = crypto
-//     .createHash("sha256")
-//     .update(req.params.token)
-//     .digest("hex");
+exports.verifyIacademyEmail = catchAsync(async (req, res, next) => {
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
 
-//   const user = await User.findOne({
-//     emailVerificationToken: hashedToken,
-//     emailVerificationExpires: { $gt: Date.now() },
-//   })
-//     .setOptions({ includeInactive: true })
-//     .select("+active");
-//   // 2} If token has not expired, and there is a user, set the new password.
-//   if (!user) next(new AppError("Token is invalid or has expired", 400));
+  const user = await User.findOne({
+    emailVerificationToken: hashedToken,
+    emailVerificationExpires: { $gt: Date.now() },
+  })
+    .setOptions({ includeInactive: true })
+    .select("+active");
+  // 2} If token has not expired, and there is a user, set the new password.
+  if (!user) next(new AppError("Token is invalid or has expired", 400));
 
-//   user.emailVerified = true;
-//   user.active = true;
-//   user.emailVerificationToken = undefined;
-//   user.emailVerificationExpires = undefined;
-//   await user.save({ validateBeforeSave: false });
+  user.emailVerified = true;
+  user.active = true;
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpires = undefined;
+  await user.save({ validateBeforeSave: false });
 
-//   res.status(200).json({
-//     status: "success",
-//     message: "Email verified successfully",
-//   });
-// });
+  res.status(200).json({
+    status: "success",
+    message: "Email verified successfully",
+  });
+});
 
 // With this, pug files can now do something like this:
 // if user

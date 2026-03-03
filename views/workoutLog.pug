@@ -149,7 +149,7 @@ block scripts
 
             if (wantsVideo) {
               const videoInput = document.querySelector(
-                `.video-input[data-log-id="${workoutLogId}"]`
+                .video-input[data-log-id="${workoutLogId}"]
               );
 
               videoInput.click();
@@ -174,7 +174,7 @@ block scripts
       async function submitFinish(workoutLogId, formData) {
         try {
           const res = await fetch(
-            `/api/v1/workout-logs/${workoutLogId}/finish`,
+            /api/v1/workout-logs/${workoutLogId}/finish,
             {
               method: "PATCH",
               credentials: "include",
@@ -216,7 +216,7 @@ block scripts
           });
 
           const res = await fetch(
-            `/api/v1/workout-logs/${"#{log._id}"}/sets/bulk`,
+            /api/v1/workout-logs/${"#{log._id}"}/sets/bulk,
             {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },

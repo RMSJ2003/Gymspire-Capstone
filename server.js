@@ -36,10 +36,16 @@ const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 
-// ===============================
-// Handle unhandled promise rejections
-// ===============================
+// In unhandledRejection, crashing the application is OPTIONAL.
 process.on("unhandledRejection", (err) => {
   console.error("UNHANDLED REJECTION! 💥 Shutting down...");
   console.error(err.name, err.message);
+
+  // Close the server first. This will finish all the pending requests and then shut down.
+  server.close(() => {
+    // paramt = 0 if success and 1 if uncaught exception.
+    // The app will crash due to the process.exit which is destructive to currently running or pending requests which is a problem.
+    // The solution is to first close the server and only then we shut down the application.
+    process.exit(1);
+  });
 });
