@@ -114,6 +114,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     "host",
   )}/api/v1/auth/verify-email/${verificationToken}`;
 
+  console.log('before sending email');
+  
   await sendEmail({
     to: newUser.email,
     subject: "Verify your iACADEMY email",
