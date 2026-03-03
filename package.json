@@ -5,8 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node server.js",
-    "start:dev": "nodemon server.js",
-    "start:prod": "cross-env NODE_ENV=production nodemon server.js"
+    "start:dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -33,6 +32,7 @@
     "nodemailer": "^7.0.9",
     "pug": "^3.0.3",
     "session": "^0.1.0",
+    "sib-api-v3-sdk": "^8.5.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "validator": "^13.15.15"
