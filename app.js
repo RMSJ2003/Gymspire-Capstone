@@ -19,6 +19,7 @@ const app = express();
 
 const authController = require("./controllers/authController"); // 🔹 ADD THIS
 
+console.log("this is app");
 // BODY + COOKIES
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
