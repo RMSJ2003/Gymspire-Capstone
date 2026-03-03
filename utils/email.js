@@ -1,3 +1,5 @@
+const nodemailer = require("nodemailer");
+
 const sendEmail = async (options) => {
   try {
     const transporter = nodemailer.createTransport({
@@ -19,7 +21,9 @@ const sendEmail = async (options) => {
 
     console.log("✅ Email sent");
   } catch (err) {
-    console.error("❌ Email failed but NOT crashing server:", err.message);
-    // ❗ DO NOT THROW
+    console.error("❌ Email failed but server continues:", err.message);
+    // 🚨 DO NOT THROW
   }
 };
+
+module.exports = sendEmail;
