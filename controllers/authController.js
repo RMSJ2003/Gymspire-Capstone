@@ -99,8 +99,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     );
 
     // 🔥 Write file manually
-    fs.writeFileSync(filePath, req.file.buffer);
-
+    await fs.promises.writeFile(filePath, req.file.buffer);
     // 3️⃣ Update user with photo URL
     newUser.pfpUrl = `/img/users/${filename}`;
     await newUser.save({ validateBeforeSave: false });
@@ -164,7 +163,7 @@ exports.createCoach = catchAsync(async (req, res, next) => {
       filename,
     );
 
-    fs.writeFileSync(filePath, req.file.buffer);
+    await fs.promises.writeFile(filePath, req.file.buffer);
     pfpUrl = `/img/users/${filename}`;
   }
 
@@ -229,7 +228,7 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
       filename,
     );
 
-    fs.writeFileSync(filePath, req.file.buffer);
+    await fs.promises.writeFile(filePath, req.file.buffer);
     pfpUrl = `/img/users/${filename}`;
   }
 
