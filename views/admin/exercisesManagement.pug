@@ -53,22 +53,20 @@ block content
     .exercise-list-container
       each exercise in exercises
         .exercise-card
-          label
-            input(type="checkbox" name="exerciseIds" value=exercise._id)
-            .exercise-content
-              h3 #{exercise.name}
-              p
-                strong Target:
-                |  #{exercise.target}
+          .exercise-content
+            h3 #{exercise.name}
+            p
+              strong Target:
+              |  #{exercise.target}
 
-              if exercise.gifURL
-                img.exercise-gif(src=exercise.gifURL alt=exercise.name)
+            if exercise.gifURL
+              img.exercise-gif(src=exercise.gifURL alt=exercise.name)
 
-              if exercise.instructions && exercise.instructions.length
-                h4 Instructions
-                ul
-                  each step in exercise.instructions
-                    li #{step}
+            if exercise.instructions && exercise.instructions.length
+              h4 Instructions
+              ul
+                each step in exercise.instructions
+                  li #{step}
 
 block scripts
   script(src="/js/exercisesManagement.js")

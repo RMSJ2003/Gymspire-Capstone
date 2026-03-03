@@ -1,7 +1,7 @@
 extends ../base
 
 block styles
-  link(rel="stylesheet", href="/css/reviewSubmissions.css")
+  link(rel="stylesheet" href="/css/reviewSubmissions.css")
 
 block content
   // =========================
@@ -30,8 +30,6 @@ block content
         else
           h3 Submission by User
 
-        p Date: #{log.createdAt ? log.createdAt.toDateString() : 'Unknown'}
-
         // =====================
         // Status Badge
         // =====================
@@ -53,23 +51,25 @@ block content
             .exercise-block
               h4 #{ex.name} (#{ex.target})
 
+              - let workingIndex = 0;
+
               if ex.set && ex.set.length
                 table
                   thead
                     tr
                       th Set #
-                      th Type
                       th Weight
                       th Reps
-                      th Rest (sec)
                   tbody
+                    - let workingIndex = 0;
                     each s in ex.set
-                      tr
-                        td #{s.setNumber || '-'}
-                        td #{s.type || '-'}
-                        td #{s.weight || '-'} #{s.unit || ''}
-                        td #{s.reps || '-'}
-                        td #{s.restSeconds || '-'}
+                      if s.type !== "warmup"
+                        - workingIndex++;
+
+                        tr
+                          td= workingIndex
+                          td #{s.weight || '-'} #{s.unit || ''}
+                          td #{s.reps || '-'}
               else
                 p No sets submitted.
         else
