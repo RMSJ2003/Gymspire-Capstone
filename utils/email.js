@@ -1,28 +1,30 @@
-const nodemailer = require("nodemailer");
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 
 const sendEmail = async (options) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.GMAIL_USERNAME,
-        pass: process.env.GMAIL_PASSWORD,
-      },
-    });
+    const defaultClient = SibApiV3Sdk.ApiClient.instance;
 
-    await transporter.sendMail({
-      from: "Gymspire <gymspire@gmail.com>",
-      to: options.to,
-      subject: options.subject,
-      text: options.message,
-    });
+    const apiKey = defaultClient.authentications["api-key"];
+    apiKey.apiKey = process.env.BREVO_API_KEY;
 
-    console.log("✅ Email sent");
+    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+    sendSmtpEmail.subject = options.subject;
+    sendSmtpEmail.textContent = options.message;
+    sendSmtpEmail.sender = {
+      name: "Gymspire",
+      email: "gymspire@gmail.com", // must verify this sender
+    };
+    sendSmtpEmail.to = [{ email: options.to }];
+
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+    console.log("✅ Email sent via Brevo");
   } catch (err) {
-    console.error("❌ Email failed but server continues:", err.message);
-    // 🚨 DO NOT THROW
+    console.error("❌ Brevo error:", err.response?.body || err.message);
+    // DO NOT throw
   }
 };
 
