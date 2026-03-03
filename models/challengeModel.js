@@ -1,46 +1,50 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const challengeSchema = new mongoose.Schema({
+const challengeSchema = new mongoose.Schema(
+  {
     name: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     joinCode: {
-        type: String,
-        unique: true,
-        required: true
+      type: String,
+      unique: true,
+      required: true,
     },
-    participants: [{
+    participants: [
+      {
         type: mongoose.Schema.ObjectId,
-        ref: 'User'
-    }],
+        ref: "User",
+      },
+    ],
     startTime: {
-        type: Date,
-        required: true
+      type: Date,
+      required: true,
     },
     endTime: {
-        type: Date,
-        required: true
+      type: Date,
+      required: true,
     },
-    exercises: [{
-        type: mongoose.Schema.ObjectId,
-        ref: 'Exercise'
-    }]
-}, {
-    toJSON: {
-        virtuals: true
-    },
-    toObject: {
-        virtuals: true
-    }
+
+    // 🔥 Store exerciseId strings
+    exercises: [
+      {
+        type: String,
+      },
+    ],
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
+);
+
+// 🔥 Virtual populate using string match
+challengeSchema.virtual("exerciseDetails", {
+  ref: "Exercise",
+  localField: "exercises", // Challenge.exercises (array of strings)
+  foreignField: "exerciseId", // Exercise.exerciseId (string field)
 });
 
-// exerciseDetails is just a name of the virtual populate
-challengeSchema.virtual('exerciseDetails', {
-    ref: 'Exercise',
-    localField: 'exercises', // Challenge.exercises (array of ObjectIds)
-    foreignField: '_id' // Exercise._id
-});
-
-const Challenge = mongoose.model('Challenge', challengeSchema)
+const Challenge = mongoose.model("Challenge", challengeSchema);
 module.exports = Challenge;

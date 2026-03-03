@@ -1,61 +1,83 @@
-const form = document.querySelector("#createChallengeForm");
-const formMessage = document.querySelector("#formMessage");
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("#createChallengeForm");
+  const formMessage = document.querySelector("#formMessage");
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  if (!form) return; // safety
 
-  const name = document.querySelector("#name").value.trim();
-  const startTime = document.querySelector("#startTime").value;
-  const endTime = document.querySelector("#endTime").value;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const checked = document.querySelectorAll(
-    'input[name="exerciseIds"]:checked',
-  );
-
-  if (!name || !startTime || !endTime) {
-    formMessage.textContent = "Please fill in all fields.";
+    formMessage.textContent = "";
     formMessage.style.color = "red";
-    return;
-  }
 
-  if (checked.length === 0) {
-    formMessage.textContent = "Please select at least one exercise.";
-    formMessage.style.color = "red";
-    return;
-  }
+    const name = document.querySelector("#name").value.trim();
+    const startTime = document.querySelector("#startTime").value;
+    const endTime = document.querySelector("#endTime").value;
 
-  const exerciseIds = Array.from(checked).map((input) => input.value);
+    const checked = document.querySelectorAll(
+      'input[name="exerciseIds"]:checked',
+    );
 
-  try {
-    const res = await fetch("/api/v1/challenges", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        startTime,
-        endTime,
-        exerciseIds,
-      }),
-    });
+    // =========================
+    // Basic Validation
+    // =========================
+    if (!name || !startTime || !endTime) {
+      formMessage.textContent = "Please fill in all fields.";
+      return;
+    }
 
-    const data = await res.json();
+    if (checked.length === 0) {
+      formMessage.textContent = "Please select at least one exercise.";
+      return;
+    }
 
-    if (res.ok) {
-      formMessage.textContent = "Challenge created successfully!";
+    const exerciseIds = Array.from(checked).map((input) => input.value);
+
+    // Prevent double submit
+    const submitBtn = form.querySelector("button[type='submit']");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Creating...";
+
+    try {
+      const res = await fetch("/api/v1/challenges", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // 🔥 important for auth cookies
+        body: JSON.stringify({
+          name,
+          startTime,
+          endTime,
+          exerciseIds,
+        }),
+      });
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
+      if (!res.ok) {
+        formMessage.textContent = data.message || "Failed to create challenge.";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Create Challenge";
+        return;
+      }
+
       formMessage.style.color = "green";
+      formMessage.textContent = "Challenge created successfully!";
 
       setTimeout(() => {
         window.location.href = "/challenges";
-      }, 600);
-    } else {
-      formMessage.textContent = data.message || "Failed to create challenge.";
-      formMessage.style.color = "red";
+      }, 800);
+    } catch (err) {
+      console.error(err);
+      formMessage.textContent = "Network error. Please check your connection.";
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Create Challenge";
     }
-  } catch (err) {
-    console.error(err);
-    formMessage.textContent = "Something went wrong. Please try again.";
-    formMessage.style.color = "red";
-  }
+  });
 });

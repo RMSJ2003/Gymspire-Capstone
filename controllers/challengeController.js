@@ -13,6 +13,8 @@ const { enforceMuscleRest } = require("../services/restRule.service");
 exports.createChallenge = catchAsync(async (req, res, next) => {
   const { name, exerciseIds, startTime, endTime } = req.body;
 
+  console.log("Exercise IDs: ", exerciseIds);
+
   // =========================
   // 0) Validate name
   // =========================
@@ -21,7 +23,7 @@ exports.createChallenge = catchAsync(async (req, res, next) => {
   }
 
   // =========================
-  // 1) Validate start & end time existence
+  // 1) Validate start & end time
   // =========================
   if (!startTime || !endTime) {
     return next(new AppError("Start time and end time are required", 400));
@@ -31,17 +33,22 @@ exports.createChallenge = catchAsync(async (req, res, next) => {
   const end = new Date(endTime);
   const now = new Date();
 
-  // Invalid date format
   if (isNaN(start.getTime()) || isNaN(end.getTime())) {
     return next(new AppError("Invalid date format", 400));
   }
 
-  // Start time must not be in the past
-  if (start < now) {
-    return next(new AppError("Start time cannot be in the past", 400));
-  }
+  // Allow 5 minutes grace period
+  const graceMinutes = 5;
+  const graceTime = new Date(now.getTime() - graceMinutes * 60 * 1000);
 
-  // End time must be after start time
+  if (start < graceTime) {
+    return next(
+      new AppError(
+        `Start time cannot be more than ${graceMinutes} minutes in the past`,
+        400,
+      ),
+    );
+  }
   if (end <= start) {
     return next(new AppError("End time must be after start time", 400));
   }
@@ -53,39 +60,28 @@ exports.createChallenge = catchAsync(async (req, res, next) => {
     return next(new AppError("exerciseIds must be a non-empty array", 400));
   }
 
-  // =========================
-  // 3) Validate ObjectId format
-  // =========================
-  const validObjectIds = exerciseIds.filter((id) =>
-    mongoose.Types.ObjectId.isValid(id),
+  // Ensure all are strings
+  const invalidTypeIds = exerciseIds.filter(
+    (id) => typeof id !== "string" || id.trim().length === 0,
   );
 
-  const invalidFormatIds = exerciseIds.filter(
-    (id) => !mongoose.Types.ObjectId.isValid(id),
-  );
-
-  if (invalidFormatIds.length > 0) {
-    return next(
-      new AppError(
-        `Invalid exerciseIds format: ${invalidFormatIds.join(", ")}`,
-        400,
-      ),
-    );
+  if (invalidTypeIds.length > 0) {
+    return next(new AppError("All exerciseIds must be valid strings", 400));
   }
 
   // =========================
-  // 4) Fetch exercises
+  // 3) Fetch exercises by exerciseId
   // =========================
   const exercisesFromDb = await Exercise.find({
-    _id: { $in: validObjectIds },
+    exerciseId: { $in: exerciseIds },
   });
 
   // =========================
-  // 5) Validate existence
+  // 4) Validate existence
   // =========================
-  const foundIds = exercisesFromDb.map((ex) => ex._id.toString());
+  const foundIds = exercisesFromDb.map((ex) => ex.exerciseId);
 
-  const notFoundIds = validObjectIds.filter((id) => !foundIds.includes(id));
+  const notFoundIds = exerciseIds.filter((id) => !foundIds.includes(id));
 
   if (notFoundIds.length > 0) {
     return next(
@@ -94,7 +90,7 @@ exports.createChallenge = catchAsync(async (req, res, next) => {
   }
 
   // =========================
-  // 6) Validate NO duplicate targets
+  // 5) Validate NO duplicate muscle targets
   // =========================
   const targets = exercisesFromDb.map((ex) => ex.target);
   const uniqueTargets = new Set(targets);
@@ -106,30 +102,29 @@ exports.createChallenge = catchAsync(async (req, res, next) => {
   }
 
   // =========================
-  // 7) Prepare data
+  // 6) Generate join code
   // =========================
-  const exercises = exercisesFromDb.map((ex) => ex._id);
   const joinCode = generateJoinCode();
 
   // =========================
-  // 8) Create challenge
+  // 7) Create challenge (store exerciseId strings)
   // =========================
   const newChallenge = await Challenge.create({
     name: name.trim(),
     joinCode,
     startTime: start,
     endTime: end,
-    exercises,
+    exercises: exerciseIds, // 🔥 store string IDs
   });
 
   // =========================
-  // 9) Send response
+  // 8) Send response
   // =========================
-  res.status(200).json({
+  res.status(201).json({
     status: "success",
     data: newChallenge,
   });
-}); 
+});
 
 exports.joinChallenge = catchAsync(async (req, res, next) => {
   // ------------------------------------------------------------------
@@ -333,6 +328,7 @@ exports.acquireAllChallenges = catchAsync(async (req, res, next) => {
       select: "username pfpUrl", // only send what UI needs
     });
 
+  console.log("challenges: ", challenges);
   req.challenges = challenges;
   next();
 });

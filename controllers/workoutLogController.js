@@ -90,6 +90,7 @@ exports.createMySoloWorkoutLog = catchAsync(async (req, res, next) => {
 
 exports.createMyChallengeWorkoutLog = catchAsync(async (req, res, next) => {
   const challenge = req.challenge;
+  // console.log("challenge: ", challenge);
 
   // 🚫 Global guard
   await ensureNoOngoingWorkoutLog(req.user._id);
@@ -116,12 +117,16 @@ exports.createMyChallengeWorkoutLog = catchAsync(async (req, res, next) => {
     );
   }
 
+  console.log("Challenge Exercises: ", challenge.exerciseDetails);
+
   const challengeExercises = challenge.exerciseDetails.map((ex) => ({
     name: ex.name,
     target: ex.target,
     gifURL: ex.gifURL,
     set: createDefaultSets(),
   }));
+
+  console.log("Challenge Exercises fetched: ", challengeExercises);
 
   const lastWorkoutLog = await WorkoutLog.findOne({
     userId: req.user._id,
@@ -146,6 +151,8 @@ exports.createMyChallengeWorkoutLog = catchAsync(async (req, res, next) => {
     status: "ongoing",
     exercises: challengeExercises,
   });
+
+  console.log("New Challenge Workout Log: ", newChallengeWorkoutLog);
 
   res.status(201).json({
     status: "success",
