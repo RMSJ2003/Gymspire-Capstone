@@ -4,7 +4,6 @@ block styles
   link(rel="stylesheet" href="/css/personalRecord.css")
 
 block content
-  //- include _navbar
 
   // 🔹 TOP BAR
   .top-bar
@@ -24,19 +23,28 @@ block content
   else
     img.profile-pic(src="/img/default-user.png" alt="Default Profile")
 
-  h3 Search Personal Record
+  h3 Select a Muscle Group
 
-  form#prForm
-    input(
-      type="text"
-      id="exerciseInput"
-      placeholder="Enter exercise name (e.g. dumbbell bench press)"
-      required
-    )
-    button(type="submit") Search PR
+  // MUSCLE GRID
+  .target-grid#targetGrid
+
+  // EXERCISE MODAL
+  .modal.hidden#targetModal
+    .modal-content.large
+      button#closeTargetModal ×
+      h3#targetTitle
+      .exercise-list#targetExerciseList
 
   br
   div#prResult
 
 block scripts
+
+  // PASS EXERCISE DATA
+  script#exercisesData(type="application/json").
+    !{JSON.stringify(exercises)}
+
+  script.
+    window.exercises = JSON.parse(document.getElementById("exercisesData").textContent)
+
   script(src="/js/pr.js")

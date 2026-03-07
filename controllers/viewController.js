@@ -189,8 +189,13 @@ exports.editWorkoutPlan = catchAsync(async (req, res, next) => {
 });
 
 exports.personalRecord = catchAsync(async (req, res, next) => {
+  console.log(req.exercises);
+  
+
   res.status(200).render("personalRecord", {
     title: "My Personal Records",
+    exercises: req.exercises,
+    workoutLogs: req.myWorkoutLogs,
     currentUser: req.user,
   });
 });

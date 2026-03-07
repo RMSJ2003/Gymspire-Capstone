@@ -140,6 +140,7 @@ router.get(
 router.get(
   "/personalRecord",
   authController.protect,
+  exerciseController.acquireAllExericses,
   viewController.personalRecord,
 );
 

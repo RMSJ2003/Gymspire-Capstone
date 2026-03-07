@@ -4,12 +4,12 @@
 body {
   font-family: Arial, sans-serif;
   background-color: white;
-  padding: 6rem 1rem 2rem 1rem; /* 🔥 add top padding */
+  padding: 6rem 1rem 2rem 1rem;
   min-height: 100vh;
 }
 
 /* =========================
-   TOP BAR BUTTONS
+   TOP BAR
 ========================= */
 .top-bar {
   position: fixed;
@@ -18,160 +18,129 @@ body {
   right: 0;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 0.8rem 1rem; /* keep original */
+  padding: 0.8rem 1rem;
   background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   z-index: 999;
 }
 
 .top-bar a {
   padding: 0.5rem 1rem;
   border: 2px solid #d25353;
-  background-color: #d25353;
-  color: whitesmoke;
-  font-weight: bold;
+  background: #d25353;
+  color: white;
   border-radius: 0.5rem;
+  font-weight: bold;
   text-decoration: none;
-  transition: 0.3s;
 }
 
 .top-bar a:hover {
   color: #f4c430;
-  border: 2px solid transparent;
 }
 
 /* =========================
-   PROFILE PICTURE
+   PROFILE
 ========================= */
 .profile-pic {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  object-fit: cover;
   border: 4px solid #ebda1b;
   display: block;
-  margin: 3rem auto 1rem auto; /* space below top-bar */
+  margin: 2rem auto;
+  object-fit: cover;
 }
 
 /* =========================
    HEADINGS
 ========================= */
-h1,
-h2,
-h3 {
+h1,h2,h3 {
   text-align: center;
   margin-bottom: 0.8rem;
-  padding-top: 1rem;
-}
-
-h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: black;
-}
-
-h2 {
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: black;
-}
-
-h3 {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: black;
 }
 
 /* =========================
-   FORM STYLING
+   TARGET GRID
 ========================= */
-form#prForm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.8rem;
-  margin-top: 1rem;
+.target-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  gap: 1rem;
+  max-width: 900px;
+  margin: 2rem auto;
 }
 
-form#prForm input[type="text"] {
-  background-color: whitesmoke;
-  color: black;
-  width: 100%;
-  max-width: 350px;
-  padding: 12px;
-  border-radius: 6px;
-  border: none;
+.target-card {
+  background:#d25353;
+  color:white;
+  font-weight:bold;
+  padding:1.5rem;
+  text-align:center;
+  border-radius:0.7rem;
+  cursor:pointer;
+  transition:0.3s;
 }
 
-form#prForm input[type="text"]:focus {
-  outline: 2px solid black;
-  outline-offset: 2px;
-}
-
-form#prForm button {
-  display: block;
-  width: max-content; /* button width matches text */
-  margin: 1rem auto;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.5rem;
-  background-color: #d25353;
-  color: whitesmoke;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-form#prForm button:hover {
-  color: #f4c430;
+.target-card:hover {
+  transform:scale(1.05);
+  background:#b91c1c;
 }
 
 /* =========================
-   RESULTS SECTION
+   EXERCISE LIST
+========================= */
+.exercise-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#ea7b7b;
+  padding:0.6rem 1rem;
+  border-radius:0.6rem;
+  margin-bottom:0.5rem;
+}
+
+.exercise-row button {
+  background:transparent;
+  border:1px solid #ebda1b;
+  color:#ebda1b;
+  padding:0.3rem 0.6rem;
+  border-radius:0.4rem;
+  cursor:pointer;
+}
+
+/* =========================
+   MODAL
+========================= */
+.modal {
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(0,0,0,0.7);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal.hidden {
+  display:none;
+}
+
+.modal-content.large {
+  background:white;
+  padding:1rem;
+  border-radius:1rem;
+  max-width:700px;
+  width:95%;
+  max-height:80vh;
+  overflow-y:auto;
+}
+
+/* =========================
+   RESULT
 ========================= */
 #prResult {
-  margin-top: 1.5rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center; /* optional: center any result text */
-}
-
-/* =========================
-   ALERT / MESSAGES
-========================= */
-#startMessage {
-  text-align: center;
-  font-weight: bold;
-  margin-top: 1rem;
-  color: #f87171;
-}
-
-/* =========================
-   MOBILE RESPONSIVE
-========================= */
-@media (max-width: 600px) {
-  .profile-pic {
-    width: 120px;
-    height: 120px;
-    margin-top: 4rem;
-  }
-
-  form#prForm input[type="text"] {
-    max-width: 100%;
-  }
-
-  form#prForm button {
-    width: 100%;
-  }
-
-  h1 {
-    font-size: 1.5rem;
-  }
-
-  h2,
-  h3 {
-    font-size: 1.2rem;
-  }
+  text-align:center;
+  margin-top:1.5rem;
 }

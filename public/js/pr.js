@@ -1,47 +1,90 @@
-const form = document.querySelector("#prForm");
-const input = document.querySelector("#exerciseInput");
+const exercises = window.exercises || [];
+
 const resultDiv = document.querySelector("#prResult");
-/*
-NOTE:
-encodeURIComponent() makes a string safe to put inside a URL.
+const targetGrid = document.getElementById("targetGrid");
 
-Because URLs:
+const targetModal = document.getElementById("targetModal");
+const closeTargetModal = document.getElementById("closeTargetModal");
 
-Cannot safely contain spaces
+const targetTitle = document.getElementById("targetTitle");
+const targetExerciseList = document.getElementById("targetExerciseList");
 
-Cannot contain special characters like:
 
-/
+// GROUP BY TARGET
+const grouped = {};
 
-?
+exercises.forEach(ex => {
 
-&
+  if(!grouped[ex.target]) grouped[ex.target] = [];
 
-#
+  grouped[ex.target].push(ex);
 
-%
+});
 
-So JavaScript converts them into encoded form.
 
-*/
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+// CREATE MUSCLE CARDS
+Object.keys(grouped).forEach(target => {
 
-  const exerciseName = input.value.trim();
+  const card = document.createElement("div");
 
-  if (!exerciseName) {
-    resultDiv.innerHTML =
-      "<p style='color:red'>Please enter an exercise name.</p>";
-    return;
-  }
+  card.className = "target-card";
+  card.textContent = target;
 
-  try {
-    const res = await fetch(
-      `/api/v1/prs/exercise/${encodeURIComponent(exerciseName)}`,
-    );
+  card.addEventListener("click", () => openTargetModal(target));
+
+  targetGrid.appendChild(card);
+
+});
+
+
+// OPEN EXERCISE MODAL
+function openTargetModal(target){
+
+  targetTitle.textContent = target;
+  targetExerciseList.innerHTML = "";
+
+  grouped[target].forEach(exercise => {
+
+    const row = document.createElement("div");
+    row.className = "exercise-row";
+
+    row.innerHTML = `
+      <span>${exercise.name}</span>
+      <button>View PR</button>
+    `;
+
+    row.querySelector("button").onclick = () => fetchPR(exercise.name);
+
+    targetExerciseList.appendChild(row);
+
+  });
+
+  targetModal.classList.remove("hidden");
+
+}
+
+
+// CLOSE MODAL
+closeTargetModal.onclick = () => {
+
+  targetModal.classList.add("hidden");
+
+};
+
+
+// FETCH PR
+async function fetchPR(exerciseName){
+
+  try{
+
+    const res = await fetch(`/api/v1/prs/exercise/${encodeURIComponent(exerciseName)}`);
+    console.log(res);
+    
+
     const data = await res.json();
 
-    if (data.status === "success") {
+    if(data.status === "success"){
+
       const pr = data.data;
 
       const date = new Date(pr.date).toDateString();
@@ -53,12 +96,19 @@ form.addEventListener("submit", async (e) => {
         <p><strong>Reps:</strong> ${pr.reps}</p>
         <p><strong>Date:</strong> ${date}</p>
       `;
+
     } else {
-      resultDiv.innerHTML = `<p style="color:red">${data.message || "No PR found."}</p>`;
+
+      resultDiv.innerHTML = "<p style='color:red'>No PR found.</p>";
+
     }
-  } catch (err) {
+
+  } catch(err){
+
     console.error(err);
-    resultDiv.innerHTML =
-      "<p style='color:red'>Error fetching personal record.</p>";
+
+    resultDiv.innerHTML = "<p style='color:red'>Error fetching PR.</p>";
+
   }
-});
+
+}
