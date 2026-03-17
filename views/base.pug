@@ -27,7 +27,10 @@ html
 
     //- This will be overwritten 
     block content
+    script(src='https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js')
+    link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css')
+    script(src='/js/tutorial.js')
 
-    // ✅ add this to allow pages to inject JS
-    block scripts
-      script(src='/js/pwa.js')
+  // ✅ add this to allow pages to inject JS
+  block scripts
+    script(src='/js/pwa.js')

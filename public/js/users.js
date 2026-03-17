@@ -178,7 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   async function loadAttendance(userId, username, pfp) {
-    drawerPfp.src = pfp;
+    drawerPfp.src = pfp || "/img/default-user.png";
+    drawerPfp.onerror = function () {
+      this.onerror = null;
+      this.src = "/img/default-user.png";
+    };
     drawerUsername.textContent = username;
     drawerTotalVisits.textContent = "—";
     drawerThisMonth.textContent = "—";

@@ -45,27 +45,6 @@ block content
       p#deleteMessage
 
     //- Exercise list
-    if exercises.length === 0
-      p.ex-empty No exercises in the database yet.
-    else
-      p.ex-list-header #{exercises.length} exercises
-
-      .exercise-list-container
-        each exercise in exercises
-          .exercise-card
-            .exercise-content
-              if exercise.gifURL
-                img.exercise-gif(src=exercise.gifURL alt=exercise.name)
-
-              .exercise-info
-                h3 #{exercise.name}
-                p #{exercise.target}
-
-                if exercise.instructions && exercise.instructions.length
-                  h4 Instructions
-                  ul
-                    each step in exercise.instructions
-                      li #{step}
 
 block scripts
   script(src="/js/exercisesManagement.js")

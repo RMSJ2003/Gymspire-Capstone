@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { startAutoCheckoutJob } = require("./services/autoCheckout");
 
 // ===============================
 // Handle uncaught exceptions
@@ -25,6 +26,9 @@ const DB = process.env.DATABASE.replace(
 );
 
 mongoose.connect(DB).then(() => console.log("DB connection successful!"));
+
+// Auto checkout users
+startAutoCheckoutJob();
 
 // ===============================
 // Start server

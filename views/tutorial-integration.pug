@@ -1,0 +1,125 @@
+//- ============================================================
+//- GymSpire Tutorial — Integration Instructions
+//- ============================================================
+//-
+//- STEP 1: Add Driver.js CDN to your base layout (views/layouts/base.pug or similar)
+//- Add these BEFORE your closing </body> tag:
+//-
+//-   script(src='https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js')
+//-   link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css')
+//-   script(src='/js/tutorial.js')
+//-
+//- ============================================================
+//- STEP 2: Add this block to the BOTTOM of each dashboard page
+//- Replace 'user' with 'coach' or 'admin' on the respective dashboards
+//-
+//- For user/student dashboard (views/user/dashboard.pug):
+//-   script.
+//-     GymSpireTour.init('user');
+//-
+//- For coach dashboard (views/coach/dashboard.pug):
+//-   script.
+//-     GymSpireTour.init('coach');
+//-
+//- For admin dashboard (views/admin/dashboard.pug):
+//-   script.
+//-     GymSpireTour.init('admin');
+//-
+//- ============================================================
+//- STEP 3: Add data-tour attributes to your HTML elements
+//-
+//- These are the attributes the tutorial will highlight.
+//- Just add   data-tour="<id>"   to the matching element.
+//-
+//- ── SHARED ──────────────────────────────────
+//- Navbar or sidebar dashboard link:
+//-   a(href='/dashboard' data-tour='dashboard') Dashboard
+//-
+//- Profile link:
+//-   a(href='/profile' data-tour='profile') Profile
+//-
+//- Gym congestion section/button:
+//-   div(data-tour='congestion') ...
+//-
+//- Leaderboard section:
+//-   div(data-tour='leaderboard') ...
+//-
+//- ── STUDENT / USER ──────────────────────────
+//- Workout Plan card or link:
+//-   a(href='/workout-plan' data-tour='workout-plan') Workout Plan
+//-
+//- Start Workout button:
+//-   button(data-tour='start-workout') Start Workout
+//-
+//- Workout Log link or section:
+//-   a(href='/workout-log' data-tour='workout-log') Workout Log
+//-
+//- PR Tracker section:
+//-   div(data-tour='pr-tracker') ...
+//-
+//- Challenges section:
+//-   a(href='/challenges' data-tour='challenges') Challenges
+//-
+//- ── COACH ───────────────────────────────────
+//- Create Challenge button:
+//-   button(data-tour='create-challenge') Create Challenge
+//-
+//- Submissions review section:
+//-   div(data-tour='submissions') ...
+//-
+//- Progress dashboard section:
+//-   div(data-tour='progress-dashboard') ...
+//-
+//- Feedback section:
+//-   div(data-tour='feedback') ...
+//-
+//- ── ADMIN ───────────────────────────────────
+//- Manage Accounts link:
+//-   a(href='/admin/users' data-tour='manage-accounts') Manage Accounts
+//-
+//- Import Exercises button:
+//-   button(data-tour='import-exercises') Import Exercises
+//-
+//- Attendance section:
+//-   div(data-tour='attendance') ...
+//-
+//- Settings link:
+//-   a(href='/admin/settings' data-tour='settings') Settings
+//-
+//- ============================================================
+//- STEP 4: To RESET the tour for testing (run in browser console):
+//-
+//-   localStorage.removeItem('gymspire_tour_done_user')
+//-   localStorage.removeItem('gymspire_tour_done_coach')
+//-   localStorage.removeItem('gymspire_tour_done_admin')
+//-
+//- Or force show it anytime:
+//-   GymSpireTour.start('user')
+//-
+//- ============================================================
+
+
+//- ── EXAMPLE: What your user dashboard bottom should look like ──
+//- extends ../layouts/base
+//-
+//- block content
+//-   .dashboard-container
+//-     nav.sidebar
+//-       a(href='/dashboard' data-tour='dashboard') Dashboard
+//-       a(href='/workout-plan' data-tour='workout-plan') Workout Plan
+//-       a(href='/challenges' data-tour='challenges') Challenges
+//-       a(href='/workout-log' data-tour='workout-log') Workout Log
+//-       a(href='/profile' data-tour='profile') Profile
+//-
+//-     main
+//-       .congestion-widget(data-tour='congestion')
+//-         ...
+//-       .pr-section(data-tour='pr-tracker')
+//-         ...
+//-       .leaderboard-section(data-tour='leaderboard')
+//-         ...
+//-       button.btn-start(data-tour='start-workout') 💪 Start Workout
+//-
+//- block scripts
+//-   script.
+//-     GymSpireTour.init('user');
