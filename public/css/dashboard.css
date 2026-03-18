@@ -1806,3 +1806,491 @@ span.muscle-count.done {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+.admin-table-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.2rem 0;
+  font-size: 0.78rem;
+  color: #bbb;
+  font-style: italic;
+}
+
+/* ══════════════════════════════════════
+   COACH DASHBOARD — MOBILE FIXES
+══════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* ── Header ── */
+  .dash-header {
+    padding: 0.45rem 1rem 0.4rem;
+    gap: 0.5rem;
+  }
+  .dash-title {
+    font-size: 0.95rem;
+  }
+  .dash-logo {
+    width: 16px;
+  }
+  .dash-header__right {
+    padding: 0.22rem 0.55rem;
+  }
+  .dash-week-label,
+  .dash-week-val {
+    font-size: 0.68rem;
+  }
+
+  /* ── Coach grid ── */
+  .coach-main-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0 0.85rem;
+    margin-bottom: 0.6rem;
+  }
+  .coach-left {
+    gap: 0.45rem;
+  }
+  .coach-card {
+    padding: 0.65rem 0.8rem;
+  }
+  .coach-card__title {
+    font-size: 0.8rem;
+    margin-bottom: 0.45rem;
+  }
+  .status-card.compact {
+    padding: 0.62rem 0.8rem;
+  }
+  .status-card.compact p {
+    font-size: 0.74rem;
+  }
+
+  /* ── Fatigue section header ── */
+  .fatigue-header {
+    margin-bottom: 0.3rem;
+  }
+  .fatigue-title {
+    font-size: 0.56rem;
+  }
+  .fatigue-sub {
+    font-size: 0.67rem;
+  }
+
+  /* ── Fatigue table → 2-col card rows ──
+     Layout per row:
+       [avatar+name (col1, spans 2 rows)] | [last session (col2, row1)]
+                                           | [status badge  (col2, row2)]
+  ── */
+  .fatigue-table-wrap {
+    max-height: none;
+    border-radius: 10px;
+  }
+  .fatigue-table thead {
+    display: none;
+  }
+  .fatigue-table,
+  .fatigue-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .fatigue-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: 0.6rem;
+    row-gap: 2px;
+    padding: 0.58rem 0.85rem;
+    border-bottom: 1px solid #f0f0f0;
+    align-items: center;
+  }
+  .fatigue-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  /* Avatar + name — left col, spans both rows */
+  .fatigue-table td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    padding: 0;
+    align-self: center;
+    min-width: 0;
+  }
+  .fatigue-member {
+    gap: 0.38rem;
+    min-width: 0;
+  }
+  .fatigue-name {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+  }
+  .fatigue-avatar {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  /* Last session — right col, row 1 */
+  .fatigue-table td:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 0;
+    text-align: right;
+  }
+  .fatigue-last {
+    font-size: 0.69rem;
+    white-space: nowrap;
+  }
+
+  /* Trend — hidden */
+  .fatigue-table td:nth-child(3) {
+    display: none;
+  }
+
+  /* Status badge — right col, row 2 */
+  .fatigue-table td:nth-child(4) {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 0;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .fatigue-status {
+    font-size: 0.6rem;
+    padding: 0.12rem 0.45rem;
+  }
+
+  /* Remove default td styles */
+  .fatigue-table td {
+    padding: 0;
+    border-bottom: none;
+  }
+
+  /* Loading/empty */
+  .fatigue-loading td,
+  .fatigue-empty td {
+    display: block;
+    padding: 1.2rem;
+    text-align: center;
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  /* ── Congestion panel ── */
+  .congestion-panel {
+    padding: 0 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+  .congestion-panel__head {
+    margin-bottom: 0.4rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .dash-title {
+    font-size: 0.85rem;
+  }
+  .fatigue-name {
+    max-width: 110px;
+  }
+}
+
+/* ══════════════════════════════════════
+   ADMIN USER TABLE — MOBILE FIXES
+══════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Stats — 2 cols */
+  .admin-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.45rem;
+  }
+  .stat-number {
+    font-size: 1.35rem;
+  }
+  .stat-label {
+    font-size: 0.62rem;
+  }
+
+  /* Panel head */
+  .admin-panel {
+    padding: 0 0.85rem;
+  }
+  .admin-panel__head {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Hide the table structure — flip to cards */
+  .table-wrapper {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    overflow: visible;
+  }
+  .user-table thead {
+    display: none;
+  }
+  .user-table,
+  .user-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .user-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Each row = card */
+  .user-table tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 0.7rem;
+    row-gap: 0.35rem;
+    background: white;
+    border-radius: 11px;
+    border: 1px solid rgba(210, 83, 83, 0.1);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+    padding: 0.75rem 0.9rem;
+    align-items: center;
+  }
+
+  /* Col 1 — avatar, spans 2 rows */
+  .user-table td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    padding: 0;
+    align-self: center;
+  }
+  .avatar-wrap {
+    width: 36px;
+    height: 36px;
+  }
+  .profile-small {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Col 2 — username + email, row 1 */
+  .user-table td:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 0;
+    min-width: 0;
+  }
+  .user-name {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-email {
+    font-size: 0.68rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Col 3 — role badge, top right */
+  .user-table td:nth-child(3) {
+    grid-column: 3;
+    grid-row: 1;
+    padding: 0;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* Col 4 (gym status) — hidden */
+  .user-table td:nth-child(4) {
+    display: none;
+  }
+
+  /* Col 5 — actions, row 2, span cols 2-3 */
+  .user-table td:nth-child(5) {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    padding: 0;
+  }
+
+  /* Action buttons side by side, full width */
+  .action-btns {
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+  }
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.5rem;
+  }
+  /* Hide text on very narrow — show just icon */
+  .action-btn span {
+    display: inline;
+  }
+}
+
+@media (max-width: 380px) {
+  .action-btn span {
+    display: none;
+  }
+  .action-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+  .action-btn {
+    padding: 0.38rem 0.6rem;
+  }
+}
+
+/* ══════════════════════════════════════
+   NAVBAR — MOBILE FIX
+   Prevent nav-center from overlapping hamburger
+══════════════════════════════════════ */
+@media (max-width: 640px) {
+  .navbar {
+    padding: 0 1rem;
+  }
+
+  /* Remove absolute centering — hide center on mobile */
+  .nav-center {
+    display: none;
+  }
+
+  /* Ensure right side is always visible */
+  .nav-right {
+    position: relative;
+    flex-shrink: 0;
+    z-index: 1001;
+  }
+
+  .hamburger {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  /* Panel still drops from right */
+  .panel {
+    position: fixed;
+    top: 64px;
+    right: 1rem;
+    left: auto;
+  }
+}
+
+/* ══════════════════════════════════════
+   ADMIN USER TABLE — PROPER MOBILE CARD FLIP
+   Overrides all previous mobile table rules
+══════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Remove the min-width that forces horizontal scroll */
+  .user-table {
+    min-width: unset !important;
+  }
+
+  /* Kill the table wrapper box on mobile */
+  .table-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+
+  /* Block display for all table elements */
+  .user-table,
+  .user-table thead,
+  .user-table tbody,
+  .user-table tr,
+  .user-table th,
+  .user-table td {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Hide the header row */
+  .user-table thead {
+    display: none !important;
+  }
+
+  /* Each row = white card */
+  .user-table tbody tr {
+    background: white !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(210, 83, 83, 0.1) !important;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05) !important;
+    padding: 0.8rem !important;
+    margin-bottom: 0.55rem !important;
+    width: 100% !important;
+  }
+
+  /* All cells: no default padding */
+  .user-table td {
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* Avatar cell — float left */
+  .user-table td:nth-child(1) {
+    float: left;
+    width: auto !important;
+    margin-right: 0.7rem;
+    margin-bottom: 0;
+  }
+
+  /* User info cell — fills remaining space */
+  .user-table td:nth-child(2) {
+    overflow: hidden;
+    margin-bottom: 0.4rem;
+  }
+  .user-name {
+    font-size: 0.82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .user-email {
+    font-size: 0.68rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Role badge — inline after email */
+  .user-table td:nth-child(3) {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Gym status — hide */
+  .user-table td:nth-child(4) {
+    display: none !important;
+  }
+
+  /* Actions — full width row */
+  .user-table td:nth-child(5) {
+    clear: both;
+  }
+  .action-btns {
+    display: flex !important;
+    gap: 0.4rem;
+    width: 100%;
+  }
+  .action-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.5rem !important;
+    white-space: nowrap;
+  }
+
+  /* clearfix */
+  .user-table tbody tr::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
