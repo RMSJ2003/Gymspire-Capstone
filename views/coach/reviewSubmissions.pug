@@ -4,52 +4,83 @@ block styles
   link(rel="stylesheet" href="/css/reviewSubmissions.css")
 
 block content
-  .top-bar
-    a.dashboard-btn(href="/coachDashboard") Dashboard
-    a.back-btn(href="javascript:history.back()") Back
 
+  //- ── NAVBAR ──────────────────────────────────────────
+  nav.navbar
+    .nav-logo
+      a(href='/coachDashboard') GymSpire
+    .nav-center
+    .nav-right
+      a.nav-back(href='javascript:history.back()')
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M19 12H5M5 12l7 7M5 12l7-7')
+        span Back
+
+  //- ── PAGE HEADER ─────────────────────────────────────
   .page-header
-    h1 Challenge Submissions
-    p.page-subtitle Reviewing as &nbsp;
-      span.coach-name #{user.username}
+    .page-header__left
+      div
+        h1.page-header__title Challenge Submissions
+        p.page-header__sub
+          | Reviewing as&nbsp;
+          span.coach-name= user.username
+    .page-header__right
+      span.submission-count
+        | #{submissions ? submissions.length : 0} submission#{(!submissions || submissions.length !== 1) ? 's' : ''}
 
+  //- ── SUBMISSIONS ─────────────────────────────────────
   .submissions-wrapper
+
     if !submissions || submissions.length === 0
       .empty-state
-        p.empty-icon 📋
+        .empty-icon 📋
         p No submissions yet for this challenge.
+
     else
       each log in submissions
         .submission-card
+
+          //- Error message (JS populates)
           p.error-message
 
+          //- Header
           .submission-header
             .submission-user
               .user-avatar
                 if log.userId && log.userId.pfpUrl
-                  img(
-                    src=log.userId.pfpUrl
-                    alt="Profile Picture"
-                    style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:block;"
-                    onerror="this.onerror=null;this.src='/img/default-user.png'"
-                  )
+                  img(src=log.userId.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
                 else
-                  img(
-                    src="/img/default-user.png"
-                    alt="Profile Picture"
-                    style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:block;"
-                  )
+                  img(src="/img/default-user.png" alt="Profile Picture")
               .user-info
                 h3= log.userId && log.userId.username ? log.userId.username : 'Unknown User'
                 if log.judgeStatus === "approved"
-                  span.status-badge.status-approved ✔ Approved
+                  span.status-badge.status-approved
+                    svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                      polyline(points='20 6 9 17 4 12')
+                    | Approved
                 else if log.judgeStatus === "rejected"
-                  span.status-badge.status-rejected ✘ Rejected
+                  span.status-badge.status-rejected
+                    svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                      line(x1='18' y1='6' x2='6' y2='18')
+                      line(x1='6' y1='6' x2='18' y2='18')
+                    | Rejected
                 else
-                  span.status-badge.status-pending ⏳ Pending Review
+                  span.status-badge.status-pending
+                    svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                      circle(cx='12' cy='12' r='10')
+                      polyline(points='12 6 12 12 16 14')
+                    | Pending Review
+
+          //- Body — exercises left, video right
           .submission-body
+
             .exercises-col
-              h4.section-label 📊 Exercises & Sets
+              h4.section-label
+                svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                  path(d='M9 11l3 3L22 4')
+                  path(d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11')
+                span Exercises & Sets
+
               if log.exercises && log.exercises.length
                 each ex in log.exercises
                   .exercise-block
@@ -78,15 +109,23 @@ block content
                 p.no-data No exercises submitted.
 
             .video-col
-              h4.section-label 🎥 Submission Video
+              h4.section-label
+                svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                  polygon(points='23 7 16 12 23 17 23 7')
+                  rect(x='1' y='5' width='15' height='14' rx='2' ry='2')
+                span Submission Video
+
               if log.videoUrl
                 video(controls)
                   source(src=log.videoUrl type="video/mp4")
               else
                 .no-video
-                  span 🚫
+                  svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                    circle(cx='12' cy='12' r='10')
+                    line(x1='4.93' y1='4.93' x2='19.07' y2='19.07')
                   p No video submitted
 
+          //- Action form or reviewed block
           if log.judgeStatus === "pending"
             form.verify-form(
               data-log-id=log._id
@@ -101,14 +140,24 @@ block content
                   placeholder="Enter feedback for the athlete..."
                 )
               .form-actions
-                button.btn-approve(type="submit" name="decision" value="approved") ✔ Approve
-                button.btn-reject(type="submit" name="decision" value="rejected") ✘ Reject
+                button.btn-approve(type="submit" name="decision" value="approved")
+                  svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                    polyline(points='20 6 9 17 4 12')
+                  | Approve
+                button.btn-reject(type="submit" name="decision" value="rejected")
+                  svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                    line(x1='18' y1='6' x2='6' y2='18')
+                    line(x1='6' y1='6' x2='18' y2='18')
+                  | Reject
           else
             .reviewed-block
-              p.reviewed-text ✔ This submission has already been reviewed.
+              .reviewed-text
+                svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                  polyline(points='20 6 9 17 4 12')
+                | Already reviewed
               if log.judgeNotes
                 .coach-notes
-                  span.notes-label Coach Notes:
+                  span.notes-label Coach Notes
                   p= log.judgeNotes
 
 block scripts

@@ -37,6 +37,7 @@ exports.adminDashboard = catchAsync(async (req, res, next) => {
     title: "Admin Dashboard",
     frequencies: req.myTargetWeeklyFrequency,
     workoutCount: req.weeklyWorkoutCount,
+    users: req.users, // ← add this line
     hideNavbar: false,
   });
 });
@@ -239,6 +240,8 @@ exports.createChallenge = catchAsync(async (req, res, next) => {
 });
 
 exports.users = catchAsync(async (req, res, next) => {
+  console.log(req.users);
+
   res
     .status(200)
     .render(req.user.userType === "admin" ? "admin/users" : "clinic/users", {

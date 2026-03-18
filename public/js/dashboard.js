@@ -79,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <li><strong>Best time for you:</strong> The system finds the quietest hour you haven't already been visiting, so you get a genuinely personalized recommendation.</li>
             <li><strong>Hour-by-hour view:</strong> See today's predicted busyness for every open gym hour at a glance.</li>
             <li><strong>Weekly heatmap:</strong> Find out which days of the week are historically quiet vs. busy.</li>
-            <li><strong>Live indicator:</strong> The badge on this card shows current gym status in real time.</li>
             <li><strong>⚠ Note:</strong> Predictions improve as more members use the gym check-in feature.</li>
           </ul>
         `,
@@ -91,23 +90,22 @@ document.addEventListener("DOMContentLoaded", () => {
     infoData = [
       {
         text: `
-          <h2>Users Information</h2>
-          <ul style="text-align:left; margin-top:10px; line-height:1.6;">
-            <li><strong>View users:</strong> See all registered users in the system.</li>
-            <li><strong>Manage users:</strong> Edit, delete, or assign roles to users as needed.</li>
-            <li><strong>Track activity:</strong> Monitor user engagement and workout activity.</li>
-          </ul>
-        `,
+        <h2>Exercises Management</h2>
+        <ul style="text-align:left; margin-top:10px; line-height:1.6;">
+          <li><strong>Import exercises:</strong> Import exercises from external API to expand the exercise database.</li>
+          <li><strong>Delete exercises:</strong> Delete existing exercise details.</li>
+        </ul>
+      `,
       },
       {
         text: `
-          <h2>Exercises Management</h2>
-          <ul style="text-align:left; margin-top:10px; line-height:1.6;">
-            <li><strong>Add exercises:</strong> Create new exercises to expand the exercise database.</li>
-            <li><strong>Edit exercises:</strong> Modify existing exercise details such as name, sets, reps, and description.</li>
-            <li><strong>Organize routines:</strong> Manage exercise categories and ensure proper grouping.</li>
-          </ul>
-        `,
+        <h2>🏋️ Gym Congestion Data</h2>
+        <ul style="text-align:left; margin-top:10px; line-height:1.6;">
+          <li><strong>Real check-in data:</strong> View busyness predictions based on actual member check-ins.</li>
+          <li><strong>Hour-by-hour view:</strong> See today's predicted busyness for every open gym hour.</li>
+          <li><strong>Weekly heatmap:</strong> Find out which days are historically quiet vs. busy.</li>
+        </ul>
+      `,
       },
     ];
 

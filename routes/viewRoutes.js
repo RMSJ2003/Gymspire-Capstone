@@ -65,6 +65,7 @@ router.get(
   authController.protect,
   authController.restrictTo("admin"),
   adminController.getGymspireNowStatus,
+  userController.acquireAllUsers, // ← add this line
   viewController.adminDashboard,
 );
 

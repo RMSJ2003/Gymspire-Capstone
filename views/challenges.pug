@@ -4,90 +4,154 @@ block styles
   link(rel="stylesheet" href="/css/challenges.css")
 
 block content
-  .top-bar
-    if user.userType === "user"
-      a.dashboard-btn(href='/dashboard') Dashboard
-    if user.userType === "coach"
-      a.dashboard-btn(href='/coachDashboard') Dashboard
-    if user.userType === "admin"
-      a.dashboard-btn(href='/adminDashboard') Dashboard
-    a.back-btn(href='javascript:history.back()') Back
 
+  //- ── NAVBAR (matches dashboard style) ───────────────────
+  nav.navbar
+    .nav-logo
+      if user.userType === "user"
+        a(href='/dashboard') GymSpire
+      if user.userType === "coach"
+        a(href='/coachDashboard') GymSpire
+      if user.userType === "admin"
+        a(href='/adminDashboard') GymSpire
+    .nav-center
+    .nav-right
+      a.nav-back(href='javascript:history.back()')
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M19 12H5M5 12l7 7M5 12l7-7')
+        span Back
+
+  //- ── PAGE HEADER ─────────────────────────────────────────
   .page-header
-    .page-header-inner
+    .page-header__left
       if user.pfpUrl
-        img.profile-pic(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
+        img.page-header__avatar(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
       else
-        img.profile-pic(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
-      .page-header-text
-        h1 Challenges
-        p.header-username #{user.username}
+        img.page-header__avatar(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+      .page-header__text
+        h1.page-header__title Challenges
+        p.page-header__sub= user.username
     if user.userType === "coach"
-      a.create-challenge(href='/createChallenge') + Create Challenge
+      a.create-btn(href='/createChallenge')
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          line(x1='12' y1='5' x2='12' y2='19')
+          line(x1='5' y1='12' x2='19' y2='12')
+        span Create Challenge
 
+  //- ── CHALLENGES LIST ─────────────────────────────────────
   .challenges-wrapper
+
     if challenges.length === 0
       .empty-state
-        p.empty-icon 🏋️
+        .empty-icon 🏋️
         p No challenges available yet.
+
     else
       each challenge in challenges
         .challenge-card
-          .challenge-card-header
-            h2= challenge.name
-            .challenge-meta
-              span.meta-item 📅 #{challenge.startTime.toDateString()} — #{challenge.endTime.toDateString()}
-              span.meta-item 👥 #{challenge.participants.length} participant#{challenge.participants.length !== 1 ? 's' : ''}
 
+          //- Header row
+          .challenge-card__header
+            h2.challenge-card__name= challenge.name
+            .challenge-card__meta
+              span.meta-pill
+                svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                  rect(x='3' y='4' width='18' height='18' rx='2' ry='2')
+                  line(x1='16' y1='2' x2='16' y2='6')
+                  line(x1='8' y1='2' x2='8' y2='6')
+                  line(x1='3' y1='10' x2='21' y2='10')
+                | #{challenge.startTime.toDateString()} — #{challenge.endTime.toDateString()}
+              span.meta-pill
+                svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                  path(d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2')
+                  circle(cx='9' cy='7' r='4')
+                  path(d='M23 21v-2a4 4 0 0 0-3-3.87')
+                  path(d='M16 3.13a4 4 0 0 1 0 7.75')
+                | #{challenge.participants.length} participant#{challenge.participants.length !== 1 ? 's' : ''}
+
+          //- Participants
           if challenge.participants.length
             .participants-row
               each p in challenge.participants
-                .participant
+                .participant(title=p.username)
                   if p.pfpUrl
-                    img(src=p.pfpUrl alt=p.username title=p.username onerror="this.onerror=null;this.src='/img/default-user.png'")
+                    img(src=p.pfpUrl alt=p.username onerror="this.onerror=null;this.src='/img/default-user.png'")
                   else
-                    img(src="/img/default-user.png" alt=p.username title=p.username onerror="this.onerror=null;this.src='/img/default-user.png'")
+                    img(src="/img/default-user.png" alt=p.username onerror="this.onerror=null;this.src='/img/default-user.png'")
                   span= p.username
 
+          //- Actions
           - const alreadyJoined = challenge.participants.some(p => p._id.toString() === user._id.toString())
 
           .challenge-actions
             if user.userType === 'user'
               if alreadyJoined
-                span.join-status ✔ Joined
+                span.join-status
+                  svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                    polyline(points='20 6 9 17 4 12')
+                  | Joined
               else
                 button.join-btn(data-join-code=challenge.joinCode) Join Challenge
 
             if alreadyJoined
-              button.start-btn(data-challenge-id=challenge._id) ▶ Start
+              button.start-btn(data-challenge-id=challenge._id)
+                svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                  polygon(points='5 3 19 12 5 21 5 3')
+                | Start
 
-            button.leaderboard-btn(data-challenge-id=challenge._id) 🏆 Leaderboard
+            button.leaderboard-btn(data-challenge-id=challenge._id)
+              svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                path(d='M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01')
+              | Leaderboard
 
             if user.userType === 'coach'
-              a.review-link(href=`/reviewSubmissions/${challenge._id}`) 📋 Review Submissions
+              a.review-link(href=`/reviewSubmissions/${challenge._id}`)
+                svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                  path(d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z')
+                  polyline(points='14 2 14 8 20 8')
+                | Review Submissions
 
+          //- Leaderboard container (JS populates this)
           .leaderboard-container(id=`leaderboard-${challenge._id}` style="display:none;")
 
+          //- Exercises
           if challenge.exerciseDetails && challenge.exerciseDetails.length
             .exercises-section
-              h3 Exercises
+              h3.exercises-title Exercises
               .exercises-grid
                 each exercise in challenge.exerciseDetails
                   .exercise-card
-                    .exercise-card-top
-                      if exercise.gifURL
-                        img.exercise-gif(src=exercise.gifURL alt=exercise.name onerror="this.onerror=null;this.src='/img/default-user.png'")
-                      .exercise-info
-                        h4= exercise.name
-                        span.exercise-target= exercise.target
-                    if exercise.instructions && exercise.instructions.length
-                      details.exercise-steps
-                        summary View Steps
-                        ol
-                          each step in exercise.instructions
-                            li= step
+                    if exercise.gifURL
+                      img.exercise-gif(src=exercise.gifURL alt=exercise.name onerror="this.onerror=null;this.src='/img/default-user.png'")
+                    .exercise-body
+                      .exercise-name= exercise.name
+                      span.exercise-target= exercise.target
+                      if exercise.instructions && exercise.instructions.length
+                        button.steps-trigger(type='button') View Steps
+                        .steps-popup
+                          .steps-popup__backdrop
+                          .steps-popup__sheet
+                            .steps-popup__head
+                              span.steps-popup__title= exercise.name
+                              button.steps-popup__close(type='button') ×
+                            ul.steps-popup__list
+                              each step in exercise.instructions
+                                li= step
 
   p#joinMessage
 
-  block scripts
-    script(src="/js/challenges.js")
+block scripts
+  script(src="/js/challenges.js")
+  script.
+    (function () {
+      document.querySelectorAll('.steps-trigger').forEach(function (btn) {
+        var popup = btn.nextElementSibling;
+        var backdrop = popup.querySelector('.steps-popup__backdrop');
+        var closeBtn = popup.querySelector('.steps-popup__close');
+        function open()  { popup.classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function close() { popup.classList.remove('open'); document.body.style.overflow = ''; }
+        btn.addEventListener('click', open);
+        backdrop.addEventListener('click', close);
+        closeBtn.addEventListener('click', close);
+      });
+    })();

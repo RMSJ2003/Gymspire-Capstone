@@ -4,61 +4,111 @@ block styles
   link(rel="stylesheet" href="/css/workoutPlan.css")
 
 block content
-  .top-bar
-    if user.userType === "user"
-      a.dashboard-btn(href='/dashboard') Dashboard
-    if user.userType === "coach"
-      a.dashboard-btn(href='/coachDashboard') Dashboard
-    if user.userType === "admin"
-      a.dashboard-btn(href='/adminDashboard') Dashboard
-    a.back-btn(href='javascript:history.back()') Back
+
+  //- ── NAVBAR ──────────────────────────────────────────────
+  nav.navbar
+    .nav-logo
+      if user.userType === "user"
+        a(href='/dashboard') GymSpire
+      if user.userType === "coach"
+        a(href='/coachDashboard') GymSpire
+      if user.userType === "admin"
+        a(href='/adminDashboard') GymSpire
+    .nav-center
+    .nav-right
+      a.nav-back(href='javascript:history.back()')
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M19 12H5M5 12l7 7M5 12l7-7')
+        span Back
 
   - const safeUser = user || { username: "Guest", pfpUrl: null }
   - const planExists = typeof hasPlan !== "undefined" ? hasPlan : false
   - const exerciseList = exercises || []
 
+  //- ── PAGE HEADER ─────────────────────────────────────────
   .page-header
-    .page-header-inner
+    .page-header__left
       if safeUser.pfpUrl
-        img.profile-pic(src=safeUser.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
+        img.page-header__avatar(src=safeUser.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
       else
-        img.profile-pic(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
-      .page-header-text
-        h1 Workout Plan
-        p.header-username #{safeUser.username}
-    if planExists
-      a.btn(href='/editWorkoutPlan') ✏️ Edit Plan
-    else
-      a.btn.btn-create(href='/createWorkoutPlan') ➕ Create Plan
+        img.page-header__avatar(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+      .page-header__text
+        h1.page-header__title Workout Plan
+        p.page-header__sub= safeUser.username
+    .page-header__actions
+      if planExists
+        a.action-btn.action-btn--edit(href='/editWorkoutPlan')
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+            path(d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7')
+            path(d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z')
+          span Edit Plan
+      else
+        a.action-btn.action-btn--create(href='/createWorkoutPlan')
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+            line(x1='12' y1='5' x2='12' y2='19')
+            line(x1='5' y1='12' x2='19' y2='12')
+          span Create Plan
 
+  //- ── PLAN CONTENT ────────────────────────────────────────
   .plan-wrapper
+
     if !planExists
       .empty-state
-        p.empty-icon 📋
+        .empty-icon 📋
         p You don't have a workout plan yet.
-        a.btn.btn-create(href='/createWorkoutPlan') ➕ Create Workout Plan
+        a.action-btn.action-btn--create(href='/createWorkoutPlan')
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+            line(x1='12' y1='5' x2='12' y2='19')
+            line(x1='5' y1='12' x2='19' y2='12')
+          span Create Workout Plan
 
     else if exerciseList.length === 0
       .empty-state
-        p.empty-icon 🏋️
+        .empty-icon 🏋️
         p No exercises in your workout plan yet.
-        a.btn(href='/editWorkoutPlan') ✏️ Edit Plan
+        a.action-btn.action-btn--edit(href='/editWorkoutPlan')
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+            path(d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7')
+            path(d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z')
+          span Edit Plan
 
     else
-      p.exercise-count #{exerciseList.length} exercise#{exerciseList.length !== 1 ? 's' : ''} in your plan
+      .plan-stats
+        span.plan-count
+          strong #{exerciseList.length}
+          |  exercise#{exerciseList.length !== 1 ? 's' : ''} in your plan
 
       .exercises-grid
         each exercise in exerciseList
           .exercise-card
-            .exercise-card-top
-              if exercise.gifURL
-                img.exercise-gif(src=exercise.gifURL alt=exercise.name onerror="this.onerror=null;this.src='/img/default-user.png'")
-              .exercise-info
-                h3= exercise.name || "Unnamed Exercise"
-                span.exercise-target= exercise.target || "N/A"
-            if exercise.instructions && exercise.instructions.length
-              details.exercise-steps
-                summary View Instructions
-                ol
-                  each step in exercise.instructions
-                    li= step
+            if exercise.gifURL
+              img.exercise-gif(src=exercise.gifURL alt=exercise.name onerror="this.onerror=null;this.src='/img/default-user.png'")
+            .exercise-body
+              .exercise-name= exercise.name || "Unnamed Exercise"
+              span.exercise-target= exercise.target || "N/A"
+              if exercise.instructions && exercise.instructions.length
+                button.steps-trigger(type='button') View Instructions
+                .steps-popup
+                  .steps-popup__backdrop
+                  .steps-popup__sheet
+                    .steps-popup__head
+                      span.steps-popup__title= exercise.name || "Instructions"
+                      button.steps-popup__close(type='button') ×
+                    ul.steps-popup__list
+                      each step in exercise.instructions
+                        li= step
+
+block scripts
+  script.
+    (function () {
+      document.querySelectorAll('.steps-trigger').forEach(function (btn) {
+        var popup = btn.nextElementSibling;
+        var backdrop = popup.querySelector('.steps-popup__backdrop');
+        var closeBtn = popup.querySelector('.steps-popup__close');
+        function open()  { popup.classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function close() { popup.classList.remove('open'); document.body.style.overflow = ''; }
+        btn.addEventListener('click', open);
+        backdrop.addEventListener('click', close);
+        closeBtn.addEventListener('click', close);
+      });
+    })();

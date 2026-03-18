@@ -2,20 +2,19 @@ extends ../base
 
 block styles
   link(rel="stylesheet" href="/css/dashboard.css")
+  link(rel="stylesheet" href="/css/usersAdmin.css")
 
 block content
+
+  - const safeUsers = users || []
 
   // =========================
   // NAVBAR
   // =========================
   nav.navbar
     .nav-logo
-      if user.userType === "admin"
-        a.dashboard-btn(href='/adminDashboard') GymSpire
-
-    // Centered time
+      a(href='/adminDashboard') GymSpire
     .nav-center
-
     .nav-right
       button.hamburger ☰
       .panel
@@ -24,17 +23,27 @@ block content
           button(type="submit") Logout
 
   // =========================
-  // WELCOME SECTION
+  // QUOTE BANNER
   // =========================
-  .welcome-section
-    img.app-logo(src="/img/gymspirelogo.png" alt="GymSpire Logo")
-    h2 Welcome, #{user.username}
+  .quote-banner
+    .quote-banner__inner
+      span.quote-banner__text#quoteBannerText
 
   // =========================
-  // STATUS + EXERCISE LOG CONTAINERS
+  // COMPACT HEADER
   // =========================
-  .status-exercise-grid
-    // Recommended to workout now
+  .dash-header
+    .dash-header__left
+      img.dash-logo(src="/img/gymspirelogo.png" alt="GymSpire Logo" onerror="this.onerror=null;this.src='/img/default-user.png'")
+      h2.dash-title Welcome, #{user.username}
+    .dash-header__right
+      span.dash-week-label Active Sessions:
+      strong.dash-week-val= currentLoad
+
+  // =========================
+  // STATUS ROW
+  // =========================
+  .admin-status-row
     .status-card
       p
         if recommended
@@ -42,15 +51,11 @@ block content
         else
           strong Not recommended to workout now
       p #{message}
-      p
-        | Active GymSpire Sessions: 
-        data(value=currentLoad) #{currentLoad}
 
-    // Currently Working Out
     .status-card
       h3 Currently Working Out
       if onlineUsers.length === 0
-        p No users are currently working out.
+        p.empty-state No users are currently working out.
       else
         .online-users
           each u in onlineUsers
@@ -62,20 +67,138 @@ block content
               span= u.username
 
   // =========================
-  // DASHBOARD CARDS
+  // QUICK ACTION CARDS
   // =========================
   .dashboard(data-type="admin")
-    - const cards = ['Users','Exercises Management'];
-    each item, index in cards
-      .card
-        h3 #{item}
+    .card
+      .card-inner
+        h3 Exercises Management
         .card-actions
-          - let url = '/' + item.toLowerCase().replaceAll(' ', '-');
-          a.card-link(href=url) #{item}
-          button.info-btn(data-index=index title="More Info") i
+          a.card-link(href='/exercisesManagement') Exercises
+          button.info-btn(data-index=0 title="More Info") i
+    .card
+      .card-inner
+        h3 Congestion Data
+        .card-actions
+          a.card-link(href='/congestion') View
+          button.info-btn(data-index=1 title="More Info") i
 
   // =========================
-  // MODAL (TEXT-ONLY)
+  // USER MANAGEMENT PANEL
+  // =========================
+  .admin-panel
+    .admin-panel__head
+      .admin-panel__title
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2')
+          circle(cx='9' cy='7' r='4')
+          path(d='M23 21v-2a4 4 0 0 0-3-3.87')
+          path(d='M16 3.13a4 4 0 0 1 0 7.75')
+        span User Management
+      a.admin-create-btn(href='/createCoach')
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M12 5v14M5 12h14')
+        span Create Coach
+
+    .admin-stats
+      .stat-card
+        span.stat-number= safeUsers.length
+        span.stat-label Total Users
+      .stat-card
+        span.stat-number= safeUsers.filter(u => u.userType === 'coach').length
+        span.stat-label Coaches
+      .stat-card
+        span.stat-number= safeUsers.filter(u => u.userType === 'admin').length
+        span.stat-label Admins
+      .stat-card
+        span.stat-number= safeUsers.filter(u => u.userType === 'user').length
+        span.stat-label Members
+
+    if safeUsers.length === 0
+      p.empty-state(style="padding:1.5rem 0;") No users found.
+
+    else
+      .table-wrapper
+        table.user-table
+          thead
+            tr
+              th Profile
+              th User
+              th Role
+              th Gym Status
+              th Actions
+          tbody
+            each u in safeUsers
+              tr(data-user-id=u._id)
+                td
+                  .avatar-wrap
+                    if u.pfpUrl
+                      img.profile-small(src=u.pfpUrl alt=u.username onerror="this.onerror=null;this.src='/img/default-user.png'")
+                    else
+                      img.profile-small(src="/img/default-user.png" alt="Default" onerror="this.onerror=null;this.src='/img/default-user.png'")
+                    span.status-dot(class=(u.gymStatus && u.gymStatus !== 'offline') ? 'online' : 'offline')
+                td
+                  .user-info
+                    span.user-name= u.username
+                    span.user-email= u.email
+                td
+                  span.role-badge(class=`role-${u.userType}`)= u.userType
+                td
+                  if u.gymStatus && u.gymStatus !== 'offline'
+                    span.gym-status-badge.at-gym
+                      span.pulse-dot
+                      | #{u.gymStatus === 'logging' ? '🏋️ Logging' : '📍 At Gym'}
+                  else
+                    span.gym-status-badge.offline Offline
+                td
+                  .action-btns
+                    button.action-btn.attendance-btn(
+                      data-user-id=u._id
+                      data-username=u.username
+                      data-pfp=(u.pfpUrl || '/img/default-user.png')
+                      title="View Attendance"
+                    )
+                      svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                        path(d='M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01')
+                      span Attendance
+                    button.action-btn.delete-user-btn(
+                      data-user-id=u._id
+                      title="Delete User"
+                    )
+                      svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                        path(d='M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6')
+                      span Deactivate
+
+  // =========================
+  // ATTENDANCE DRAWER
+  // =========================
+  .drawer-overlay#drawerOverlay
+  .attendance-drawer#attendanceDrawer
+    .drawer-header
+      .drawer-user-info
+        img#drawerPfp(src="/img/default-user.png" alt="User" onerror="this.onerror=null;this.src='/img/default-user.png'")
+        .drawer-user-text
+          h3#drawerUsername Loading...
+          span#drawerSubtitle Gym Attendance History
+      button.drawer-close#drawerClose
+        span.drawer-close-x ✕
+    .drawer-stats
+      .d-stat
+        span#drawerTotalVisits —
+        span Total Visits
+      .d-stat
+        span#drawerThisMonth —
+        span This Month
+      .d-stat
+        span#drawerAvgDuration —
+        span Avg. Duration (min)
+    .drawer-body#drawerBody
+      .drawer-loading
+        .spinner
+        p Loading attendance...
+
+  // =========================
+  // MODAL
   // =========================
   .modal.hidden#modal
     .modal-content
@@ -83,6 +206,8 @@ block content
       p#modalText
 
   // =========================
-  // DASHBOARD JS
+  // SCRIPTS
   // =========================
   script(src="/js/dashboard.js")
+  script(src="/js/quoteBanner.js")
+  script(src="/js/users.js")

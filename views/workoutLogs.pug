@@ -5,51 +5,104 @@ block styles
 
 block content
 
-  .top-bar
-    if user.userType === "user"
-      a.dashboard-btn(href='/dashboard') Dashboard
-    if user.userType === "coach"
-      a.dashboard-btn(href='/coachDashboard') Dashboard
-    if user.userType === "admin"
-      a.dashboard-btn(href='/adminDashboard') Dashboard
-    a.back-btn(href='javascript:history.back()') Back
+  //- ── NAVBAR ──────────────────────────────────────────────
+  nav.navbar
+    .nav-logo
+      if user.userType === "user"
+        a(href='/dashboard') GymSpire
+      if user.userType === "coach"
+        a(href='/coachDashboard') GymSpire
+      if user.userType === "admin"
+        a(href='/adminDashboard') GymSpire
+    .nav-center
+    .nav-right
+      a.nav-back(href='javascript:history.back()')
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M19 12H5M5 12l7 7M5 12l7-7')
+        span Back
 
-  .center-content
-    h1 #{title}
-    h2 #{user.username}
+  //- ── PAGE HEADER ─────────────────────────────────────────
+  .page-header
+    .page-header__left
+      if user.pfpUrl
+        img.page-header__avatar(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
+      else
+        img.page-header__avatar(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+      div
+        h1.page-header__title= title
+        p.page-header__sub= user.username
+    a.pr-btn(href="/personalRecord")
+      svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+        path(d='M12 20V10')
+        path(d='M18 20V4')
+        path(d='M6 20v-4')
+      span My PR
 
-    if user.pfpUrl
-      img.profile-pic(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
-    else
-      img.profile-pic(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
-
-    a.create-challenge(href="/personalRecord") My Personal Record
+  //- ── LOGS ────────────────────────────────────────────────
+  .logs-wrapper
 
     if workoutLogs.length === 0
-      p.no-logs-message You have no workout logs yet.
+      .empty-state
+        .empty-icon 🏋️
+        p No workout logs yet. Start your first workout!
+
     else
       each log in workoutLogs
-        .workout-log-card
-          h3 Workout on #{log.date.toDateString()}
-          p.log-status(class=log.status === "done" ? "done" : "pending") Status: #{log.status}
+        .log-card
 
+          //- Header row
+          .log-card__header
+            .log-card__date
+              svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                rect(x='3' y='4' width='18' height='18' rx='2' ry='2')
+                line(x1='16' y1='2' x2='16' y2='6')
+                line(x1='8' y1='2' x2='8' y2='6')
+                line(x1='3' y1='10' x2='21' y2='10')
+              span= log.date.toDateString()
+            .log-card__badges
+              span.badge(class=log.status === "done" ? "badge--done" : "badge--pending")
+                if log.status === "done"
+                  | ✓ Done
+                else
+                  | ⏳ Pending
+              if log.challengeId
+                span.badge.badge--challenge Challenge
+              else
+                span.badge.badge--solo Solo
+
+          //- Challenge details
           if log.challengeId
-            p.log-type.challenge Type: Challenge
-            p Strength Score: #{log.strengthScore >= 0 ? log.strengthScore : "Not calculated yet"}
-            p Judge Status: #{log.judgeStatus || "Pending"}
-            p Judge Notes: #{log.judgeNotes || "No judge notes yet"}
-            p Verified by: #{(log.verifiedBy && log.verifiedBy.username) || "Not verified yet"}
-            if log.videoUrl
-              p Video:
-              video(src=log.videoUrl controls preload="metadata")
-            else
-              p Video: No video submitted
-          else
-            p.log-type.solo Type: Solo
+            .log-card__details
+              .detail-row
+                span.detail-label Strength Score
+                span.detail-val= log.strengthScore >= 0 ? log.strengthScore : "—"
+              .detail-row
+                span.detail-label Judge Status
+                span.detail-val= log.judgeStatus || "Pending"
+              if log.judgeNotes
+                .detail-row
+                  span.detail-label Judge Notes
+                  span.detail-val= log.judgeNotes
+              .detail-row
+                span.detail-label Verified By
+                span.detail-val= (log.verifiedBy && log.verifiedBy.username) || "Not verified yet"
+              if log.videoUrl
+                .log-card__video
+                  video(src=log.videoUrl controls preload="metadata")
+              else
+                .detail-row
+                  span.detail-label Video
+                  span.detail-val.muted No video submitted
 
-          .card-buttons
-            a.view-log-btn(href=`/workoutLogs/${log._id}`) View Workout Log
+          //- Actions
+          .log-card__actions
+            a.view-btn(href=`/workoutLogs/${log._id}`)
+              svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                path(d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z')
+                circle(cx='12' cy='12' r='3')
+              | View Log
 
+  p#finishMessage
 
 block scripts
   script(src="/js/workoutLogs.js")

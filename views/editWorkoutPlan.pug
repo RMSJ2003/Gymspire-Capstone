@@ -2,128 +2,296 @@ extends base
 
 block styles
   style.
-    @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700;800&display=swap");
 
     :root {
-      --red: #d25353; --red-dark: #b83e3e; --red-light: #ea7b7b;
-      --yellow: #ebda1b; --yellow-dark: #c9b900;
-      --bg: #f7f5f2; --card-bg: #fff; --text: #1a1a1a; --text-muted: #777;
-      --radius: 1rem;
-      --shadow: 0 4px 20px rgba(0,0,0,0.08);
-      --shadow-hover: 0 8px 30px rgba(210,83,83,0.25);
+      --red: #d25353; --red-dark: #b11226; --red-light: #ea7b7b;
+      --yellow: #f4c430; --yellow-dark: #e0b218;
+      --bg: #f0f0f2; --card-bg: #fff; --text: #1a1a1a; --text-muted: #888;
+      --radius: 12px;
+      --shadow: 0 1px 6px rgba(0,0,0,0.06);
+      --shadow-hover: 0 6px 20px rgba(210,83,83,0.15);
     }
+
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
     body {
-      font-family: "DM Sans", sans-serif; background: var(--bg);
-      padding: 5.5rem 1.5rem 3rem; min-height: 100vh;
-      background-image:
-        radial-gradient(circle at 10% 20%, rgba(210,83,83,0.04) 0%, transparent 50%),
-        radial-gradient(circle at 90% 80%, rgba(235,218,27,0.05) 0%, transparent 50%);
+      font-family: "DM Sans", sans-serif;
+      background: var(--bg);
+      padding-top: 64px;
+      min-height: 100vh;
     }
-    .top-bar {
-      position: fixed; top:0; left:0; right:0;
+
+    /* ── NAVBAR ── */
+    .navbar {
+      width: 100%; height: 64px;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      padding: 0 1.5rem;
       display: flex; justify-content: space-between; align-items: center;
-      padding: 0.75rem 1.5rem; background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 1px 0 rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
-      z-index: 100;
+      position: fixed; top:0; left:0; z-index: 1000;
+      box-shadow: 0 2px 16px rgba(177,18,38,0.35);
     }
-    .top-bar a {
-      background: var(--red); color: white; padding: 0.5rem 1.3rem;
-      border-radius: 0.6rem; font-weight: 600; font-size: 0.875rem;
-      text-decoration: none; letter-spacing: 0.02em;
-      transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 2px 8px rgba(210,83,83,0.3);
+    .nav-logo a {
+      font-family: "Bebas Neue", sans-serif; color: white; font-size: 1.6rem;
+      text-decoration: none; letter-spacing: 0.08em;
     }
-    .top-bar a:hover { background: var(--red-dark); transform: translateY(-1px); }
-    .page-header { text-align: center; margin-bottom: 1.5rem; }
-    h1 { font-family: "Bebas Neue", sans-serif; font-size: 2.8rem; letter-spacing: 0.04em; color: var(--text); line-height: 1; margin-bottom: 0.25rem; }
-    h2 { font-size: 1rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; text-align: center; }
-    .profile-pic { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 4px solid var(--yellow); display: block; margin: 0 auto 2rem; box-shadow: 0 0 0 6px rgba(235,218,27,0.15), var(--shadow); }
-    .section-label { text-align: center; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; }
-    .target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 0.75rem; max-width: 860px; margin: 0 auto 2.5rem; }
-    .target-card { background: var(--card-bg); color: var(--text); padding: 1.4rem 1rem 1rem; border-radius: var(--radius); text-align: center; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: 2px solid transparent; box-shadow: var(--shadow); position: relative; overflow: hidden; text-transform: capitalize; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; }
-    .target-card::before { content: ""; position: absolute; inset: 0; background: var(--red); opacity: 0; transition: opacity 0.18s; z-index: 0; }
-    .target-card span { position: relative; z-index: 1; }
-    .target-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--red-light); }
-    .target-card:hover::before { opacity: 0.06; }
-    .target-card.active { background: var(--red); color: white; border-color: var(--red); box-shadow: 0 6px 20px rgba(210,83,83,0.35); }
-    .muscle-count { font-size: 0.68rem; font-weight: 700; background: var(--yellow); color: #1a1a1a; padding: 0.15rem 0.55rem; border-radius: 2rem; position: relative; z-index: 1; }
-    .update-section { text-align: center; margin-top: 0.5rem; padding-bottom: 1rem; }
-    .update-section button { background: var(--yellow); color: var(--text); padding: 0.9rem 2.5rem; border: none; border-radius: 0.75rem; font-weight: 700; font-size: 1rem; font-family: "DM Sans", sans-serif; cursor: pointer; box-shadow: 0 4px 16px rgba(235,218,27,0.4); transition: background 0.2s, transform 0.15s; }
-    .update-section button:hover { background: var(--yellow-dark); transform: translateY(-2px); }
-    .form-message { font-size: 0.88rem; color: var(--red); font-weight: 600; min-height: 1.4em; margin-bottom: 0.75rem; }
-    .modal { position: fixed; inset: 0; background: rgba(15,10,5,0.65); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 200; padding: 1rem; animation: fadeIn 0.2s ease; }
+    .nav-logo a:hover { color: var(--yellow); }
+    .nav-right { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 0.38rem 0.9rem;
+      background: rgba(255,255,255,0.15); color: white;
+      font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 0.8rem;
+      text-decoration: none; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.22); transition: 0.18s;
+    }
+    .nav-back svg {
+      width:13px; height:13px; stroke:white; fill:none;
+      stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
+    }
+    .nav-back:hover { background: rgba(255,255,255,0.25); color: var(--yellow); }
+    .nav-back:hover svg { stroke: var(--yellow); }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      max-width: 1100px; margin: 0 auto;
+      padding: 0.7rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .page-header__left { display: flex; align-items: center; gap: 0.6rem; }
+    .profile-pic {
+      width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+      border: 2px solid rgba(210,83,83,0.35); flex-shrink: 0;
+    }
+    .page-header__title {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.5rem;
+      letter-spacing: 0.05em; color: var(--text); line-height: 1;
+    }
+    .page-header__sub { font-size: 0.72rem; color: #999; font-weight: 500; margin-top: 1px; }
+
+    /* ── MAIN WRAP ── */
+    .plan-wrap {
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 1.5rem 3rem;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #aaa; margin-bottom: 0.7rem;
+    }
+
+    /* ── TARGET GRID ── */
+    .target-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .target-card {
+      background: var(--card-bg); padding: 0.9rem 1rem;
+      border-radius: var(--radius); text-align: center;
+      font-weight: 700; font-size: 0.85rem; cursor: pointer;
+      border: 1.5px solid rgba(210,83,83,0.12);
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      text-transform: capitalize; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s, background 0.18s;
+    }
+    .target-card:hover {
+      transform: translateY(-2px); box-shadow: var(--shadow-hover);
+      border-color: var(--red-light);
+    }
+    .target-card.active {
+      background: var(--red); color: white;
+      border-color: var(--red); box-shadow: 0 4px 16px rgba(210,83,83,0.3);
+    }
+    .muscle-count {
+      font-size: 0.62rem; font-weight: 800;
+      background: var(--yellow); color: #111;
+      padding: 2px 8px; border-radius: 999px;
+    }
+
+    /* ── UPDATE SECTION ── */
+    .update-section {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;
+      padding-top: 0.4rem;
+    }
+    .form-message {
+      font-size: 0.82rem; font-weight: 700; color: var(--red); min-height: 1.2em;
+    }
+    .update-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0.55rem 1.5rem;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      color: white; border: none; border-radius: 9px;
+      font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 0.85rem;
+      cursor: pointer; box-shadow: 0 3px 12px rgba(177,18,38,0.28);
+      transition: filter 0.18s, transform 0.15s;
+    }
+    .update-btn:hover { filter: brightness(1.1); transform: translateY(-1px); color: var(--yellow); }
+    .update-btn svg {
+      width:14px; height:14px; stroke:white; fill:none;
+      stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+    }
+
+    /* ── MODALS ── */
+    .modal {
+      position: fixed; inset: 0;
+      background: rgba(15,10,5,0.6); backdrop-filter: blur(4px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1200; padding: 1rem; animation: fadeIn 0.2s ease;
+    }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     .modal.hidden { display: none; }
-    .modal-content { background: white; border-radius: 1.2rem; width: 100%; max-width: 660px; position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.2); animation: slideUp 0.25s ease; }
-    @keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+    .modal-content {
+      background: white; border-radius: 16px; width: 100%; max-width: 660px;
+      position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(16px); opacity:0; } to { transform: translateY(0); opacity:1; } }
     .modal-content.large { max-height: 82vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--red-light) transparent; }
-    .modal-content.ex-info-modal { max-width: 480px; }
-    .modal-header { padding: 1.2rem 1.4rem 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.07); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 1; border-radius: 1.2rem 1.2rem 0 0; }
-    .modal-body { padding: 1rem 1.2rem 1.4rem; }
-    #targetTitle { font-family: "Bebas Neue", sans-serif; font-size: 1.6rem; letter-spacing: 0.05em; color: var(--text); text-transform: uppercase; }
-    .ex-modal-name { font-family: "Bebas Neue", sans-serif; font-size: 1.35rem; letter-spacing: 0.05em; color: var(--text); text-transform: capitalize; line-height: 1.2; flex: 1; padding-right: 0.75rem; }
-    #closeModal, #closeTargetModal { border: none; background: rgba(0,0,0,0.06); color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
-    #closeModal:hover, #closeTargetModal:hover { background: rgba(0,0,0,0.12); }
-    .exercise-row { display: flex; align-items: center; justify-content: space-between; background: #fafafa; border: 1.5px solid #eee; padding: 0.85rem 1rem; border-radius: 0.75rem; margin-bottom: 0.5rem; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s; }
+    .modal-content.ex-info-modal { max-width: 460px; }
+
+    .modal-header {
+      padding: 1rem 1.2rem 0.75rem;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: white; z-index: 1;
+      border-radius: 16px 16px 0 0;
+    }
+    .modal-body { padding: 0.9rem 1.2rem 1.2rem; }
+
+    #targetTitle {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.4rem;
+      letter-spacing: 0.05em; color: var(--text); text-transform: uppercase;
+    }
+    .ex-modal-name {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.25rem;
+      letter-spacing: 0.05em; color: var(--text); text-transform: capitalize;
+      line-height: 1.2; flex: 1; padding-right: 0.75rem;
+    }
+
+    #closeModal, #closeTargetModal {
+      border: none; background: rgba(210,83,83,0.08); color: var(--red);
+      width: 30px; height: 30px; border-radius: 50%;
+      font-size: 1rem; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: 0.15s;
+    }
+    #closeModal:hover, #closeTargetModal:hover { background: var(--red); color: white; }
+
+    /* Exercise rows inside modal */
+    .exercise-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fafafa; border: 1.5px solid #eeeeee;
+      padding: 0.75rem 0.9rem; border-radius: 10px; margin-bottom: 0.45rem;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
     .exercise-row:hover { border-color: var(--red-light); background: rgba(210,83,83,0.03); transform: translateX(2px); }
     .exercise-row.selected { background: rgba(210,83,83,0.06); border-color: var(--red); }
-    .exercise-left { display: flex; align-items: center; gap: 0.75rem; }
-    .exercise-info { display: flex; flex-direction: column; gap: 0.35rem; }
-    .exercise-gif { width: 80px; height: 80px; object-fit: cover; border-radius: 0.5rem; background: #f0f0f0; display: block; flex-shrink: 0; }
-    .exercise-left input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--red); cursor: pointer; flex-shrink: 0; }
-    .exercise-name { font-weight: 500; font-size: 0.95rem; color: var(--text); line-height: 1.3; }
-    .info-btn { border: 1.5px solid #ddd; background: transparent; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; font-style: italic; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .exercise-left { display: flex; align-items: center; gap: 0.7rem; }
+    .exercise-info { display: flex; flex-direction: column; gap: 0.3rem; }
+    .exercise-gif { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; background: #f0f0f0; display: block; flex-shrink: 0; }
+    .exercise-left input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--red); cursor: pointer; flex-shrink: 0; }
+    .exercise-name { font-weight: 600; font-size: 0.88rem; color: var(--text); line-height: 1.3; }
+    .info-btn {
+      border: 1.5px solid #ddd; background: transparent; color: var(--text-muted);
+      font-weight: 800; font-size: 0.75rem; font-style: italic;
+      border-radius: 50%; width: 26px; height: 26px; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; transition: 0.15s;
+    }
     .info-btn:hover { border-color: var(--red); color: var(--red); background: rgba(210,83,83,0.06); }
-    #modalGif { width: 100%; max-height: 240px; object-fit: contain; border-radius: 0.75rem; background: #f5f5f5; display: block; margin-bottom: 1rem; }
-    #toggleInstructions { display: flex; align-items: center; gap: 0.45rem; width: 100%; padding: 0.65rem 1rem; background: #f7f5f2; border: 1.5px solid #e8e4df; border-radius: 0.6rem; font-family: "DM Sans", sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--text-muted); cursor: pointer; margin-bottom: 0.75rem; transition: background 0.15s, border-color 0.15s, color 0.15s; }
-    #toggleInstructions::before { content: "▶"; font-size: 0.6rem; transition: transform 0.2s; display: inline-block; }
+
+    /* Exercise info modal content */
+    #modalGif {
+      width: 100%; max-height: 220px; object-fit: contain;
+      border-radius: 10px; background: #f5f5f5; display: block; margin-bottom: 0.9rem;
+    }
+    #toggleInstructions {
+      display: flex; align-items: center; gap: 0.45rem; width: 100%;
+      padding: 0.58rem 1rem; background: #f5f5f7;
+      border: 1.5px solid #e8e8e8; border-radius: 8px;
+      font-family: "DM Sans", sans-serif; font-size: 0.82rem; font-weight: 700;
+      color: var(--text-muted); cursor: pointer; margin-bottom: 0.7rem;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    #toggleInstructions::before { content:"▶"; font-size:0.55rem; transition: transform 0.2s; display:inline-block; }
     #toggleInstructions.open { background: rgba(210,83,83,0.06); border-color: var(--red-light); color: var(--red); }
     #toggleInstructions.open::before { transform: rotate(90deg); }
     #toggleInstructions:hover { background: rgba(210,83,83,0.06); border-color: var(--red-light); color: var(--red); }
+
     #modalInstructions { padding: 0 0.1rem; }
     #modalInstructions.hidden { display: none; }
-    #modalInstructions ul { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
-    #modalInstructions ul li { padding: 0.6rem 0.9rem; background: #f7f5f2; border-radius: 0.5rem; font-size: 0.88rem; line-height: 1.5; color: var(--text); border-left: 3px solid var(--red); }
-    #modalInstructions p { color: #aaa; font-size: 0.85rem; padding: 0.5rem 0; }
-    @media (max-width: 600px) {
-      body { padding: 5rem 1rem 3rem; }
-      h1 { font-size: 2.2rem; }
-      .target-grid { grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 0.6rem; }
-      .target-card { padding: 1.1rem 0.75rem 0.75rem; font-size: 0.88rem; }
-      .exercise-row { padding: 0.75rem 0.85rem; }
+    #modalInstructions ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+    #modalInstructions ul li {
+      padding: 0.5rem 0.75rem; background: #f8f8f8;
+      border-radius: 8px; font-size: 0.82rem; line-height: 1.5; color: var(--text);
+      border-left: 3px solid var(--red);
+    }
+    #modalInstructions p { color: #bbb; font-size: 0.82rem; padding: 0.4rem 0; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .plan-wrap { padding: 0 1rem 2rem; }
+      .page-header { padding: 0.65rem 1rem; }
+      .target-grid { grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); }
+    }
+    @media (max-width: 480px) {
+      .nav-logo a { font-size: 1.3rem; }
+      .target-grid { grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 0.5rem; }
+      .target-card { font-size: 0.8rem; padding: 0.75rem 0.6rem; }
     }
 
 block content
-  .top-bar
-    if user.userType === "user"
-      a.dashboard-btn(href='/dashboard') Dashboard
-    if user.userType === "coach"
-      a.dashboard-btn(href='/coachDashboard') Dashboard
-    if user.userType === "admin"
-      a.dashboard-btn(href='/adminDashboard') Dashboard
-    a.back-btn(href='javascript:history.back()') Back
 
+  //- ── NAVBAR ──────────────────────────────────────────────
+  nav.navbar
+    .nav-logo
+      if user.userType === "user"
+        a(href='/dashboard') GymSpire
+      if user.userType === "coach"
+        a(href='/coachDashboard') GymSpire
+      if user.userType === "admin"
+        a(href='/adminDashboard') GymSpire
+    .nav-right
+      a.nav-back(href='javascript:history.back()')
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M19 12H5M5 12l7 7M5 12l7-7')
+        span Back
+
+  //- ── PAGE HEADER ─────────────────────────────────────────
   .page-header
-    h1 #{title}
-    h2 #{user.username}
+    .page-header__left
+      if user.pfpUrl
+        img.profile-pic(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
+      else
+        img.profile-pic(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+      div
+        h1.page-header__title #{title}
+        p.page-header__sub= user.username
 
-  if user.pfpUrl
-    img.profile-pic(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
-  else
-    img.profile-pic(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+  //- ── MAIN CONTENT ────────────────────────────────────────
+  .plan-wrap
 
-  p.section-label Select one exercise per muscle group
+    p.section-label Select one exercise per muscle group
 
-  .target-grid#targetGrid
+    //- Target muscle grid — JS populates this
+    .target-grid#targetGrid
 
-  form#editWorkoutPlanForm.hidden
+    //- Hidden form — JS submits this
+    form#editWorkoutPlanForm.hidden
 
-  .update-section
-    p.form-message#formMessage
-    button(type="submit" form="editWorkoutPlanForm") Update Workout Plan
+    //- Submit row
+    .update-section
+      p.form-message#formMessage
+      button.update-btn(type="submit" form="editWorkoutPlanForm")
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          polyline(points='20 6 9 17 4 12')
+        | Update Workout Plan
 
+  //- ── TARGET EXERCISES MODAL ──────────────────────────────
   .modal.hidden#targetModal
     .modal-content.large
       .modal-header
@@ -132,6 +300,7 @@ block content
       .modal-body
         .exercise-list#targetExerciseList
 
+  //- ── EXERCISE INFO MODAL ─────────────────────────────────
   .modal.hidden#exerciseModal
     .modal-content.ex-info-modal
       .modal-header
@@ -142,6 +311,7 @@ block content
         button#toggleInstructions(type="button") Show Instructions
         div#modalInstructions.hidden
 
+  //- ── DATA FOR JS ─────────────────────────────────────────
   script#exercisesData(type="application/json").
     !{JSON.stringify(exercises)}
 

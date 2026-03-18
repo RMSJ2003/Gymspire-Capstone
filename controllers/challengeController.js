@@ -90,18 +90,6 @@ exports.createChallenge = catchAsync(async (req, res, next) => {
   }
 
   // =========================
-  // 5) Validate NO duplicate muscle targets
-  // =========================
-  const targets = exercisesFromDb.map((ex) => ex.target);
-  const uniqueTargets = new Set(targets);
-
-  if (targets.length !== uniqueTargets.size) {
-    return next(
-      new AppError("Each muscle group can only have ONE exercise.", 400),
-    );
-  }
-
-  // =========================
   // 6) Generate join code
   // =========================
   const joinCode = generateJoinCode();
