@@ -5,20 +5,19 @@ const exerciseSchema = new mongoose.Schema({
   name: String,
   gifURL: String,
   target: String,
+  equipment: String, // ← ADD THIS
   instructions: [String],
   gifWorking: {
     type: Boolean,
     default: true,
-    select: false, // We set select to false cuz we don't want users to see active field
+    select: false,
   },
 });
 
 exerciseSchema.pre(/^find/, function (next) {
-  // 🔥 Allow bypassing inactive filter when explicitly requested
   if (this.getOptions().includeInactive) {
     return next();
   }
-
   this.find({ gifWorking: { $ne: false } });
   next();
 });

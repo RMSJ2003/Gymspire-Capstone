@@ -1,16 +1,13 @@
 const axios = require("axios");
 const Exercise = require("../models/exerciseModel");
-// const apiExercisesTemplate = require('../dev-data/data/apiExercisesTemplate');
 const catchAsync = require("../utils/catchAsync");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function isGifWorking(url) {
   if (!url) return false;
-
   try {
     const res = await axios.head(url, { timeout: 5000 });
-
     return (
       res.status === 200 && res.headers["content-type"]?.startsWith("image")
     );
@@ -21,68 +18,90 @@ async function isGifWorking(url) {
 
 exports.importApiExercises = catchAsync(async (req, res, next) => {
   const baseURL = `${process.env.EXERCISE_DB_URL}/api/v1/exercises/filter`;
+  const LIMIT = 25;
 
   let totalImported = 0;
+  const muscles = process.env.ALLOWED_MUSCLES.split(",");
 
-  for (const muscle of process.env.ALLOWED_MUSCLES.split(",")) {
-    // muscles before
-    try {
-      const response = await axios.get(baseURL, {
-        params: {
-          offset: 0,
-          limit: 25, // 🔥 LOWER LIMIT
-          muscles: muscle, // ✅ correct key
-          equipment: "dumbbell",
-        },
-      });
+  for (const muscle of muscles) {
+    let offset = 0;
+    let hasMore = true;
 
-      const exercises = response.data.data || [];
+    console.log(`\n📦 Starting import for muscle: ${muscle}`);
 
-      for (const ex of exercises) {
-        const gifWorking = await isGifWorking(ex.gifUrl);
-
-        await Exercise.updateOne(
-          {
-            exerciseId: ex.exerciseId,
+    while (hasMore) {
+      try {
+        const response = await axios.get(baseURL, {
+          params: {
+            offset,
+            limit: LIMIT,
+            muscles: muscle,
+            // ✅ No equipment filter — fetch ALL equipment types
           },
-          {
-            exerciseId: ex.exerciseId,
-            name: ex.name,
-            gifURL: ex.gifUrl,
-            target: ex.targetMuscles?.[0] || muscle,
-            instructions: ex.instructions,
-            equipment: ex.equipments?.[0] || "dumbbell",
-            gifWorking: gifWorking, // ✅ SAVE RESULT HERE
-          },
-          {
-            upsert: true,
-          },
+        });
+
+        const exercises = response.data.data || [];
+        console.log(
+          `  → offset ${offset}: fetched ${exercises.length} exercises`,
         );
 
-        totalImported++;
+        if (exercises.length === 0) {
+          hasMore = false;
+          break;
+        }
 
-        await sleep(500); // 🔥 small delay per exercise
-      }
+        for (const ex of exercises) {
+          const gifWorking = await isGifWorking(ex.gifUrl);
 
-      console.log(`Imported ${muscle}: ${exercises.length}`);
+          await Exercise.updateOne(
+            { exerciseId: ex.exerciseId },
+            {
+              exerciseId: ex.exerciseId,
+              name: ex.name,
+              gifURL: ex.gifUrl,
+              target: ex.targetMuscles?.[0] || muscle,
+              equipment: ex.equipments?.[0] || "unknown",
+              instructions: ex.instructions,
+              gifWorking,
+            },
+            { upsert: true },
+          );
 
-      // ⏱️ VERY IMPORTANT
-      await sleep(60000); // 🔥 60 seconds per muscle
-    } catch (err) {
-      console.error(
-        `Failed importing muscle ${muscle}`,
-        err.response?.status,
-        err.response?.data,
-      );
+          totalImported++;
+          await sleep(300); // small delay per exercise
+        }
 
-      // 🚨 Stop immediately on 429
-      if (err.response?.status === 429) {
-        return res.status(429).json({
-          status: "fail",
-          message: "Rate limited. Stop import and wait before retrying.",
-        });
+        // If fewer results than limit, we've reached the end for this muscle
+        if (exercises.length < LIMIT) {
+          hasMore = false;
+        } else {
+          offset += LIMIT;
+          console.log(`  ⏱️  Waiting 60s before next page (rate limit)...`);
+          await sleep(60000);
+        }
+      } catch (err) {
+        console.error(
+          `Failed importing muscle: ${muscle} at offset ${offset}`,
+          err.response?.status,
+          err.response?.data,
+        );
+
+        if (err.response?.status === 429) {
+          return res.status(429).json({
+            status: "fail",
+            message:
+              "Rate limited by ExerciseDB. Please wait several minutes before retrying.",
+            importedSoFar: totalImported,
+          });
+        }
+
+        // Skip this page on other errors and move on
+        hasMore = false;
       }
     }
+
+    console.log(`✅ Done with ${muscle}. Waiting 60s before next muscle...`);
+    await sleep(60000); // wait between muscle groups
   }
 
   res.status(200).json({
@@ -91,14 +110,9 @@ exports.importApiExercises = catchAsync(async (req, res, next) => {
   });
 });
 
-// exports.importTemplateExercises = catchAsync(async (req, res, next) => {
-//     const exercises = Exercises.create({
-
-//     });
-
-//     res.status(200).json({
-//         status: 'success',
-//         imported: ,
-//         data: exercises
-//     })
-// });
+exports.deleteAllExercises = catchAsync(async (req, res, next) => {
+  await Exercise.deleteMany({});
+  res
+    .status(200)
+    .json({ status: "success", message: "All exercises deleted." });
+});

@@ -26,12 +26,14 @@ block content
           path(d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4')
           polyline(points='17 8 12 3 7 8')
           line(x1='12' y1='3' x2='12' y2='15')
-        span Import Exercises
+        span Import All Exercises
       p
-        | Fetches dumbbell exercises from the ExerciseDB API.
+        | Fetches ALL exercises from the ExerciseDB API — all muscle groups, all equipment types.
         br
-        | ⚠️ This process is slow and rate-limited (≈1 min per muscle group).
-      button#importExercisesBtn Import Exercises
+        | ⚠️ This process is slow and rate-limited (≈1–2 min per muscle group per page).
+        br
+        | ⚠️ Do not close this tab or refresh during import.
+      button#importExercisesBtn Import All Exercises
       p#importMessage
 
     //- Danger zone
@@ -43,8 +45,6 @@ block content
       p Permanently deletes ALL exercises from the database. This cannot be undone.
       button#deleteAllExercisesBtn Delete ALL Exercises
       p#deleteMessage
-
-    //- Exercise list
 
 block scripts
   script(src="/js/exercisesManagement.js")
