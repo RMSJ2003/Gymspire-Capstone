@@ -8,6 +8,12 @@ const workoutLogSchema = new mongoose.Schema({
     required: true,
   },
 
+  place: {
+    type: String,
+    enum: ["home", "gym"],
+    require: true,
+  },
+
   workoutPlanId: {
     type: mongoose.Schema.ObjectId,
     ref: "WorkoutPlan",
@@ -61,59 +67,33 @@ const workoutLogSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  autoCompleted: {
+    type: Boolean,
+    default: false,
+  },
 
   exercises: [
     {
       name: { type: String, required: true },
       target: { type: String, required: true },
       gifURL: { type: String, required: true },
+      equipment: { type: String, default: "" },
       set: [
         {
-          setNumber: {
-            type: Number,
-            required: true,
-            min: 1,
-          },
-
-          type: {
-            type: String,
-            enum: ["warmup", "working"],
-            required: true,
-          },
-
-          weight: { type: Number, required: true },
-
-          unit: {
-            type: String,
-            enum: ["LB", "KG"],
-            default: "LB",
-          },
-
-          reps: {
-            type: Number,
-            required: true,
-            validate: [
-              {
-                validator: Number.isInteger,
-                message: "Reps must be a whole number",
-              },
-            ],
-          },
-
-          restSeconds: { type: Number, required: true },
+          setNumber: { type: Number },
+          type: { type: String, enum: ["warmup", "working"] },
+          weight: { type: Number, default: 0 },
+          unit: { type: String, enum: ["LB", "KG"], default: "LB" },
+          reps: { type: Number, default: 8 },
+          restSeconds: { type: Number, default: 180 },
+          rir: { type: Number, default: null },
+          saved: { type: Boolean, default: false },
         },
       ],
     },
   ],
 });
 
-// ✅ REMOVED: duplicate setNumber validator
-// It fired on every .save() because Mongoose re-validates the entire
-// exercises array before the mutation is fully committed, causing false
-// "Duplicate setNumber" errors on add, remove, and bulk update.
-// Set number integrity is enforced by the controller logic instead.
-
-// Ensure either solo OR challenge — never both, never neither
 workoutLogSchema.pre("validate", function (next) {
   if (this.workoutPlanId && this.challengeId)
     return next(
@@ -126,7 +106,6 @@ workoutLogSchema.pre("validate", function (next) {
   next();
 });
 
-// Remove challenge-only fields for solo workouts
 workoutLogSchema.pre("validate", function (next) {
   if (this.workoutPlanId && !this.challengeId) {
     this.challengeId = undefined;
@@ -142,11 +121,9 @@ workoutLogSchema.pre("validate", function (next) {
 workoutLogSchema.methods.isSolo = function () {
   return !!this.workoutPlanId && !this.challengeId;
 };
-
 workoutLogSchema.methods.isChallenge = function () {
   return !!this.challengeId;
 };
 
 const WorkoutLog = mongoose.model("WorkoutLog", workoutLogSchema);
 module.exports = WorkoutLog;
-// Write to Richard M. Sahagun

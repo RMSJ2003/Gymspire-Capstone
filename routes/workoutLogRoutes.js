@@ -23,6 +23,12 @@ router
     workoutLogController.createMyChallengeWorkoutLog,
   );
 
+router.get(
+  "/my",
+  authController.protect,
+  workoutLogController.getMyWorkoutLogs,
+);
+
 // ── SOLO WORKOUT ──
 // autoCheckin also handled inside createMySoloWorkoutLog controller
 router

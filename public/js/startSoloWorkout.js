@@ -1,264 +1,456 @@
-// =========================
-// START SOLO WORKOUT — 2-step flow
-// Step 1: Pick muscles | Step 2: Choose exercises per muscle (multi-select)
-// =========================
-
-// ── TOAST ─────────────────────────────────────────────────
-function showToast(message, type = "warning") {
-  const existing = document.getElementById("gymToast");
-  if (existing) existing.remove();
-  const colors = {
-    error: { bg: "#d25353", icon: "✕" },
-    success: { bg: "#22c55e", icon: "✓" },
-    info: { bg: "#3b82f6", icon: "ℹ" },
-    warning: { bg: "#f59e0b", icon: "⚠" },
-  };
-  const { bg, icon } = colors[type] || colors.warning;
-  const toast = document.createElement("div");
-  toast.id = "gymToast";
-  toast.style.cssText = `
-    position:fixed;bottom:1.5rem;left:50%;
-    transform:translateX(-50%) translateY(20px);
-    background:${bg};color:white;
-    padding:0.75rem 1.4rem;border-radius:10px;
-    font-family:'DM Sans',Arial,sans-serif;font-size:0.88rem;font-weight:600;
-    display:flex;align-items:center;gap:0.55rem;
-    box-shadow:0 8px 28px rgba(0,0,0,0.22);z-index:9999;
-    max-width:90vw;opacity:0;
-    transition:opacity 0.25s ease,transform 0.25s ease;
-    pointer-events:none;
-  `;
-  toast.innerHTML = `<span style="font-size:1rem;flex-shrink:0">${icon}</span><span>${message}</span>`;
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => {
-    toast.style.opacity = "1";
-    toast.style.transform = "translateX(-50%) translateY(0)";
-  });
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateX(-50%) translateY(10px)";
-    setTimeout(() => toast.remove(), 300);
-  }, 4500);
-}
-
-// ── GYM STATUS CHECK ──────────────────────────────────────
-async function checkGymStatus() {
-  try {
-    const res = await fetch("/api/v1/users/me");
-    const data = await res.json();
-    const gymStatus = data?.data?.data?.gymStatus || "offline";
-    if (gymStatus !== "atGym" && gymStatus !== "logging") {
-      showToast(
-        "You're not checked in at the gym. Check in first so your attendance is recorded.",
-        "warning",
-      );
-    }
-  } catch (e) {
-    /* silently fail */
-  }
-}
-checkGymStatus();
-
 // ── DATA ──────────────────────────────────────────────────
-const rawMuscles = JSON.parse(
-  document.getElementById("musclesData").textContent || "[]",
+const gymExercises = JSON.parse(
+  document.getElementById("gymExercisesData").textContent,
+);
+const homeExercises = JSON.parse(
+  document.getElementById("homeExercisesData").textContent,
 );
 
-// grouped = { muscleName: [{ exerciseName, gifURL }, ...] }
-const grouped = {};
-rawMuscles.forEach((m) => {
-  if (!grouped[m.name]) grouped[m.name] = [];
-  grouped[m.name].push({ exerciseName: m.exerciseName, gifURL: m.gifURL });
-});
+const GYM_LAT = window.GYM_LAT;
+const GYM_LNG = window.GYM_LNG;
+const GYM_RADIUS = window.GYM_RADIUS;
+const HAS_HOME_PLAN = window.HAS_HOME_PLAN;
+const USER_IS_AT_GYM = window.USER_IS_AT_GYM;
 
-const muscleNames = Object.keys(grouped);
+// ── STATE ─────────────────────────────────────────────────
+let selectedWorkoutType = null;
+let selectedMuscles = new Set();
+let exerciseChoices = {};
+let userLat = null,
+  userLng = null;
+let userAtGym = false;
+let userCheckedIn = USER_IS_AT_GYM;
 
 // ── DOM REFS ──────────────────────────────────────────────
-const muscleGrid = document.getElementById("muscleGrid");
+const gpsBanner = document.getElementById("gpsBanner");
+const gpsSpinner = document.getElementById("gpsSpinner");
+const gpsText = document.getElementById("gpsText");
+const gymCard = document.getElementById("gymCard");
+const homeCard = document.getElementById("homeCard");
+const gymStatus = document.getElementById("gymStatus");
+const homeStatus = document.getElementById("homeStatus");
+const checkinBtn = document.getElementById("checkinBtn");
+const step0Msg = document.getElementById("step0Message");
+const step0NextBtn = document.getElementById("step0NextBtn");
+const step0Card = document.getElementById("step0Card");
 const step1Card = document.getElementById("step1Card");
 const step2Card = document.getElementById("step2Card");
+const muscleGrid = document.getElementById("muscleGrid");
 const nextBtn = document.getElementById("nextBtn");
-const backBtn = document.getElementById("backBtn");
-const startBtn = document.getElementById("startBtn");
+const step1Msg = document.getElementById("step1Message");
 const exercisePickers = document.getElementById("exercisePickers");
-const step1Message = document.getElementById("step1Message");
-const step2Message = document.getElementById("step2Message");
+const step2Msg = document.getElementById("step2Message");
+const startBtn = document.getElementById("startBtn");
+const backBtn = document.getElementById("backBtn");
+const backToStep0 = document.getElementById("backToStep0Btn");
+const stepDot0 = document.getElementById("stepDot0");
 const stepDot1 = document.getElementById("stepDot1");
 const stepDot2 = document.getElementById("stepDot2");
+const stepLine1 = document.getElementById("stepLine1");
+const stepLine2 = document.getElementById("stepLine2");
 
-// ── STEP 1: Render muscle chips ───────────────────────────
-muscleNames.forEach((name) => {
-  const exCount = grouped[name].length;
-  const firstGif = grouped[name][0]?.gifURL || "/img/placeholder.gif";
-
-  const chip = document.createElement("div");
-  chip.className = "muscle-chip";
-  chip.dataset.muscle = name;
-  chip.innerHTML = `
-    <div class="chip-check">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
-    </div>
-    <div class="chip-gif">
-      <img src="${firstGif}" alt="${name}" loading="lazy"/>
-    </div>
-    <span class="chip-name">${name}</span>
-    <span class="chip-count">${exCount} exercise${exCount !== 1 ? "s" : ""}</span>
-  `;
-
-  chip.addEventListener("click", () => {
-    chip.classList.toggle("selected");
-    updateNextBtn();
-  });
-
-  muscleGrid.appendChild(chip);
-});
-
-function getSelectedMuscles() {
-  return [...document.querySelectorAll(".muscle-chip.selected")].map(
-    (c) => c.dataset.muscle,
-  );
+// ── HELPERS ───────────────────────────────────────────────
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function updateNextBtn() {
-  const selected = getSelectedMuscles();
-  nextBtn.disabled = selected.length === 0;
-  step1Message.textContent =
-    selected.length > 0
-      ? `${selected.length} muscle${selected.length > 1 ? "s" : ""} selected`
-      : "";
+function showCard(card) {
+  [step0Card, step1Card, step2Card].forEach((c) => c.classList.add("hidden"));
+  card.classList.remove("hidden");
 }
 
-// ── NEXT → Step 2 ─────────────────────────────────────────
-nextBtn.addEventListener("click", () => {
-  const selected = getSelectedMuscles();
-  if (selected.length === 0) return;
+// ── GYM HOURS CHECK — only used for gym-specific actions ──
+function fmt12(h) {
+  if (h === 0) return "12:00 AM";
+  if (h === 12) return "12:00 PM";
+  return h < 12 ? `${h}:00 AM` : `${h - 12}:00 PM`;
+}
 
-  exercisePickers.innerHTML = "";
-
-  selected.forEach((muscleName, idx) => {
-    const exercises = grouped[muscleName] || [];
-
-    const section = document.createElement("div");
-    section.className = "exercise-section";
-    section.style.animationDelay = `${idx * 0.07}s`;
-
-    const title = document.createElement("div");
-    title.className = "exercise-section-title";
-    title.textContent = muscleName;
-    section.appendChild(title);
-
-    const options = document.createElement("div");
-    options.className = "exercise-options";
-
-    exercises.forEach((ex, i) => {
-      const label = document.createElement("label");
-      label.className = "exercise-option";
-
-      // ── CHECKBOX instead of radio ──────────────────────
-      label.innerHTML = `
-        <input class="exercise-checkbox" type="checkbox"
-          name="exercise_${muscleName.replace(/\s+/g, "_")}"
-          value="${ex.exerciseName}"
-          ${i === 0 ? "checked" : ""} />
-        <span class="exercise-custom-checkbox">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        </span>
-        <div class="exercise-gif">
-          <img src="${ex.gifURL || "/img/placeholder.gif"}" alt="${ex.exerciseName}" loading="lazy"/>
-        </div>
-        <span class="exercise-label">${ex.exerciseName}</span>
-      `;
-
-      options.appendChild(label);
-    });
-
-    section.appendChild(options);
-    exercisePickers.appendChild(section);
-  });
-
-  // Transition to step 2
-  step1Card.classList.add("hidden");
-  step2Card.classList.remove("hidden");
-  step2Card.style.animation = "none";
-  step2Card.offsetHeight;
-  step2Card.style.animation = "";
-
-  stepDot1.classList.remove("active");
-  stepDot1.classList.add("done");
-  stepDot1.querySelector(".step-num").textContent = "✓";
-  stepDot2.classList.add("active");
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-// ── BACK → Step 1 ─────────────────────────────────────────
-backBtn.addEventListener("click", () => {
-  step2Card.classList.add("hidden");
-  step1Card.classList.remove("hidden");
-
-  stepDot1.classList.add("active");
-  stepDot1.classList.remove("done");
-  stepDot1.querySelector(".step-num").textContent = "1";
-  stepDot2.classList.remove("active");
-
-  step2Message.textContent = "";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-// ── START WORKOUT ──────────────────────────────────────────
-startBtn.addEventListener("click", async () => {
-  step2Message.textContent = "";
-  step2Message.className = "step-message";
-
-  // Collect ALL checked exercises per muscle
-  const selected = getSelectedMuscles();
-  const targets = [];
-
-  for (const muscleName of selected) {
-    const checkboxName = `exercise_${muscleName.replace(/\s+/g, "_")}`;
-    const checked = [
-      ...document.querySelectorAll(`input[name="${checkboxName}"]:checked`),
-    ];
-
-    // Push one target entry per checked exercise (muscles with nothing checked are simply skipped)
-    checked.forEach((cb) => {
-      targets.push({ muscle: muscleName, exercise: cb.value });
-    });
+function isGymOpenNow() {
+  const today = window.GYM_TODAY;
+  if (!today) return { open: false, reason: "Gym schedule unavailable." };
+  if (!today.isOpen)
+    return { open: false, reason: `The gym is closed today (${today.day}).` };
+  const hour = new Date().getHours();
+  if (hour < today.openingHour || hour >= today.closingHour) {
+    return {
+      open: false,
+      reason: `The gym is currently closed. Today's hours: ${fmt12(today.openingHour)} — ${fmt12(today.closingHour)}.`,
+    };
   }
+  return { open: true, reason: "" };
+}
 
-  if (targets.length === 0) {
-    step2Message.textContent = "⚠ No exercises selected.";
+// ── STEP 0: GPS + TYPE SELECTION ─────────────────────────
+function initGPS() {
+  if (!navigator.geolocation) {
+    gpsText.textContent = "Geolocation not supported on this device.";
+    gpsSpinner.style.display = "none";
+    lockGymCard("Location required");
+    enableHomeIfAvailable();
+    attachTypeCardClicks();
     return;
   }
 
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+
+      const dist = getDistanceMeters(userLat, userLng, GYM_LAT, GYM_LNG);
+      userAtGym = dist <= GYM_RADIUS;
+
+      gpsSpinner.style.display = "none";
+
+      if (userAtGym) {
+        gpsBanner.classList.add("gps-banner--success");
+        gpsText.textContent = "📍 You are at the gym!";
+
+        // ── Check gym hours ONLY for gym card ──────────
+        const gymHours = isGymOpenNow();
+        if (!gymHours.open) {
+          // Gym is closed — lock gym card, hide check-in
+          lockGymCard(gymHours.reason, "error");
+          checkinBtn.classList.add("hidden");
+        } else if (!userCheckedIn) {
+          // Gym open, not checked in yet
+          checkinBtn.classList.remove("hidden");
+          lockGymCard("Check in first to unlock", "warning");
+        } else {
+          // Gym open + checked in
+          unlockGymCard();
+        }
+      } else {
+        gpsBanner.classList.add("gps-banner--warning");
+        gpsText.textContent = `📍 You are ${Math.round(dist)}m away from the gym`;
+        lockGymCard(`${Math.round(dist)}m away — go to gym to unlock`, "error");
+      }
+
+      // ── Home is ALWAYS independent of gym hours ───────
+      enableHomeIfAvailable();
+      attachTypeCardClicks();
+    },
+    () => {
+      gpsSpinner.style.display = "none";
+      gpsText.textContent = "Could not get location. Home workout available.";
+      gpsBanner.classList.add("gps-banner--warning");
+      lockGymCard("Location required", "error");
+      enableHomeIfAvailable();
+      attachTypeCardClicks();
+    },
+    { timeout: 8000 },
+  );
+}
+
+function lockGymCard(message, type = "error") {
+  gymCard.classList.add("workout-type-card--locked");
+  gymStatus.textContent = message;
+  gymStatus.className = `workout-type-status status--${type}`;
+}
+
+function unlockGymCard() {
+  gymCard.classList.remove("workout-type-card--locked");
+  gymStatus.textContent = "✅ Checked in";
+  gymStatus.className = "workout-type-status status--success";
+}
+
+function enableHomeIfAvailable() {
+  if (HAS_HOME_PLAN) {
+    homeCard.classList.remove("workout-type-card--locked");
+    homeStatus.textContent = "Available";
+    homeStatus.className = "workout-type-status status--success";
+  } else {
+    homeCard.classList.add("workout-type-card--locked");
+    homeStatus.textContent = "No home plan yet";
+    homeStatus.className = "workout-type-status status--error";
+  }
+}
+
+function attachTypeCardClicks() {
+  gymCard.addEventListener("click", () => {
+    if (gymCard.classList.contains("workout-type-card--locked")) return;
+    selectType("Gym");
+  });
+  homeCard.addEventListener("click", () => {
+    if (homeCard.classList.contains("workout-type-card--locked")) return;
+    selectType("Home");
+  });
+}
+
+function selectType(type) {
+  selectedWorkoutType = type;
+  gymCard.classList.toggle("workout-type-card--selected", type === "Gym");
+  homeCard.classList.toggle("workout-type-card--selected", type === "Home");
+  step0NextBtn.disabled = false;
+  step0Msg.textContent = "";
+}
+
+// ── CHECK-IN ─────────────────────────────────────────────
+checkinBtn.addEventListener("click", async () => {
+  if (!userLat || !userLng) return;
+
+  // Client-side hours guard
+  const gymHours = isGymOpenNow();
+  if (!gymHours.open) {
+    step0Msg.textContent = gymHours.reason;
+    return;
+  }
+
+  checkinBtn.disabled = true;
+  checkinBtn.textContent = "Checking in...";
+
+  try {
+    const res = await fetch("/api/v1/users/gymCheckin", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "atGym",
+        latitude: userLat,
+        longitude: userLng,
+      }),
+    });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      userCheckedIn = true;
+      checkinBtn.classList.add("hidden");
+      unlockGymCard();
+      step0Msg.textContent = "";
+    } else {
+      checkinBtn.disabled = false;
+      checkinBtn.innerHTML = `<span>Check In to Gym</span>`;
+      step0Msg.textContent = data.message || "Check-in failed. Try again.";
+    }
+  } catch {
+    checkinBtn.disabled = false;
+    step0Msg.textContent = "Network error. Try again.";
+  }
+});
+
+// ── STEP 0 → STEP 1 ──────────────────────────────────────
+step0NextBtn.addEventListener("click", () => {
+  if (!selectedWorkoutType) return;
+  stepDot0.classList.remove("active");
+  stepDot0.classList.add("done");
+  stepDot1.classList.add("active");
+  stepLine1.classList.add("done");
+  buildMuscleGrid();
+  showCard(step1Card);
+});
+
+// ── STEP 1: MUSCLE GROUPS ────────────────────────────────
+function getActiveExercises() {
+  return selectedWorkoutType === "Gym" ? gymExercises : homeExercises;
+}
+
+function buildMuscleGrid() {
+  const exercises = getActiveExercises();
+  muscleGrid.innerHTML = "";
+  selectedMuscles = new Set();
+  nextBtn.disabled = true;
+
+  const targets = [...new Set(exercises.map((e) => e.target))];
+
+  if (targets.length === 0) {
+    muscleGrid.innerHTML = `<p class="empty-muscles">No exercises in your ${selectedWorkoutType} plan.</p>`;
+    return;
+  }
+
+  targets.forEach((target) => {
+    const chip = document.createElement("button");
+    chip.className = "muscle-chip";
+    chip.dataset.target = target;
+    chip.textContent = target;
+    chip.type = "button";
+
+    chip.addEventListener("click", () => {
+      if (selectedMuscles.has(target)) {
+        selectedMuscles.delete(target);
+        chip.classList.remove("active");
+      } else {
+        selectedMuscles.add(target);
+        chip.classList.add("active");
+      }
+      nextBtn.disabled = selectedMuscles.size === 0;
+      step1Msg.textContent = "";
+    });
+
+    muscleGrid.appendChild(chip);
+  });
+}
+
+backToStep0.addEventListener("click", () => {
+  stepDot0.classList.add("active");
+  stepDot0.classList.remove("done");
+  stepDot1.classList.remove("active");
+  stepLine1.classList.remove("done");
+  showCard(step0Card);
+});
+
+nextBtn.addEventListener("click", () => {
+  if (selectedMuscles.size === 0) {
+    step1Msg.textContent = "Please select at least one muscle group.";
+    return;
+  }
+  stepDot1.classList.remove("active");
+  stepDot1.classList.add("done");
+  stepDot2.classList.add("active");
+  stepLine2.classList.add("done");
+  buildExercisePickers();
+  showCard(step2Card);
+});
+
+// ── STEP 2: EXERCISE PICKERS ─────────────────────────────
+function buildExercisePickers() {
+  exercisePickers.innerHTML = "";
+  exerciseChoices = {};
+
+  selectedMuscles.forEach((m) => {
+    exerciseChoices[m] = [];
+  });
+
+  const exercises = getActiveExercises();
+
+  selectedMuscles.forEach((target) => {
+    const muscleExercises = exercises.filter((e) => e.target === target);
+    const safeId =
+      "pickerList-" + target.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-]/g, "");
+
+    const section = document.createElement("div");
+    section.className = "picker-section";
+    section.innerHTML = `
+      <div class="picker-muscle-label">${target}</div>
+      <input class="picker-search" type="text" placeholder="Search ${target} exercises..." data-target="${target}">
+      <div class="picker-list" id="${safeId}"></div>
+    `;
+
+    exercisePickers.appendChild(section);
+
+    const listEl = document.getElementById(safeId);
+    const searchEl = section.querySelector(".picker-search");
+
+    renderPickerList(listEl, muscleExercises, target);
+
+    searchEl.addEventListener("input", () => {
+      const q = searchEl.value.toLowerCase().trim();
+      const filtered = muscleExercises.filter((e) =>
+        e.name.toLowerCase().includes(q),
+      );
+      renderPickerList(listEl, filtered, target);
+    });
+  });
+}
+
+function renderPickerList(listEl, exercises, target) {
+  listEl.innerHTML = "";
+
+  if (exercises.length === 0) {
+    listEl.innerHTML = `<p class="picker-empty">No exercises found.</p>`;
+    return;
+  }
+
+  if (!exerciseChoices[target]) exerciseChoices[target] = [];
+
+  exercises.forEach((ex) => {
+    const isSelected = exerciseChoices[target].includes(ex.exerciseId);
+    const row = document.createElement("div");
+    row.className = "picker-row" + (isSelected ? " selected" : "");
+
+    row.innerHTML = `
+      <input type="checkbox" name="exercise-${target}" value="${ex.exerciseId}" ${isSelected ? "checked" : ""}>
+      <div class="picker-row-info">
+        ${ex.gifURL ? `<img class="picker-gif" src="${ex.gifURL}" alt="${ex.name}" loading="lazy">` : ""}
+        <span class="picker-name">${ex.name}</span>
+      </div>
+    `;
+
+    row.addEventListener("click", () => {
+      const checkbox = row.querySelector("input[type=checkbox]");
+      const id = ex.exerciseId;
+      if (exerciseChoices[target].includes(id)) {
+        exerciseChoices[target] = exerciseChoices[target].filter(
+          (e) => e !== id,
+        );
+        checkbox.checked = false;
+        row.classList.remove("selected");
+      } else {
+        exerciseChoices[target].push(id);
+        checkbox.checked = true;
+        row.classList.add("selected");
+      }
+      step2Msg.textContent = "";
+    });
+
+    listEl.appendChild(row);
+  });
+}
+
+backBtn.addEventListener("click", () => {
+  stepDot1.classList.add("active");
+  stepDot1.classList.remove("done");
+  stepDot2.classList.remove("active");
+  stepLine2.classList.remove("done");
+  showCard(step1Card);
+});
+
+// ── START WORKOUT ─────────────────────────────────────────
+startBtn.addEventListener("click", async () => {
+  const muscles = Array.from(selectedMuscles);
+  const missing = muscles.filter(
+    (m) => !exerciseChoices[m] || exerciseChoices[m].length === 0,
+  );
+
+  if (missing.length > 0) {
+    step2Msg.textContent = `Please choose at least one exercise for: ${missing.join(", ")}`;
+    return;
+  }
+
+  step2Msg.textContent = "";
   startBtn.disabled = true;
-  startBtn.querySelector("span").textContent = "Starting...";
+  startBtn.innerHTML = `<span>Starting...</span>`;
+
+  const activeExercises = getActiveExercises();
+  const targets = [];
+
+  muscles.forEach((m) => {
+    exerciseChoices[m].forEach((exerciseId) => {
+      const found = activeExercises.find((e) => e.exerciseId === exerciseId);
+      if (found) targets.push({ muscle: m, exercise: found.name });
+    });
+  });
 
   try {
     const res = await fetch("/api/v1/workout-logs/solo", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targets }),
+      body: JSON.stringify({ targets, workoutType: selectedWorkoutType }),
     });
     const data = await res.json();
 
     if (data.status === "success") {
-      step2Message.textContent = "✓ Workout started!";
-      step2Message.classList.add("success");
-      setTimeout(() => {
-        window.location.href = `/workoutLogs/${data.data._id}`;
-      }, 500);
+      window.location.href = `/workoutLogs/${data.data._id}`;
     } else {
-      step2Message.textContent = data.message || "Failed to start workout.";
+      step2Msg.textContent = data.message || "Failed to start workout.";
       startBtn.disabled = false;
-      startBtn.querySelector("span").textContent = "Start Workout";
+      startBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <span>Start Workout</span>`;
     }
-  } catch (err) {
-    console.error(err);
-    step2Message.textContent = "Something went wrong. Please try again.";
+  } catch {
+    step2Msg.textContent = "Network error. Please try again.";
     startBtn.disabled = false;
-    startBtn.querySelector("span").textContent = "Start Workout";
   }
 });
+
+// ── INIT ──────────────────────────────────────────────────
+initGPS();

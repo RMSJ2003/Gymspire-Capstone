@@ -18,20 +18,29 @@ const congestionRouter = require("./routes/congestionRouter");
 const viewRouter = require("./routes/viewRoutes");
 const app = express();
 
-const authController = require("./controllers/authController"); // 🔹 ADD THIS
+const authController = require("./controllers/authController");
 
 console.log("this is app");
+
 // BODY + COOKIES
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+// ── PREVENT BACK-BUTTON CACHE ─────────────────────────────
+app.use((req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  next();
+});
+
 // VIEW ENGINE
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
 
-// 🔹 API ROUTES FIRST (VERY IMPORTANT)
+// API ROUTES
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/workout-plans", workoutPlanRouter);
@@ -43,8 +52,8 @@ app.use("/api/v1/exercises", exerciseRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/congestion", congestionRouter);
 
-// 🔹 VIEW ROUTES LAST
-app.use(authController.isLoggedIn); // To be able to use user details in pug files
+// VIEW ROUTES
+app.use(authController.isLoggedIn);
 app.use("/", viewRouter);
 
 // 404 HANDLER

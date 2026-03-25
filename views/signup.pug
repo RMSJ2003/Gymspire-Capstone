@@ -5,8 +5,6 @@ block styles
   link(rel="stylesheet" href="/css/signup.css")
 
 block content
-  //- action + method + enctype enable no-JS form submission
-  //- novalidate is REMOVED so browser built-in validation works when JS is off
   form(
     id='signupForm'
     action='/api/v1/auth/signup'
@@ -14,7 +12,6 @@ block content
     enctype='multipart/form-data'
   )
 
-    //- Logo
     .logo-wrapper
       .logo-icon
         svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
@@ -25,20 +22,16 @@ block content
 
     h2 Create Account
 
-    //- ── SERVER-SIDE ERROR (shown when JS is disabled) ──────────────
-    //- When JS is on, this is hidden and JS handles its own #formMessage
     if errorMessage
       p.form-message.server-error(style='color:#d25353;font-weight:700;margin-bottom:.5rem;')
         = errorMessage
 
-    //- ── SUCCESS MESSAGE (shown when JS is disabled after redirect) ──
     if successMessage
       p.form-message.server-success(style='color:#16a34a;font-weight:700;margin-bottom:.5rem;')
         = successMessage
 
     p.form-message#formMessage
 
-    //- Avatar upload
     .avatar-upload
       .avatar-preview#avatarPreview(onclick="document.getElementById('pfp').click()")
         img#avatarImg(src='' alt='Preview')
@@ -76,15 +69,30 @@ block content
     input(type='password' name='passwordConfirm' id='passwordConfirm' required placeholder='••••••••')
     small.form-error#passwordConfirmError
 
+    label.show-password-label
+      input(type='checkbox' id='showPassword')
+      | Show Password
+
     .waiver-section
-      a.waiver-link(href='/waivers/GymSpire-waiver.pdf' target='_blank')
+      button.waiver-link(type='button' id='openWaiverBtn')
         svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
           path(d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z')
         | View Waiver (PDF)
       label.waiver-label(for='agreeWaiver')
-        input(type='checkbox' id='agreeWaiver' name='agreeWaiver' required)
-        | I have read and agree to the waiver.
+        input(type='checkbox' id='agreeWaiver' name='agreeWaiver' required disabled)
+        span#waiverCheckboxLabel You must view the waiver above before agreeing.
       small.form-error#waiverError
+
+    //- Waiver PDF Modal
+    .waiver-modal.hidden#waiverModal
+      .waiver-modal__backdrop#waiverModalBackdrop
+      .waiver-modal__content
+        .waiver-modal__header
+          span GymSpire Waiver
+          button.waiver-modal__close(type='button' id='closeWaiverBtn') ×
+        iframe.waiver-modal__iframe(src='/waivers/GymSpire-waiver.pdf' title='GymSpire Waiver')
+        .waiver-modal__footer
+          button.waiver-modal__done(type='button' id='waiverDoneBtn') ✓ I Have Read the Waiver
 
     button(type='submit' id='submitBtn')
       span.btn-text Create Account

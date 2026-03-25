@@ -51,6 +51,8 @@ block content
         p
           if recommended
             strong.status-good ✓ Good time to train
+          else if message && (message.toLowerCase().includes('closed') || message.toLowerCase().includes('closed today'))
+            strong.status-bad ✗ Gym is closed
           else
             strong.status-bad ✗ Gym is busy
         p.status-msg #{message}
@@ -89,6 +91,20 @@ block content
             span Member Progress Overview
           p.fatigue-sub Live snapshot of all members' activity &amp; fatigue trends
 
+        .fatigue-controls
+          .fatigue-search-wrap
+            svg.fatigue-search-icon(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+              circle(cx='11' cy='11' r='8')
+              line(x1='21' y1='21' x2='16.65' y2='16.65')
+            input.fatigue-search-input#fatigueSearch(type="text" placeholder="Search members...")
+          select.fatigue-filter-select#fatigueStatusFilter
+            option(value="all") All Status
+            option(value="ok") ✓ On Track
+            option(value="warn") ⚠ Warning
+            option(value="danger") 🔴 At Risk
+            option(value="new") New
+          span.fatigue-result-label#fatigueResultLabel
+
         .fatigue-table-wrap
           table.fatigue-table
             thead
@@ -102,6 +118,10 @@ block content
                 td(colspan='4')
                   span.fatigue-spinner
                   | &nbsp;Loading…
+            .fatigue-pagination.hidden#fatiguePagination
+              button.fatigue-page-btn#fatiguePrevBtn(type="button" disabled) ← Prev
+              span.fatigue-page-info#fatiguePageInfo
+              button.fatigue-page-btn#fatigueNextBtn(type="button") Next →
 
   //- ── INLINE GYM CONGESTION PANEL ────────────────────
   //- Same element IDs as congestion.js — no JS changes needed

@@ -15,13 +15,12 @@ router.patch(
   userController.uploadUserPhoto,
   userController.updateMe,
 );
-
+router.patch("/updateMyPassword", authController.updatePassword);
+router.patch("/onboarding", userController.saveOnboarding);
 router.delete("/deleteMe", userController.deleteMe);
 router.delete("/permanentDeleteMe", userController.permanentDeleteMe);
 
 // ── GYM CHECK-IN ────────────────────────────────────────────
-// PATCH /api/v1/users/gymCheckin
-// Body: { status: "atGym" | "offline" }
 router.patch("/gymCheckin", userController.gymCheckin);
 
 // ── ADMIN / ALL USERS ───────────────────────────────────────

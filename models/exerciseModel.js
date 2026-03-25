@@ -5,8 +5,12 @@ const exerciseSchema = new mongoose.Schema({
   name: String,
   gifURL: String,
   target: String,
-  equipment: String, // ← ADD THIS
+  equipment: String,
   instructions: [String],
+  isGymExercise: {
+    type: Boolean,
+    default: false,
+  },
   gifWorking: {
     type: Boolean,
     default: true,
@@ -15,9 +19,7 @@ const exerciseSchema = new mongoose.Schema({
 });
 
 exerciseSchema.pre(/^find/, function (next) {
-  if (this.getOptions().includeInactive) {
-    return next();
-  }
+  if (this.getOptions().includeInactive) return next();
   this.find({ gifWorking: { $ne: false } });
   next();
 });

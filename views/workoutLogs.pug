@@ -5,7 +5,6 @@ block styles
 
 block content
 
-  //- ── NAVBAR ──────────────────────────────────────────────
   nav.navbar
     .nav-logo
       if user.userType === "user"
@@ -14,20 +13,18 @@ block content
         a(href='/coachDashboard') GymSpire
       if user.userType === "admin"
         a(href='/adminDashboard') GymSpire
-    .nav-center
     .nav-right
       a.nav-back(href='javascript:history.back()')
         svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
           path(d='M19 12H5M5 12l7 7M5 12l7-7')
         span Back
 
-  //- ── PAGE HEADER ─────────────────────────────────────────
   .page-header
     .page-header__left
       if user.pfpUrl
         img.page-header__avatar(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
       else
-        img.page-header__avatar(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+        img.page-header__avatar(src="/img/default-user.png" alt="Default Profile")
       div
         h1.page-header__title= title
         p.page-header__sub= user.username
@@ -38,8 +35,43 @@ block content
         path(d='M6 20v-4')
       span My PR
 
+  //- ── STATS BAR ───────────────────────────────────────────
+  .stats-bar
+    .stat-pill
+      span.stat-num#totalCount= workoutLogs.length
+      span.stat-label Total
+    .stat-pill
+      span.stat-num#soloCount= workoutLogs.filter(l => !l.challengeId).length
+      span.stat-label Solo
+    .stat-pill
+      span.stat-num#challengeCount= workoutLogs.filter(l => l.challengeId).length
+      span.stat-label Challenge
+    .stat-pill
+      span.stat-num#doneCount= workoutLogs.filter(l => l.status === 'done').length
+      span.stat-label Completed
+
+  //- ── FILTERS ─────────────────────────────────────────────
+  .filters-bar
+    .filter-group
+      button.filter-btn.active(data-filter="all" data-group="type") All
+      button.filter-btn(data-filter="solo" data-group="type") Solo
+      button.filter-btn(data-filter="challenge" data-group="type") Challenge
+    .filter-group
+      button.filter-btn.active(data-filter="all" data-group="place") Any Place
+      button.filter-btn(data-filter="gym" data-group="place") 🏋️ Gym
+      button.filter-btn(data-filter="home" data-group="place") 🏠 Home
+    .filter-group
+      button.filter-btn.active(data-filter="all" data-group="status") All Status
+      button.filter-btn(data-filter="done" data-group="status") ✓ Done
+      button.filter-btn(data-filter="ongoing" data-group="status") ⏳ Ongoing
+    .search-wrap
+      input.search-input#dateSearch(type="date" title="Filter by date")
+      button.search-clear#clearDate(type="button") ✕
+
+  .filter-result-label#filterLabel
+
   //- ── LOGS ────────────────────────────────────────────────
-  .logs-wrapper
+  .logs-wrapper#logsWrapper
 
     if workoutLogs.length === 0
       .empty-state
@@ -48,9 +80,17 @@ block content
 
     else
       each log in workoutLogs
-        .log-card
+        - const isChallenge = !!log.challengeId
+        - const place = log.place || 'gym'
+        - const type = isChallenge ? 'challenge' : 'solo'
+        - const dateStr = log.date.toISOString().split('T')[0]
 
-          //- Header row
+        .log-card(
+          data-type=type
+          data-place=place
+          data-status=log.status
+          data-date=dateStr
+        )
           .log-card__header
             .log-card__date
               svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
@@ -64,21 +104,32 @@ block content
                 if log.status === "done"
                   | ✓ Done
                 else
-                  | ⏳ Pending
-              if log.challengeId
-                span.badge.badge--challenge Challenge
+                  | ⏳ Ongoing
+              if isChallenge
+                span.badge.badge--challenge 🏆 Challenge
               else
                 span.badge.badge--solo Solo
+              span.badge(class=place === 'home' ? 'badge--home' : 'badge--gym')
+                | #{place === 'home' ? '🏠 Home' : '🏋️ Gym'}
+
+          //- Exercise preview chips
+          if log.exercises && log.exercises.length
+            .log-card__exercises
+              each ex in log.exercises.slice(0, 4)
+                span.ex-chip= ex.name
+              if log.exercises.length > 4
+                span.ex-chip.ex-chip--more +#{log.exercises.length - 4} more
 
           //- Challenge details
-          if log.challengeId
+          if isChallenge
             .log-card__details
               .detail-row
                 span.detail-label Strength Score
-                span.detail-val= log.strengthScore >= 0 ? log.strengthScore : "—"
+                span.detail-val= log.strengthScore > 0 ? log.strengthScore.toFixed(1) : "—"
               .detail-row
                 span.detail-label Judge Status
-                span.detail-val= log.judgeStatus || "Pending"
+                span.detail-val(class=log.judgeStatus === 'approved' ? 'val--approved' : log.judgeStatus === 'rejected' ? 'val--rejected' : '')
+                  = log.judgeStatus || "Pending"
               if log.judgeNotes
                 .detail-row
                   span.detail-label Judge Notes
@@ -86,21 +137,24 @@ block content
               .detail-row
                 span.detail-label Verified By
                 span.detail-val= (log.verifiedBy && log.verifiedBy.username) || "Not verified yet"
-              if log.videoUrl
-                .log-card__video
-                  video(src=log.videoUrl controls preload="metadata")
-              else
-                .detail-row
-                  span.detail-label Video
-                  span.detail-val.muted No video submitted
 
-          //- Actions
           .log-card__actions
             a.view-btn(href=`/workoutLogs/${log._id}`)
               svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
                 path(d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z')
                 circle(cx='12' cy='12' r='3')
               | View Log
+
+  //- ── NO RESULTS ──────────────────────────────────────────
+  .empty-state.hidden#noResults
+    .empty-icon 🔍
+    p No logs match your filters.
+
+  //- ── PAGINATION ──────────────────────────────────────────
+  .pagination#pagination
+    button.page-btn#prevBtn(type="button" disabled) ← Prev
+    span.page-info#pageInfo
+    button.page-btn#nextBtn(type="button") Next →
 
   p#finishMessage
 

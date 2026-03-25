@@ -17,22 +17,14 @@ block styles
     }
 
     .ev-page {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 1.5rem;
     }
 
     .ev-card {
-      background: #242424;
-      border-radius: 22px;
-      width: 100%;
-      max-width: 420px;
+      background: #242424; border-radius: 22px; width: 100%; max-width: 420px;
       box-shadow: 0 12px 48px rgba(0,0,0,0.45);
-      border: 1px solid rgba(255,255,255,0.06);
-      overflow: hidden;
-      text-align: center;
+      border: 1px solid rgba(255,255,255,0.06); overflow: hidden; text-align: center;
     }
 
     .ev-card__header {
@@ -40,132 +32,80 @@ block styles
       padding: 1.6rem 2rem 1.4rem;
     }
     .ev-card__header .logo {
-      font-family: "Bebas Neue", sans-serif;
-      font-size: 2.2rem;
-      letter-spacing: 0.08em;
-      color: white;
+      font-family: "Bebas Neue", sans-serif; font-size: 2.2rem;
+      letter-spacing: 0.08em; color: white;
     }
     .ev-card__header p {
-      font-size: 0.8rem;
-      color: rgba(255,255,255,0.75);
-      margin-top: 2px;
-      font-weight: 500;
-      letter-spacing: 0.3px;
+      font-size: 0.8rem; color: rgba(255,255,255,0.75); margin-top: 2px;
+      font-weight: 500; letter-spacing: 0.3px;
     }
 
     .ev-card__body {
       padding: 2.2rem 2rem 2.4rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.1rem;
+      display: flex; flex-direction: column; align-items: center; gap: 1.1rem;
     }
 
-    /* ── ICON CIRCLE ── */
     .ev-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      width: 80px; height: 80px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .ev-icon.loading {
-      background: rgba(210,83,83,0.12);
-      border: 2px solid rgba(210,83,83,0.25);
-    }
-    .ev-icon.success {
-      background: rgba(22,163,74,0.12);
-      border: 2px solid rgba(22,163,74,0.3);
-    }
-    .ev-icon.error {
-      background: rgba(210,83,83,0.12);
-      border: 2px solid rgba(210,83,83,0.3);
-    }
-    .ev-icon svg {
-      width: 36px;
-      height: 36px;
-      flex-shrink: 0;
-    }
+    .ev-icon.loading { background: rgba(210,83,83,0.12); border: 2px solid rgba(210,83,83,0.25); }
+    .ev-icon.confirm { background: rgba(59,130,246,0.12); border: 2px solid rgba(59,130,246,0.3); }
+    .ev-icon.success { background: rgba(22,163,74,0.12); border: 2px solid rgba(22,163,74,0.3); }
+    .ev-icon.error   { background: rgba(210,83,83,0.12); border: 2px solid rgba(210,83,83,0.3); }
+    .ev-icon svg { width: 36px; height: 36px; flex-shrink: 0; }
 
-    /* spinner */
     .spinner {
-      width: 36px;
-      height: 36px;
-      border: 3px solid rgba(210,83,83,0.2);
-      border-top-color: #d25353;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      width: 36px; height: 36px;
+      border: 3px solid rgba(210,83,83,0.2); border-top-color: #d25353;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .ev-title {
       font-family: "Bebas Neue", sans-serif;
-      font-size: 1.7rem;
-      letter-spacing: 0.05em;
-      color: #f4f4f5;
+      font-size: 1.7rem; letter-spacing: 0.05em; color: #f4f4f5;
     }
-
     .ev-message {
-      font-size: 0.88rem;
-      color: rgba(244,244,245,0.6);
-      line-height: 1.55;
-      max-width: 300px;
+      font-size: 0.88rem; color: rgba(244,244,245,0.6);
+      line-height: 1.55; max-width: 300px;
+    }
+    .ev-user-badge {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 0.75rem 1.2rem;
+      display: flex; flex-direction: column; gap: 3px; width: 100%;
+    }
+    .ev-user-badge__name {
+      font-size: 1rem; font-weight: 800; color: #f4f4f5;
+    }
+    .ev-user-badge__email {
+      font-size: 0.78rem; color: rgba(244,244,245,0.5);
     }
 
     .ev-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 0.78rem 1.6rem;
-      border: none;
-      border-radius: 11px;
-      font-family: "DM Sans", sans-serif;
-      font-weight: 800;
-      font-size: 0.9rem;
-      cursor: pointer;
-      text-decoration: none;
-      transition: filter 0.2s, transform 0.2s;
-      margin-top: 0.4rem;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 0.78rem 1.6rem; border: none; border-radius: 11px;
+      font-family: "DM Sans", sans-serif; font-weight: 800; font-size: 0.9rem;
+      cursor: pointer; text-decoration: none;
+      transition: filter 0.2s, transform 0.2s; margin-top: 0.4rem; width: 100%;
     }
-    .ev-btn:hover {
-      filter: brightness(1.1);
-      transform: translateY(-1px);
-    }
+    .ev-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
     .ev-btn.primary {
-      background: linear-gradient(135deg, #d25353, #b11226);
-      color: white;
+      background: linear-gradient(135deg, #d25353, #b11226); color: white;
       box-shadow: 0 4px 18px rgba(177,18,38,0.3);
     }
+    .ev-btn.primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .ev-btn.ghost {
-      background: rgba(255,255,255,0.06);
-      color: rgba(244,244,245,0.75);
+      background: rgba(255,255,255,0.06); color: rgba(244,244,245,0.75);
       border: 1px solid rgba(255,255,255,0.1);
     }
-    .ev-btn.ghost:hover {
-      background: rgba(255,255,255,0.1);
-    }
+    .ev-btn.ghost:hover { background: rgba(255,255,255,0.1); }
     .ev-btn svg {
-      width: 15px;
-      height: 15px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      flex-shrink: 0;
+      width: 15px; height: 15px; stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
     }
+    .ev-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.06); margin: 0.2rem 0; }
 
-    .ev-divider {
-      width: 100%;
-      height: 1px;
-      background: rgba(255,255,255,0.06);
-      margin: 0.2rem 0;
-    }
-
-    /* hidden by default */
     .state { display: none; flex-direction: column; align-items: center; gap: 1.1rem; width: 100%; }
     .state.active { display: flex; }
 
@@ -183,20 +123,38 @@ block content
 
       .ev-card__body
 
-        // Loading state
+        //- Loading state
         .state.active#stateLoading
           .ev-icon.loading
             .spinner
-          h2.ev-title Verifying...
-          p.ev-message Please wait while we verify your email address.
+          h2.ev-title Checking Link...
+          p.ev-message Please wait while we validate your verification link.
 
-        // Success state
+        //- Confirm state — "Is this you?"
+        .state#stateConfirm
+          .ev-icon.confirm
+            svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' stroke='#3b82f6')
+              path(d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2')
+              circle(cx='12' cy='7' r='4')
+          h2.ev-title Is This You?
+          p.ev-message We found the account linked to this verification request.
+          .ev-user-badge
+            span.ev-user-badge__name#confirmUsername
+            span.ev-user-badge__email#confirmEmail
+          .ev-divider
+          button.ev-btn.primary#confirmBtn(type='button')
+            svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+              polyline(points='20 6 9 17 4 12')
+            span Yes, Verify My Email
+          a.ev-btn.ghost(href='/login') No, Go Back to Login
+
+        //- Success state
         .state#stateSuccess
           .ev-icon.success
             svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' stroke='#16a34a')
               polyline(points='20 6 9 17 4 12')
           h2.ev-title Email Verified!
-          p.ev-message#successMsg Your email has been successfully verified. You can now log in to GymSpire.
+          p.ev-message Your email has been successfully verified. You can now log in to GymSpire.
           .ev-divider
           a.ev-btn.primary(href='/login')
             svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
@@ -205,7 +163,7 @@ block content
               line(x1='15' y1='12' x2='3' y2='12')
             span Go to Login
 
-        // Error state
+        //- Error state
         .state#stateError
           .ev-icon.error
             svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' stroke='#d25353')

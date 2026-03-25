@@ -88,6 +88,36 @@ const userSchema = new mongoose.Schema({
     enum: ["atGym", "logging", "offline"],
     default: "offline",
   },
+  fitnessProfile: {
+    age: { type: Number, min: 13, max: 100 },
+    sex: { type: String, enum: ["male", "female", "prefer_not_to_say"] },
+    weightKg: { type: Number },
+    heightCm: { type: Number },
+    fitnessGoal: {
+      type: String,
+      enum: [
+        "strength",
+        "endurance",
+        "weight_loss",
+        "muscle_gain",
+        "general_fitness",
+      ],
+    },
+    intensity: {
+      type: String,
+      enum: ["easy", "moderate", "hard"],
+      default: "moderate",
+    },
+    experienceLevel: {
+      type: String,
+      enum: ["beginner", "intermediate", "advanced"],
+      default: "intermediate",
+    },
+    healthDisclaimer: { type: Boolean, default: false },
+    hasHealthConditions: { type: Boolean, default: false },
+    healthNotes: { type: String, maxlength: 500 },
+    profileComplete: { type: Boolean, default: false },
+  },
 });
 
 // START OF COMMENT FOR IMPORTING DEV DATA

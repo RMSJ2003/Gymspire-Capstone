@@ -1,0 +1,617 @@
+extends base
+
+block styles
+  style.
+    @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700;800&display=swap");
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", Arial, sans-serif;
+      background: #f0f0f2; color: #1a1a1a;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .hidden { display: none !important; }
+
+    .ob-wrap {
+      width: 100%; max-width: 520px;
+    }
+
+    /* ── LOGO ── */
+    .ob-logo {
+      text-align: center; margin-bottom: 1.5rem;
+    }
+    .ob-logo-text {
+      font-family: "Bebas Neue", sans-serif; font-size: 2rem;
+      letter-spacing: 0.08em; color: #1a1a1a;
+    }
+    .ob-logo-text span { color: #d25353; }
+
+    /* ── STEP INDICATOR ── */
+    .ob-steps {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin-bottom: 1.5rem;
+    }
+    .ob-step {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .ob-step-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #e5e5e5; color: #aaa;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.8rem; transition: 0.3s;
+    }
+    .ob-step.active   .ob-step-dot { background: #d25353; color: white; }
+    .ob-step.done     .ob-step-dot { background: #22c55e; color: white; }
+    .ob-step-label {
+      font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.4px; color: #bbb;
+    }
+    .ob-step.active .ob-step-label { color: #d25353; }
+    .ob-step.done   .ob-step-label { color: #16a34a; }
+    .ob-step-line {
+      width: 40px; height: 2px; background: #e5e5e5;
+      margin: 0 4px; margin-bottom: 18px; transition: 0.3s;
+    }
+    .ob-step-line.done { background: #22c55e; }
+
+    /* ── CARD ── */
+    .ob-card {
+      background: white; border-radius: 18px;
+      padding: 1.8rem 2rem; margin-bottom: 1rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      border: 1px solid rgba(210,83,83,0.1);
+    }
+    .ob-card-title {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.5rem;
+      letter-spacing: 0.05em; color: #1a1a1a; margin-bottom: 0.3rem;
+    }
+    .ob-card-sub {
+      font-size: 0.78rem; color: #999; margin-bottom: 1.2rem; line-height: 1.5;
+    }
+
+    /* ── DISCLAIMER BOX ── */
+    .disclaimer-box {
+      background: #fff8f0;
+      border: 1.5px solid rgba(245,158,11,0.35);
+      border-left: 4px solid #f59e0b;
+      border-radius: 10px; padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .disclaimer-box p {
+      font-size: 0.8rem; color: #78350f; line-height: 1.65; margin-bottom: 0.8rem;
+    }
+    .disclaimer-box strong { color: #92400e; }
+    .disclaimer-check {
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      font-size: 0.82rem; font-weight: 600; color: #1a1a1a; cursor: pointer;
+    }
+    .disclaimer-check input {
+      width: 16px; height: 16px; accent-color: #d25353;
+      flex-shrink: 0; margin-top: 2px; cursor: pointer;
+    }
+
+    /* ── FORM FIELDS ── */
+    .ob-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 1rem; }
+    .ob-label {
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #aaa;
+    }
+    .ob-input, .ob-select, .ob-textarea {
+      width: 100%; padding: 0.65rem 0.85rem;
+      border: 1.5px solid #e5e5e5; border-radius: 9px;
+      background: #fafafa; color: #1a1a1a;
+      font-family: "DM Sans", sans-serif; font-size: 0.9rem; font-weight: 500;
+      outline: none; transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .ob-input:focus, .ob-select:focus, .ob-textarea:focus {
+      border-color: #d25353; box-shadow: 0 0 0 3px rgba(210,83,83,0.1);
+      background: white;
+    }
+    .ob-input::placeholder, .ob-textarea::placeholder { color: #ccc; }
+    .ob-textarea { resize: vertical; min-height: 80px; }
+
+    .ob-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+    /* ── OPTION CARDS (intensity, goal) ── */
+    .ob-option-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.5rem;
+    }
+    .ob-option {
+      border: 1.5px solid #e5e5e5; border-radius: 10px;
+      padding: 0.75rem 0.7rem; cursor: pointer; transition: 0.15s;
+      text-align: center; display: flex; flex-direction: column;
+      align-items: center; gap: 0.35rem;
+    }
+    .ob-option:hover { border-color: rgba(210,83,83,0.4); background: rgba(210,83,83,0.02); }
+    .ob-option.selected { border-color: #d25353; background: rgba(210,83,83,0.06); }
+    .ob-option input[type="radio"] { display: none; }
+    .ob-option-icon { font-size: 1.4rem; }
+    .ob-option-label { font-size: 0.78rem; font-weight: 700; color: #1a1a1a; }
+    .ob-option-sub   { font-size: 0.65rem; color: #aaa; }
+    .ob-option.selected .ob-option-label { color: #d25353; }
+
+    /* ── HEALTH CONDITIONS TOGGLE ── */
+    .health-toggle {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.85rem; font-weight: 600; color: #1a1a1a; cursor: pointer;
+      margin-bottom: 0.6rem;
+    }
+    .health-toggle input { width: 16px; height: 16px; accent-color: #d25353; cursor: pointer; }
+    .health-notes-wrap { display: none; }
+    .health-notes-wrap.show { display: block; }
+
+    /* ── SUMMARY CARD ── */
+    .summary-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+    }
+    .summary-item {
+      background: #fafafa; border-radius: 8px; padding: 0.6rem 0.8rem;
+      border: 1px solid #eee;
+    }
+    .summary-item-label {
+      font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #bbb; margin-bottom: 2px;
+    }
+    .summary-item-val {
+      font-size: 0.85rem; font-weight: 700; color: #1a1a1a; text-transform: capitalize;
+    }
+
+    /* ── BUTTONS ── */
+    .ob-btn-row { display: flex; gap: 0.6rem; margin-top: 0.5rem; }
+    .ob-btn-back {
+      flex: 1; padding: 0.7rem; border-radius: 10px;
+      border: 1.5px solid #e5e5e5; background: white;
+      color: #555; font-family: "DM Sans", sans-serif;
+      font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: 0.15s;
+    }
+    .ob-btn-back:hover { border-color: #d25353; color: #d25353; }
+    .ob-btn-next {
+      flex: 2; padding: 0.7rem; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      color: white; font-family: "DM Sans", sans-serif;
+      font-weight: 800; font-size: 0.88rem; cursor: pointer;
+      box-shadow: 0 3px 12px rgba(177,18,38,0.28); transition: filter 0.18s;
+    }
+    .ob-btn-next:hover { filter: brightness(1.08); }
+    .ob-btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .ob-message {
+      font-size: 0.8rem; font-weight: 600; color: #d25353;
+      min-height: 1.2em; margin-top: 0.5rem; text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .ob-card { padding: 1.3rem 1.2rem; }
+      .ob-row  { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .ob-option-grid { grid-template-columns: 1fr 1fr; }
+    }
+    /* ── RIR EXPLAINER ── */
+    .rir-explainer {
+      background: rgba(210,83,83,0.04);
+      border: 1px solid rgba(210,83,83,0.15);
+      border-left: 4px solid #d25353;
+      border-radius: 10px; padding: 0.9rem 1rem;
+      margin-top: 0.75rem;
+    }
+    .rir-explainer-header {
+      display: flex; align-items: center; gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .rir-explainer-icon { font-size: 1rem; }
+    .rir-explainer-header strong {
+      font-size: 0.82rem; color: #d25353;
+    }
+    .rir-explainer p {
+      font-size: 0.76rem; color: #555; line-height: 1.6;
+      margin-bottom: 0.6rem;
+    }
+    .rir-examples {
+      display: flex; flex-direction: column; gap: 0.3rem;
+      margin-bottom: 0.6rem;
+    }
+    .rir-ex {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.72rem; color: #555;
+    }
+    .rir-ex-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 44px; padding: 2px 8px; border-radius: 999px;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      color: white; font-size: 0.65rem; font-weight: 800;
+      flex-shrink: 0;
+    }
+    .rir-explainer-note {
+      font-size: 0.7rem !important;
+      color: #d25353 !important;
+      font-weight: 700 !important;
+      margin-bottom: 0 !important;
+    }
+    /* ── TOP BAR ── */
+    .ob-top-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 52px;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.5rem;
+      box-shadow: 0 2px 12px rgba(177,18,38,0.3);
+      z-index: 100;
+    }
+    .ob-top-bar-logo {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 1.4rem; letter-spacing: 0.08em; color: white;
+    }
+    .ob-logout-btn {
+      padding: 0.3rem 0.9rem; border-radius: 7px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: white; font-family: "DM Sans", sans-serif;
+      font-weight: 700; font-size: 0.78rem; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .ob-logout-btn:hover { background: rgba(255,255,255,0.28); }
+
+    /* push content down so it doesn't hide under the bar */
+    body { padding-top: 52px; }
+
+block content
+
+  .ob-top-bar
+    span.ob-top-bar-logo GYM#[span SPIRE]
+    form(action="/api/v1/auth/logout" method="GET")
+      button.ob-logout-btn(type="submit") Logout
+
+  .ob-wrap
+
+    .ob-logo
+      span.ob-logo-text GYM#[span SPIRE]
+
+    //- ── STEP INDICATOR ──────────────────────────────
+    .ob-steps#obSteps
+      .ob-step.active(data-step="1")
+        .ob-step-dot 1
+        span.ob-step-label Disclaimer
+      .ob-step-line
+      .ob-step(data-step="2")
+        .ob-step-dot 2
+        span.ob-step-label Demographics
+      .ob-step-line
+      .ob-step(data-step="3")
+        .ob-step-dot 3
+        span.ob-step-label Fitness
+      .ob-step-line
+      .ob-step(data-step="4")
+        .ob-step-dot 4
+        span.ob-step-label Confirm
+
+    //- ── STEP 1: DISCLAIMER ──────────────────────────
+    .ob-card#step1
+      h2.ob-card-title Health Disclaimer
+      p.ob-card-sub Before using GymSpire, please read the following carefully.
+
+      .disclaimer-box
+        p
+          strong GymSpire is designed for non-beginner lifters
+          |  who are already familiar with gym equipment and proper exercise form.
+        p
+          | If you have any pre-existing health conditions — including but not limited to
+          strong  heart disease, hypertension, diabetes, joint injuries, or respiratory conditions
+          |  — please
+          strong  consult a physician
+          |  before starting any workout program.
+        p Performing exercises incorrectly or without proper conditioning can result in serious injury. GymSpire does not replace professional medical or fitness advice.
+        label.disclaimer-check
+          input(type="checkbox" id="disclaimerCheck")
+          span I have read and understood the disclaimer. I agree to use GymSpire responsibly.
+
+      .ob-btn-row
+        button.ob-btn-next#step1Next(type="button" disabled) Continue →
+
+    //- ── STEP 2: DEMOGRAPHICS ────────────────────────
+    .ob-card.hidden#step2
+      h2.ob-card-title Your Profile
+      p.ob-card-sub Help us personalize your experience.
+
+      .ob-row
+        .ob-field
+          label.ob-label(for="obAge") Age
+          input.ob-input#obAge(type="number" min="13" max="100" placeholder="e.g. 20")
+        .ob-field
+          label.ob-label(for="obSex") Sex
+          select.ob-select#obSex
+            option(value="") Select...
+            option(value="male") Male
+            option(value="female") Female
+            option(value="prefer_not_to_say") Prefer not to say
+
+      .ob-row
+        .ob-field
+          label.ob-label(for="obWeight") Weight (kg)
+          input.ob-input#obWeight(type="number" min="30" max="300" step="0.5" placeholder="e.g. 70")
+        .ob-field
+          label.ob-label(for="obHeight") Height (cm)
+          input.ob-input#obHeight(type="number" min="100" max="250" placeholder="e.g. 170")
+
+      .ob-field
+        label.health-toggle
+          input(type="checkbox" id="hasHealthConditions")
+          | I have existing health conditions
+        .health-notes-wrap#healthNotesWrap
+          label.ob-label(for="obHealthNotes") Describe your condition (optional)
+          textarea.ob-textarea#obHealthNotes(placeholder="e.g. mild hypertension, knee injury...")
+
+      p.ob-message#step2Msg
+      .ob-btn-row
+        button.ob-btn-back#step2Back(type="button") ← Back
+        button.ob-btn-next#step2Next(type="button") Continue →
+
+    //- ── STEP 3: FITNESS PROFILE ─────────────────────
+    .ob-card.hidden#step3
+      h2.ob-card-title Fitness Profile
+      p.ob-card-sub Tell us about your goals and preferred workout intensity.
+
+      .ob-field
+        label.ob-label Fitness Goal
+        .ob-option-grid
+          label.ob-option
+            input(type="radio" name="fitnessGoal" value="strength")
+            span.ob-option-icon 🏋️
+            span.ob-option-label Strength
+            span.ob-option-sub Lift heavier
+          label.ob-option
+            input(type="radio" name="fitnessGoal" value="muscle_gain")
+            span.ob-option-icon 💪
+            span.ob-option-label Muscle Gain
+            span.ob-option-sub Build mass
+          label.ob-option
+            input(type="radio" name="fitnessGoal" value="endurance")
+            span.ob-option-icon 🏃
+            span.ob-option-label Endurance
+            span.ob-option-sub Last longer
+          label.ob-option
+            input(type="radio" name="fitnessGoal" value="weight_loss")
+            span.ob-option-icon 🔥
+            span.ob-option-label Weight Loss
+            span.ob-option-sub Burn calories
+          label.ob-option
+            input(type="radio" name="fitnessGoal" value="general_fitness")
+            span.ob-option-icon ⚡
+            span.ob-option-label General
+            span.ob-option-sub Stay active
+
+      .ob-field(style="margin-top:0.5rem")
+        label.ob-label Workout Intensity
+        .ob-option-grid
+          label.ob-option
+            input(type="radio" name="intensity" value="easy")
+            span.ob-option-icon 🟢
+            span.ob-option-label Easy
+            span.ob-option-sub Fewer sets · RIR +1
+          label.ob-option
+            input(type="radio" name="intensity" value="moderate")
+            span.ob-option-icon 🟡
+            span.ob-option-label Moderate
+            span.ob-option-sub Standard sets · as prescribed
+          label.ob-option
+            input(type="radio" name="intensity" value="hard")
+            span.ob-option-icon 🔴
+            span.ob-option-label Hard
+            span.ob-option-sub More sets · RIR -1
+
+        //- ── RIR EXPLAINER — outside the grid ────────
+        .rir-explainer
+          .rir-explainer-header
+            span.rir-explainer-icon 💡
+            strong What is RIR?
+          p
+            | #[strong Reps in Reserve (RIR)] is how many more reps you could do before reaching failure.
+            | For example, RIR 2 means you stop a set when you feel you have #[strong 2 reps left] before you can't lift anymore.
+          .rir-examples
+            .rir-ex
+              span.rir-ex-badge RIR 0
+              span Train to complete failure
+            .rir-ex
+              span.rir-ex-badge RIR 1
+              span Stop 1 rep before failure — very high effort
+            .rir-ex
+              span.rir-ex-badge RIR 2
+              span Stop 2 reps before failure — challenging
+            .rir-ex
+              span.rir-ex-badge RIR 3
+              span Stop 3 reps before failure — moderate effort
+            .rir-ex
+              span.rir-ex-badge RIR 4
+              span Stop 4 reps before failure — comfortable
+          p.rir-explainer-note Your intensity setting adjusts your RIR target. Hard = push closer to failure. Easy = stay further from failure.
+
+      .ob-field(style="margin-top:0.5rem")
+        label.ob-label Experience Level
+        select.ob-select#obExperience
+          option(value="beginner") Beginner
+          option(value="intermediate" selected) Intermediate
+          option(value="advanced") Advanced
+
+      p.ob-message#step3Msg
+      .ob-btn-row
+        button.ob-btn-back#step3Back(type="button") ← Back
+        button.ob-btn-next#step3Next(type="button") Continue →
+
+    //- ── STEP 4: SUMMARY ─────────────────────────────
+    .ob-card.hidden#step4
+      h2.ob-card-title Profile Summary
+      p.ob-card-sub Here's what we'll use to personalize your workouts.
+
+      .summary-grid#summaryGrid
+
+      p.ob-message#step4Msg
+      .ob-btn-row
+        button.ob-btn-back#step4Back(type="button") ← Back
+        button.ob-btn-next#step4Submit(type="button") Start Using GymSpire 🚀
+
+block scripts
+  script.
+    // ── STEP NAVIGATION ────────────────────────────
+    const steps = [
+      document.getElementById("step1"),
+      document.getElementById("step2"),
+      document.getElementById("step3"),
+      document.getElementById("step4"),
+    ];
+    const stepDots = document.querySelectorAll(".ob-step");
+    const stepLines = document.querySelectorAll(".ob-step-line");
+
+    let currentStep = 0;
+
+    const formData = {
+      age: null, sex: null, weightKg: null, heightCm: null,
+      fitnessGoal: null, intensity: null, experienceLevel: "intermediate",
+      hasHealthConditions: false, healthNotes: "",
+    };
+
+    function showStep(idx) {
+      steps.forEach((s, i) => s.classList.toggle("hidden", i !== idx));
+      stepDots.forEach((dot, i) => {
+        dot.classList.remove("active", "done");
+        if (i < idx)      dot.classList.add("done");
+        else if (i === idx) dot.classList.add("active");
+      });
+      stepLines.forEach((line, i) => {
+        line.classList.toggle("done", i < idx);
+      });
+      currentStep = idx;
+    }
+
+    // ── STEP 1 ─────────────────────────────────────
+    const disclaimerCheck = document.getElementById("disclaimerCheck");
+    const step1Next       = document.getElementById("step1Next");
+
+    disclaimerCheck.addEventListener("change", () => {
+      step1Next.disabled = !disclaimerCheck.checked;
+    });
+    step1Next.addEventListener("click", () => showStep(1));
+
+    // ── STEP 2 ─────────────────────────────────────
+    const hasHealthCheck  = document.getElementById("hasHealthConditions");
+    const healthNotesWrap = document.getElementById("healthNotesWrap");
+
+    hasHealthCheck.addEventListener("change", () => {
+      healthNotesWrap.classList.toggle("show", hasHealthCheck.checked);
+    });
+
+    document.getElementById("step2Back").addEventListener("click", () => showStep(0));
+    document.getElementById("step2Next").addEventListener("click", () => {
+      const age = document.getElementById("obAge").value;
+      const sex = document.getElementById("obSex").value;
+      const msg = document.getElementById("step2Msg");
+
+      if (!age || age < 13 || age > 100) { msg.textContent = "Please enter a valid age (13–100)."; return; }
+      if (!sex) { msg.textContent = "Please select your sex."; return; }
+      msg.textContent = "";
+
+      formData.age              = Number(age);
+      formData.sex              = sex;
+      formData.weightKg         = Number(document.getElementById("obWeight").value) || null;
+      formData.heightCm         = Number(document.getElementById("obHeight").value) || null;
+      formData.hasHealthConditions = hasHealthCheck.checked;
+      formData.healthNotes      = document.getElementById("obHealthNotes").value || "";
+
+      showStep(2);
+    });
+
+    // ── STEP 3 ─────────────────────────────────────
+    // Option card selection
+    document.querySelectorAll(".ob-option").forEach(label => {
+      label.addEventListener("click", () => {
+        const radio = label.querySelector("input[type=radio]");
+        const name  = radio.name;
+        document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+          r.closest(".ob-option").classList.remove("selected");
+        });
+        label.classList.add("selected");
+      });
+    });
+
+    document.getElementById("step3Back").addEventListener("click", () => showStep(1));
+    document.getElementById("step3Next").addEventListener("click", () => {
+      const goal      = document.querySelector("input[name=fitnessGoal]:checked")?.value;
+      const intensity = document.querySelector("input[name=intensity]:checked")?.value;
+      const msg       = document.getElementById("step3Msg");
+
+      if (!goal)      { msg.textContent = "Please select a fitness goal.";      return; }
+      if (!intensity) { msg.textContent = "Please select a workout intensity."; return; }
+      msg.textContent = "";
+
+      formData.fitnessGoal     = goal;
+      formData.intensity       = intensity;
+      formData.experienceLevel = document.getElementById("obExperience").value;
+
+      buildSummary();
+      showStep(3);
+    });
+
+    // ── STEP 4 SUMMARY ─────────────────────────────
+    function buildSummary() {
+      const goalLabels = {
+        strength: "Strength", muscle_gain: "Muscle Gain",
+        endurance: "Endurance", weight_loss: "Weight Loss", general_fitness: "General Fitness",
+      };
+      const grid = document.getElementById("summaryGrid");
+      grid.innerHTML = [
+        { label: "Age",        val: formData.age ? `${formData.age} yrs`  : "—" },
+        { label: "Sex",        val: formData.sex?.replace("_", " ") || "—" },
+        { label: "Weight",     val: formData.weightKg ? `${formData.weightKg} kg` : "—" },
+        { label: "Height",     val: formData.heightCm ? `${formData.heightCm} cm` : "—" },
+        { label: "Goal",       val: goalLabels[formData.fitnessGoal] || formData.fitnessGoal },
+        { label: "Intensity",  val: formData.intensity },
+        { label: "Experience", val: formData.experienceLevel },
+        { label: "Health",     val: formData.hasHealthConditions ? "Conditions noted" : "No conditions" },
+      ].map(({ label, val }) => `
+        <div class="summary-item">
+          <div class="summary-item-label">${label}</div>
+          <div class="summary-item-val">${val}</div>
+        </div>`).join("");
+    }
+
+    document.getElementById("step4Back").addEventListener("click", () => showStep(2));
+
+    // ── SUBMIT ─────────────────────────────────────
+    document.getElementById("step4Submit").addEventListener("click", async () => {
+      const btn = document.getElementById("step4Submit");
+      const msg = document.getElementById("step4Msg");
+      btn.disabled   = true;
+      btn.textContent = "Saving...";
+
+      try {
+        const res  = await fetch("/api/v1/users/onboarding", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            ...formData,
+            healthDisclaimer: true,
+          }),
+        });
+        const data = await res.json();
+
+        if (data.status === "success") {
+          msg.style.color = "#16a34a";
+          msg.textContent = "Profile saved! Redirecting...";
+          setTimeout(() => { window.location.href = "/dashboard"; }, 800);
+        } else {
+          msg.textContent = data.message || "Something went wrong.";
+          btn.disabled    = false;
+          btn.textContent = "Start Using GymSpire 🚀";
+        }
+      } catch (err) {
+        msg.textContent = "Network error. Please try again.";
+        btn.disabled    = false;
+        btn.textContent = "Start Using GymSpire 🚀";
+      }
+    });
+
+    // Initialize — show only step 1
+    showStep(0);

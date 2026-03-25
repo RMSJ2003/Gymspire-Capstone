@@ -12,77 +12,76 @@ block content
     if user.userType === "admin"
       a(href='/adminDashboard') Dashboard
     a(href='javascript:history.back()') Back
+    a(href='/api/v1/auth/logout' style="margin-left:auto;") Logout
 
   -
     let consecutiveWeeks = 0;
-    let shouldDeload = false;
-    let deloadWeeks = 0;
+    let shouldDeload     = false;
+    let deloadWeeks      = 0;
 
     if (prevLog && prevLog.length) {
       function getWeekKey(date) {
-        const d = new Date(date);
+        const d   = new Date(date);
         const day = d.getUTCDay();
         const diff = (day === 0 ? -6 : 1) - day;
         d.setUTCDate(d.getUTCDate() + diff);
-        return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+        // ── Zero-pad month and date so string sort works correctly ──
+        const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(d.getUTCDate()).padStart(2, "0");
+        return `${d.getUTCFullYear()}-${mm}-${dd}`;
       }
+
       const weekSet = new Set();
-      prevLog.forEach(l => { if (l.status === "done") weekSet.add(getWeekKey(l.date)); });
+      prevLog.forEach(l => {
+        if (l.status === "done") weekSet.add(getWeekKey(l.date));
+      });
       weekSet.add(getWeekKey(log.date));
-      const weeks = Array.from(weekSet).sort();
+
+      const weeks = Array.from(weekSet).sort(); // now sorts correctly
       let streak = 1;
       for (let i = weeks.length - 1; i > 0; i--) {
-        const curr = weeks[i].split("-").map(Number);
-        const prev2 = weeks[i - 1].split("-").map(Number);
-        const currDate = new Date(Date.UTC(curr[0], curr[1], curr[2]));
-        const prevDate = new Date(Date.UTC(prev2[0], prev2[1], prev2[2]));
+        const currDate = new Date(weeks[i]);
+        const prevDate = new Date(weeks[i - 1]);
         const diffDays = (currDate - prevDate) / (1000 * 60 * 60 * 24);
-        if (diffDays === 7) { streak++; } else { break; }
+        if (diffDays === 7) {
+          streak++;
+        } else {
+          break;
+        }
       }
       consecutiveWeeks = streak;
-      shouldDeload = streak >= 4;
-      deloadWeeks = streak;
+      shouldDeload      = streak >= deloadThreshold;
+      deloadWeeks       = streak;
     }
-
-  //- ═══════════════════════════════════════
-  //- HERO HEADER
-  //- ═══════════════════════════════════════
+  //- HERO
   .workout-hero
     .workout-hero-bg
-
     .workout-hero-inner
-      //- Left: avatar + user info
       .hero-identity
         .hero-avatar-wrap
           if user.pfpUrl
             img.hero-avatar(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
           else
-            img.hero-avatar(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+            img.hero-avatar(src="/img/default-user.png" alt="Default Profile")
           - const isOngoing = log.status === "ongoing"
           span.hero-status-dot(class=isOngoing ? "dot-live" : "dot-done")
-
         .hero-user-info
           span.hero-username= user.username
           span.hero-date= log.date.toDateString()
-
-      //- Right: stat pills
       .hero-stats
         .hero-stat-pill
           span.pill-label TYPE
           span.pill-value= log.challengeId ? "🏆 Challenge" : "🏋️ Solo"
-
         .hero-stat-pill
           span.pill-label STATUS
           if log.status === "ongoing"
             span.pill-value.pill-live ● LIVE
           else
             span.pill-value.pill-done ✓ Done
-
         if log.challengeId && log.strengthScore >= 0
           .hero-stat-pill
             span.pill-label SCORE
             span.pill-value= log.strengthScore > 0 ? log.strengthScore.toFixed(1) : "—"
-
         if log.challengeId
           .hero-stat-pill
             span.pill-label JUDGE
@@ -93,9 +92,16 @@ block content
             else
               span.pill-value.pill-pending ⏳ Pending
 
-  //- ═══════════════════════════════════════
-  //- CHALLENGE DETAIL CARD (if challenge)
-  //- ═══════════════════════════════════════
+
+  //- ── HEALTH WARNING — fixed bottom toast ─────────────
+  if hasHealthConditions
+    .health-warning-banner
+      .health-warning-icon ⚠️
+      .health-warning-body
+        strong Exercise within your limits.
+        p You have existing health conditions#{healthNotes ? ': "' + healthNotes + '"' : ''}. Stop immediately if you feel discomfort or pain.
+      button.health-warning-dismiss(type="button") ✕
+  //- CHALLENGE DETAIL
   if log.challengeId
     .challenge-detail-card
       if log.judgeNotes
@@ -106,7 +112,6 @@ block content
         .detail-row
           span.detail-label 📋 Judge Notes
           span.detail-value.muted No notes yet
-
       if log.verifiedBy && log.verifiedBy.username
         .detail-row
           span.detail-label ✅ Verified by
@@ -115,7 +120,6 @@ block content
         .detail-row
           span.detail-label ✅ Verified by
           span.detail-value.muted Not verified yet
-
       if log.videoUrl
         .detail-row.detail-row-video
           span.detail-label 🎥 Video
@@ -125,25 +129,22 @@ block content
           span.detail-label 🎥 Video
           span.detail-value.muted No video submitted
 
-  //- ═══════════════════════════════════════
   //- DELOAD BANNER
-  //- ═══════════════════════════════════════
   if shouldDeload
     .deload-banner
       .deload-banner-icon 🔄
       .deload-banner-body
         strong Deload Week Recommended
-        p You've trained <strong>#{deloadWeeks} consecutive weeks</strong>. Your body needs recovery to keep progressing. Consider a deload this week.
+        p You've trained <strong>#{deloadWeeks} consecutive weeks</strong>. Based on your experience level, your body needs recovery to keep progressing.
         ul.deload-tips
-          li Reduce weight by <strong>40–50%</strong> on all exercises
-          li Keep the same sets and rep range
+          li For weighted exercises: reduce weight by <strong>40–50%</strong>
+          li For bodyweight exercises: reduce reps by <strong>40–50%</strong> (e.g. if you do 15 push-ups, do 8–9 this week)
+          li Keep the same number of sets
           li Focus on <strong>form and mind-muscle connection</strong>
           li Avoid pushing to failure this week
         button.deload-dismiss(type="button") Dismiss
 
-  //- ═══════════════════════════════════════
   //- EXERCISES
-  //- ═══════════════════════════════════════
   if log.exercises && log.exercises.length
     .exercises-label Exercises
 
@@ -165,62 +166,200 @@ block content
         }
       }
 
+    //- ── RIR BANNER ──────────────────────────────────────
+    .rir-banner
+      .rir-banner-left
+        span.rir-badge RIR #{rirTarget}
+        .rir-banner-info
+          strong What is RIR?
+          p
+            | #[strong Reps in Reserve (RIR)] means stopping a set when you still have
+            | #[strong #{rirTarget} rep#{rirTarget !== 1 ? 's' : ''}] left before failure.
+          p.rir-description= rirDescription
+      .rir-banner-right
+        span.rir-goal-label #{goalLabel} Goal
+
+
+
     each ex, exIndex in log.exercises
-      .exercise-card(data-ex-index=exIndex)
-        h4= ex.name
-        p Target: #{ex.target}
+      - const isBodyweight = ex.equipment && ex.equipment.toLowerCase() === 'body weight'
+      - const prevData = prevLookup[ex.name]
+      - const hasPrevData = prevData && Object.keys(prevData).length > 0
+      - const warmupSets = ex.set.filter(s => s.type === 'warmup')
+      - const workingSets = ex.set.filter(s => s.type === 'working')
 
-        if ex.gifURL
-          img(src=ex.gifURL alt=ex.name width="200" onerror="this.onerror=null;this.src='/img/default-user.png'")
+      .exercise-card(
+        data-ex-index=exIndex
+        data-is-bodyweight=isBodyweight ? "true" : "false"
+        data-ex-name=ex.name
+      )
 
-        if ex.set && ex.set.length
-          table
-            thead
-              tr
-                th Set #
-                th Weight
-                th Reps
-                th(style="min-width:120px") Action
+        //- ── EXERCISE HEADER ─────────────────────────
+        .ex-header
+          .ex-header-left
+            if ex.gifURL
+              img.ex-header-gif(
+                src=ex.gifURL
+                alt=ex.name
+                onerror="this.onerror=null;this.src='/img/default-user.png'"
+              )
+            .ex-header-info
+              h4= ex.name
+              p.ex-target
+                span= ex.target
+                if isBodyweight
+                  span.ex-equip-badge Bodyweight
+                else if ex.equipment
+                  span.ex-equip-badge= ex.equipment
+          button.ex-expand-btn(type="button" data-ex-index=exIndex) ▸ Instructions
 
-            tbody
-              - let workingIndex = 0;
+        //- ── EXPANDABLE GIF + INSTRUCTIONS ───────────
+        .ex-details.hidden(id=`exDetails-${exIndex}`)
+          .ex-details-inner
+            p.ex-details-label 📽 Form Reference
+            if ex.gifURL
+              img.ex-details-gif(
+                src=ex.gifURL
+                alt=ex.name
+                onerror="this.onerror=null;this.src='/img/default-user.png'"
+              )
+            if ex.instructions && ex.instructions.length
+              ol.ex-details-steps
+                each step in ex.instructions
+                  li= step
+            else
+              p.ex-details-hint No instructions available for this exercise.
 
-              each s in ex.set
-                if s.type !== "warmup"
-                  - workingIndex++;
-                  - const prev = prevLookup[ex.name] && prevLookup[ex.name][workingIndex];
+        //- ── WARM-UP SECTION ─────────────────────────
+        if warmupSets.length && log.status !== "done"
+          - const needsEstimate = !hasPrevData && !isBodyweight
+          .warmup-section(
+            id=`warmupSection-${exIndex}`
+            data-has-prev=hasPrevData ? "true" : "false"
+            data-is-bodyweight=isBodyweight ? "true" : "false"
+            data-ex-index=exIndex
+          )
+            .warmup-header
+              span.warmup-title 🔥 Warm-Up Sets
+              if hasPrevData
+                span.warmup-sub Based on your previous performance
+              else if isBodyweight
+                span.warmup-sub Bodyweight — no weight needed
+              else
+                span.warmup-sub Enter your estimated max weight to calculate warm-ups
+              button.skip-warmup-btn(type="button" data-ex-index=exIndex) Skip All Warm-Ups ›
 
-                  if log.status === "done"
-                    tr
-                      td= workingIndex
-                      td #{s.weight} #{s.unit}
-                      td= s.reps
-                      td ✓
-                  else
-                    tr(
-                      data-set-id=s._id
-                      data-saved=s.weight && s.weight > 0 ? "true" : "false"
-                      data-prev-weight=prev ? prev.weight : ""
-                      data-prev-reps=prev ? prev.reps : ""
-                      data-prev-unit=prev ? (prev.unit || "LB") : ""
-                    )
-                      td.set-num-cell= workingIndex
-                      td.weight-cell(
-                        data-init-weight=s.weight || 0
-                        data-unit=s.unit || 'LB'
+            if needsEstimate
+              .est-weight-form(id=`estWeightForm-${exIndex}`)
+                p.est-weight-label What's the max weight you estimate you can lift for 1 rep?
+                .est-weight-row
+                  input.est-weight-input(
+                    type="number"
+                    min="5" step="5"
+                    placeholder="e.g. 60"
+                    id=`estWeightInput-${exIndex}`
+                  )
+                  span.est-weight-unit LB
+                  button.est-weight-submit(
+                    type="button"
+                    data-ex-index=exIndex
+                  ) Calculate Warm-Ups
+                p.est-weight-hint Warm-ups will be set at 25%, 50%, and 75% of your estimated max.
+
+            table.warmup-table(
+              id=`warmupTable-${exIndex}`
+              class=needsEstimate ? "hidden" : ""
+            )
+              thead
+                tr
+                  th Set
+                  th Weight
+                  th Reps
+                  th Rest
+                  th Action
+              tbody
+                - let wuRests = [60, 60, 120]
+                each s, wuIdx in warmupSets
+                  - const prevBest = prevData && prevData[1]
+                  - const prev1RM = prevBest ? Math.round(prevBest.weight * (1 + prevBest.reps / 30)) : 0
+                  - const pcts = [0.25, 0.50, 0.75]
+                  - const wuWeight = prev1RM > 0 ? Math.round(prev1RM * pcts[wuIdx] / 5) * 5 : 0
+                  - const restLabel = wuRests[wuIdx] >= 60 ? `${wuRests[wuIdx]/60} min` : `${wuRests[wuIdx]}s`
+                  tr.warmup-row(
+                    data-wu-index=wuIdx
+                    data-rest-seconds=wuRests[wuIdx]
+                    data-ex-index=exIndex
+                    data-pct=pcts[wuIdx]
+                  )
+                    td.wu-set-num W#{wuIdx + 1}
+                    td.wu-weight
+                      if isBodyweight
+                        span.bw-label —
+                      else
+                        span.wu-weight-val #{wuWeight > 0 ? wuWeight : '—'}
+                        |  #{prevBest ? prevBest.unit : 'LB'}
+                    td #{s.reps || 4} reps
+                    td.wu-rest-label= restLabel
+                    td.wu-action-cell
+                      button.wu-start-btn(type="button" disabled) Start
+                      button.wu-done-btn(type="button" style="display:none") Done ✓
+
+        //- ── WORKING SETS ────────────────────────────
+        .working-section(id=`workingSection-${exIndex}`)
+          if log.status !== "done" && warmupSets.length && hasPrevData
+            p.working-section-label 💪 Working Sets
+
+          if workingSets.length || log.status === "done"
+            table
+              thead
+                tr
+                  th Set #
+                  if !isBodyweight
+                    th Weight
+                  th Reps
+                  th(style="min-width:120px") Action
+              tbody
+                - let workingIndex = 0
+                each s in ex.set
+                  if s.type !== "warmup"
+                    - workingIndex++
+                    - const prev = prevLookup[ex.name] && prevLookup[ex.name][workingIndex]
+
+                    if log.status === "done"
+                      tr
+                        td= workingIndex
+                        if !isBodyweight
+                          td #{s.weight} #{s.unit}
+                        td= s.reps
+                        td ✓
+                    else
+                      tr(
+                        data-set-id=s._id
+                        data-saved=s.saved ? "true" : "false"
+                        data-rest-seconds=s.restSeconds || 180
+                        data-prev-weight=prev ? prev.weight : ""
+                        data-prev-reps=prev ? prev.reps : ""
+                        data-prev-unit=prev ? (prev.unit || "LB") : ""
+                        data-is-bodyweight=isBodyweight ? "true" : "false"
                       )
-                      td.reps-cell(
-                        data-init-reps=s.reps || 8
-                      )
-                      td.action-cell
+                        td.set-num-cell= workingIndex
+                        if !isBodyweight
+                          td.weight-cell(
+                            data-init-weight=s.weight || 0
+                            data-unit=s.unit || 'LB'
+                          )
+                        td.reps-cell(
+                          data-init-reps=s.reps || 8
+                        )
+                        td.action-cell
 
-        if log.status !== "done"
-          .add-set-row
-            button.add-set-btn(
-              type="button"
-              data-log-id=log._id
-              data-ex-index=exIndex
-            ) + Add Set
+          if log.status !== "done"
+            .add-set-row
+              button.add-set-btn(
+                type="button"
+                data-log-id=log._id
+                data-ex-index=exIndex
+              ) + Add Set
 
     if log.status !== "done"
       button#saveSetsBtn(data-log-id=log._id style="display:none") Save Working Sets
@@ -241,3 +380,6 @@ block content
 
 block scripts
   script(src="/js/workoutLog.js")
+  script.
+    window.rirTarget = !{JSON.stringify(rirTarget)};
+    window.overloadThreshold = !{JSON.stringify(overloadThreshold)};

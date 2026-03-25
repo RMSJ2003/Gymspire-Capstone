@@ -170,7 +170,8 @@ h2 {
 }
 
 /* Field labels */
-#signupForm label:not(.waiver-label):not(.avatar-upload-label) {
+#signupForm
+  label:not(.waiver-label):not(.avatar-upload-label):not(.show-password-label) {
   display: block;
   margin-top: 14px;
   font-size: 0.78rem;
@@ -360,4 +361,224 @@ h2 {
   #signupForm {
     max-width: 400px;
   }
+}
+.show-password-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 4px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #555;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+#showPassword {
+  width: 16px !important;
+  height: 16px;
+  accent-color: #d25353;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+}
+/* ── WAIVER LINK as button ── */
+.waiver-link {
+  background: none;
+  border: none;
+  font-family: "DM Sans", sans-serif;
+  cursor: pointer;
+}
+
+/* ── WAIVER MODAL ── */
+/* ── WAIVER LINK as button ── */
+/* ── WAIVER MODAL ── */
+.waiver-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+@media (min-width: 600px) {
+  .waiver-modal {
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+}
+
+.waiver-modal.hidden {
+  display: none;
+}
+
+.waiver-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+/* ── MODAL CONTENT ── */
+.waiver-modal__content {
+  position: relative;
+  z-index: 1;
+  background: white;
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  /* mobile — bottom sheet */
+  border-radius: 20px 20px 0 0;
+  height: 92dvh;
+  max-height: 92dvh;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 600px) {
+  .waiver-modal__content {
+    border-radius: 18px;
+    height: 88vh;
+    max-height: 88vh;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.45);
+
+    /* center on desktop */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* ── HEADER ── */
+.waiver-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.2rem 0.85rem;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+/* drag handle — mobile only */
+.waiver-modal__header::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #ddd;
+}
+
+@media (min-width: 600px) {
+  .waiver-modal__header::before {
+    display: none;
+  }
+}
+
+.waiver-modal__header span {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  letter-spacing: 0.01em;
+}
+
+/* ── CLOSE BUTTON ── */
+.waiver-modal__close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(210, 83, 83, 0.1);
+  color: #d25353;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.18s,
+    color 0.18s,
+    transform 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.waiver-modal__close:hover {
+  background: #d25353;
+  color: white;
+  transform: scale(1.08);
+}
+
+/* ── IFRAME ── */
+.waiver-modal__iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  min-height: 0;
+  display: block;
+}
+
+/* ── FOOTER ── */
+.waiver-modal__footer {
+  padding: 0.85rem 1.2rem;
+  padding-bottom: calc(0.85rem + env(safe-area-inset-bottom));
+  flex-shrink: 0;
+  border-top: 1px solid #f0f0f0;
+  background: white;
+}
+
+@media (min-width: 600px) {
+  .waiver-modal__footer {
+    padding-bottom: 0.85rem;
+  }
+}
+
+/* ── DONE BUTTON ── */
+.waiver-modal__done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  background: linear-gradient(135deg, #d25353, #b11226);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    filter 0.18s,
+    transform 0.15s,
+    box-shadow 0.18s;
+  box-shadow: 0 4px 16px rgba(177, 18, 38, 0.3);
+}
+.waiver-modal__done:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(177, 18, 38, 0.4);
+}
+.waiver-modal__done:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+/* disabled checkbox hint */
+#agreeWaiver:disabled + #waiverCheckboxLabel {
+  color: #bbb;
+  font-style: italic;
 }

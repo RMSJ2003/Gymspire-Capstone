@@ -208,3 +208,128 @@ if (hamburger && panel) {
     }
   });
 }
+// ── GYM HOURS EDITOR ──────────────────────────────────────
+// ── GYM WEEKLY SCHEDULE EDITOR (admin) ───────────────────
+const saveGymHoursBtn = document.getElementById("saveGymHoursBtn");
+if (saveGymHoursBtn) {
+  // Toggle open/closed per day
+  document.querySelectorAll(".gym-day-open").forEach((checkbox) => {
+    checkbox.addEventListener("change", function () {
+      const idx = this.dataset.index;
+      const hoursRow = document.getElementById(`hoursRow${idx}`);
+      if (hoursRow) hoursRow.classList.toggle("hidden", !this.checked);
+    });
+  });
+
+  saveGymHoursBtn.addEventListener("click", async () => {
+    const msg = document.getElementById("gymHoursMsg");
+    const rows = document.querySelectorAll(".gym-schedule-edit-row");
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const schedule = [];
+
+    let hasError = false;
+    rows.forEach((row, i) => {
+      const isOpen = row.querySelector(".gym-day-open").checked;
+      const selects = row.querySelectorAll(".gym-hour-select");
+      const openingHour = parseInt(selects[0]?.value ?? 6);
+      const closingHour = parseInt(selects[1]?.value ?? 23);
+      if (isOpen && openingHour >= closingHour) {
+        msg.style.color = "#d25353";
+        msg.textContent = `${days[i]}: Opening must be before closing.`;
+        hasError = true;
+      }
+      schedule.push({ day: days[i], isOpen, openingHour, closingHour });
+    });
+
+    if (hasError) return;
+
+    saveGymHoursBtn.disabled = true;
+    saveGymHoursBtn.textContent = "Saving...";
+
+    try {
+      const res = await fetch("/api/v1/admin/gymHours", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ schedule }),
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        msg.style.color = "#16a34a";
+        msg.textContent = "✓ Schedule saved successfully.";
+      } else {
+        msg.style.color = "#d25353";
+        msg.textContent = data.message || "Failed to update.";
+      }
+    } catch (e) {
+      msg.style.color = "#d25353";
+      msg.textContent = "Network error.";
+    } finally {
+      saveGymHoursBtn.disabled = false;
+      saveGymHoursBtn.textContent = "Save Schedule";
+    }
+  });
+}
+// ── GYM LOCATION EDITOR ───────────────────────────────────
+const saveGymLocationBtn = document.getElementById("saveGymLocationBtn");
+if (saveGymLocationBtn) {
+  saveGymLocationBtn.addEventListener("click", async () => {
+    const msg = document.getElementById("gymLocationMsg");
+    const gymName = document.getElementById("gymNameInput").value.trim();
+    const gymLat = parseFloat(document.getElementById("gymLatInput").value);
+    const gymLng = parseFloat(document.getElementById("gymLngInput").value);
+    const gymRadiusMeters = parseInt(
+      document.getElementById("gymRadiusInput").value,
+    );
+
+    if (!gymLat || !gymLng) {
+      msg.style.color = "#d25353";
+      msg.textContent = "Latitude and longitude are required.";
+      return;
+    }
+    if (gymLat < -90 || gymLat > 90) {
+      msg.style.color = "#d25353";
+      msg.textContent = "Latitude must be between -90 and 90.";
+      return;
+    }
+    if (gymLng < -180 || gymLng > 180) {
+      msg.style.color = "#d25353";
+      msg.textContent = "Longitude must be between -180 and 180.";
+      return;
+    }
+
+    saveGymLocationBtn.disabled = true;
+    saveGymLocationBtn.textContent = "Saving...";
+
+    try {
+      const res = await fetch("/api/v1/admin/gymLocation", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ gymName, gymLat, gymLng, gymRadiusMeters }),
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        msg.style.color = "#16a34a";
+        msg.textContent = "✓ Gym location updated successfully.";
+      } else {
+        msg.style.color = "#d25353";
+        msg.textContent = data.message || "Failed to update.";
+      }
+    } catch (e) {
+      msg.style.color = "#d25353";
+      msg.textContent = "Network error.";
+    } finally {
+      saveGymLocationBtn.disabled = false;
+      saveGymLocationBtn.textContent = "Save Location";
+    }
+  });
+}

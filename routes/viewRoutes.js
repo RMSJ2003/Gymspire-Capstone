@@ -23,6 +23,8 @@ router.get(
   viewController.signUp,
 );
 
+router.get("/previewToken/:token", authController.previewVerificationToken);
+
 router.get(
   "/",
   authController.isLoggedIn,
@@ -99,6 +101,7 @@ router.get(
 router.get(
   "/challenges",
   authController.protect,
+  workoutLogController.acquireMyWorkoutLogs,
   challengeController.acquireAllChallenges,
   viewController.challenges,
 );
@@ -132,27 +135,30 @@ router.get(
 );
 
 router.get("/editProfile", authController.protect, viewController.editProfile);
+router.get(
+  "/onboarding",
+  authController.protect,
+  authController.restrictTo("user"),
+  viewController.onboarding,
+);
 
 router.get(
   "/createWorkoutPlan",
   authController.protect,
-  // requireWorkoutPlan,
-  exerciseController.acquireAllExericses,
+  exerciseController.acquireAllExericsesHome, // ← change this
   viewController.createWorkoutPlan,
 );
-
 router.get(
   "/editWorkoutPlan",
   authController.protect,
   requireWorkoutPlan,
-  exerciseController.acquireAllExericses,
+  exerciseController.acquireAllExericsesHome,
   viewController.editWorkoutPlan,
 );
-
 router.get(
   "/personalRecord",
   authController.protect,
-  exerciseController.acquireAllExericses,
+  exerciseController.acquireAllExericsesHome,
   viewController.personalRecord,
 );
 
@@ -205,7 +211,7 @@ router.get(
   "/exercisesManagement",
   authController.protect,
   authController.restrictTo("admin"),
-  exerciseController.acquireAllExericses,
+  exerciseController.acquireAllExercisesAdmin,
   viewController.exercisesManagement,
 );
 

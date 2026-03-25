@@ -1,33 +1,33 @@
 const exercises = window.exercises || [];
 const selectedIds = window.selectedIds || [];
+const planType = window.planType || "Gym";
 
 const targetGrid = document.getElementById("targetGrid");
 const targetModal = document.getElementById("targetModal");
 const closeTargetModal = document.getElementById("closeTargetModal");
 const targetTitle = document.getElementById("targetTitle");
 const targetExerciseList = document.getElementById("targetExerciseList");
-
+const exerciseSearch = document.getElementById("exerciseSearch");
+const noResults = document.getElementById("noResults");
 const modal = document.getElementById("exerciseModal");
 const closeModal = document.getElementById("closeModal");
 const modalExName = document.getElementById("modalExName");
 const modalGif = document.getElementById("modalGif");
 const modalInstructions = document.getElementById("modalInstructions");
 const toggleInstructions = document.getElementById("toggleInstructions");
+const form = document.getElementById("editWorkoutPlanForm");
+const formMessage = document.getElementById("formMessage");
 
-const form = document.querySelector("#editWorkoutPlanForm");
-const formMessage = document.querySelector("#formMessage");
-
-/* ── MULTI-SELECT ── */
 let selectedSet = new Set(selectedIds);
 
-/* GROUP BY TARGET */
+// ── GROUP BY TARGET ──────────────────────────────────────
 const grouped = {};
 exercises.forEach((ex, index) => {
   if (!grouped[ex.target]) grouped[ex.target] = [];
   grouped[ex.target].push({ ...ex, index });
 });
 
-/* BUILD TARGET CARDS */
+// ── BUILD TARGET CARDS ───────────────────────────────────
 Object.keys(grouped).forEach((target) => {
   const card = document.createElement("div");
   card.className = "target-card";
@@ -44,20 +44,21 @@ function updateCardLabel(card, target) {
   card.innerHTML =
     `<span>${target}</span>` +
     (count > 0 ? `<span class="muscle-count">${count} selected</span>` : "");
-  if (count > 0) card.classList.add("active");
-  else card.classList.remove("active");
+  card.classList.toggle("active", count > 0);
 }
 
-/* OPEN TARGET MODAL — exercises shown with GIF inline */
+// ── OPEN TARGET MODAL ────────────────────────────────────
 function openTargetModal(target) {
   targetTitle.textContent = target;
   targetExerciseList.innerHTML = "";
+  exerciseSearch.value = "";
+  noResults.style.display = "none";
 
   grouped[target].forEach((ex) => {
     const isSelected = selectedSet.has(ex.exerciseId);
-
     const row = document.createElement("div");
     row.className = "exercise-row" + (isSelected ? " selected" : "");
+    row.dataset.name = ex.name.toLowerCase();
 
     row.innerHTML = `
       <div class="exercise-left">
@@ -105,9 +106,25 @@ function openTargetModal(target) {
 
   attachInfoButtons();
   targetModal.classList.remove("hidden");
+  exerciseSearch.focus();
 }
 
-/* INFO BUTTON → opens instructions modal */
+// ── SEARCH ───────────────────────────────────────────────
+exerciseSearch.addEventListener("input", () => {
+  const q = exerciseSearch.value.toLowerCase().trim();
+  const rows = targetExerciseList.querySelectorAll(".exercise-row");
+  let visible = 0;
+
+  rows.forEach((row) => {
+    const match = row.dataset.name.includes(q);
+    row.classList.toggle("hidden", !match);
+    if (match) visible++;
+  });
+
+  noResults.style.display = visible === 0 ? "block" : "none";
+});
+
+// ── INFO BUTTON ───────────────────────────────────────────
 function attachInfoButtons() {
   document.querySelectorAll(".info-btn").forEach((btn) => {
     btn.onclick = (e) => {
@@ -127,18 +144,17 @@ function attachInfoButtons() {
       const steps = ex.instructions || [];
       modalInstructions.innerHTML = steps.length
         ? "<ul>" + steps.map((s) => `<li>${s}</li>`).join("") + "</ul>"
-        : "<p style='color:#aaa;font-size:0.85rem;'>No instructions available.</p>";
+        : "<p>No instructions available.</p>";
 
       modalInstructions.classList.add("hidden");
       toggleInstructions.textContent = "Show Instructions";
       toggleInstructions.classList.remove("open");
-
       modal.classList.remove("hidden");
     };
   });
 }
 
-/* TOGGLE INSTRUCTIONS */
+// ── TOGGLE INSTRUCTIONS ──────────────────────────────────
 toggleInstructions.addEventListener("click", () => {
   const isHidden = modalInstructions.classList.toggle("hidden");
   toggleInstructions.textContent = isHidden
@@ -147,7 +163,7 @@ toggleInstructions.addEventListener("click", () => {
   toggleInstructions.classList.toggle("open", !isHidden);
 });
 
-/* CLOSE MODALS */
+// ── CLOSE MODALS ─────────────────────────────────────────
 closeTargetModal.onclick = () => targetModal.classList.add("hidden");
 closeModal.onclick = () => modal.classList.add("hidden");
 targetModal.onclick = (e) => {
@@ -163,30 +179,38 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-/* SUBMIT */
+// ── SUBMIT ────────────────────────────────────────────────
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const exerciseIds = Array.from(selectedSet);
+
   if (exerciseIds.length === 0) {
     formMessage.textContent = "Please select at least one exercise.";
     return;
   }
+
   formMessage.textContent = "";
+
   try {
     const res = await fetch("/api/v1/workout-plans", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exerciseIds }),
+      body: JSON.stringify({ type: planType, exerciseIds }),
     });
     const data = await res.json();
+
     if (data.status === "success") {
-      formMessage.style.color = "#3a9e6a";
-      formMessage.textContent = "Workout plan updated!";
-      setTimeout(() => (location.href = "/workoutPlan"), 700);
+      formMessage.style.color = "#16a34a";
+      formMessage.textContent = `${planType} plan updated!`;
+      setTimeout(() => {
+        location.href = "/workoutPlan";
+      }, 700);
     } else {
+      formMessage.style.color = "var(--red)";
       formMessage.textContent = data.message || "Something went wrong.";
     }
   } catch (err) {
+    formMessage.style.color = "var(--red)";
     formMessage.textContent = "Network error. Please try again.";
   }
 });

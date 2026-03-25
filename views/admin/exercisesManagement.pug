@@ -1,50 +1,432 @@
 extends ../base
 
 block styles
-  link(rel="stylesheet" href="/css/exerciseManagement.css")
+  style.
+    @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700;800&display=swap");
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", Arial, sans-serif;
+      background: #f0f0f2; color: #1a1a1a; min-height: 100vh;
+      padding-top: 64px;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      width: 100%; height: 64px;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      position: fixed; top: 0; left: 0; z-index: 1000;
+      box-shadow: 0 2px 16px rgba(177,18,38,0.35);
+    }
+    .nav-logo a {
+      font-family: "Bebas Neue", sans-serif; color: white; font-size: 1.6rem;
+      text-decoration: none; letter-spacing: 0.08em;
+    }
+    .nav-logo a:hover { color: #f4c430; }
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 0.38rem 0.9rem;
+      background: rgba(255,255,255,0.15); color: white;
+      font-weight: 700; font-size: 0.8rem;
+      text-decoration: none; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.22); transition: 0.18s;
+    }
+    .nav-back:hover { background: rgba(255,255,255,0.25); color: #f4c430; }
+
+    /* ── PAGE ── */
+    .page-wrap {
+      max-width: 1000px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem;
+    }
+
+    .page-header {
+      display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;
+    }
+    .page-header img {
+      width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+      border: 2px solid rgba(210,83,83,0.35);
+    }
+    .page-header h1 {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.6rem;
+      letter-spacing: 0.05em; color: #1a1a1a; line-height: 1;
+    }
+    .page-header p { font-size: 0.72rem; color: #999; font-weight: 500; }
+
+    /* ── SECTION CARD ── */
+    .section-card {
+      background: white; border-radius: 14px;
+      border: 1px solid rgba(210,83,83,0.1);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      padding: 1.3rem 1.5rem; margin-bottom: 1rem;
+    }
+
+    .section-title {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.7px; color: #d25353; margin-bottom: 0.75rem;
+    }
+    .section-title svg {
+      width: 13px; height: 13px; stroke: #d25353; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .section-card p {
+      font-size: 0.82rem; color: #666; line-height: 1.6; margin-bottom: 0.9rem;
+    }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0.55rem 1.2rem; border: none; border-radius: 9px;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      color: white; font-family: "DM Sans", sans-serif;
+      font-weight: 700; font-size: 0.85rem; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(177,18,38,0.25);
+      transition: filter 0.18s, transform 0.15s;
+    }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-danger {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0.55rem 1.2rem; border: none; border-radius: 9px;
+      background: #1a1a1a; color: white;
+      font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 0.85rem;
+      cursor: pointer; transition: filter 0.18s;
+    }
+    .btn-danger:hover { filter: brightness(1.2); }
+
+    .btn-save-gym {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0.6rem 1.4rem; border: none; border-radius: 9px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white; font-family: "DM Sans", sans-serif;
+      font-weight: 700; font-size: 0.85rem; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(22,163,74,0.3);
+      transition: filter 0.18s, transform 0.15s;
+    }
+    .btn-save-gym:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-save-gym:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .msg { font-size: 0.82rem; font-weight: 600; margin-top: 0.6rem; min-height: 1.1em; }
+    .msg.success { color: #16a34a; }
+    .msg.error   { color: #d25353; }
+
+    /* ── GYM EXERCISE SELECTOR ── */
+    .gym-selector-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.75rem; margin-bottom: 0.85rem; flex-wrap: wrap;
+    }
+    .gym-search {
+      flex: 1; min-width: 180px; max-width: 320px;
+      padding: 0.45rem 0.85rem;
+      border: 1.5px solid #e5e5e5; border-radius: 9px;
+      font-family: "DM Sans", sans-serif; font-size: 0.85rem;
+      outline: none; transition: border-color 0.15s;
+    }
+    .gym-search:focus { border-color: #d25353; }
+    .gym-search::placeholder { color: #bbb; }
+
+    .gym-filter-row {
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    }
+    .gym-filter-select {
+      padding: 0.4rem 0.75rem;
+      border: 1.5px solid #e5e5e5; border-radius: 8px;
+      font-family: "DM Sans", sans-serif; font-size: 0.82rem;
+      outline: none; background: white; color: #1a1a1a;
+      transition: border-color 0.15s; cursor: pointer;
+    }
+    .gym-filter-select:focus { border-color: #d25353; }
+
+    .gym-stats {
+      font-size: 0.75rem; font-weight: 700; color: #aaa;
+    }
+    .gym-stats span { color: #d25353; }
+
+    /* ── EXERCISE GRID ── */
+    .exercise-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.65rem;
+      max-height: 520px; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: rgba(210,83,83,0.3) transparent;
+      padding-right: 4px;
+    }
+    .exercise-grid::-webkit-scrollbar { width: 4px; }
+    .exercise-grid::-webkit-scrollbar-thumb { background: rgba(210,83,83,0.3); border-radius: 2px; }
+
+    .ex-card {
+      background: #fafafa; border: 1.5px solid #eee;
+      border-radius: 10px; padding: 0.7rem;
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .ex-card:hover { border-color: rgba(210,83,83,0.35); background: rgba(210,83,83,0.02); }
+    .ex-card.selected { border-color: #d25353; background: rgba(210,83,83,0.05); }
+    .ex-card.hidden { display: none; }
+
+    .ex-card input[type="checkbox"] {
+      accent-color: #d25353; width: 15px; height: 15px;
+      flex-shrink: 0; margin-top: 2px; cursor: pointer;
+    }
+    .ex-card-gif {
+      width: 44px; height: 44px; object-fit: cover;
+      border-radius: 6px; flex-shrink: 0; background: #f0f0f0;
+    }
+    .ex-card-info { flex: 1; min-width: 0; }
+    .ex-card-name {
+      font-size: 0.78rem; font-weight: 700; color: #1a1a1a;
+      text-transform: capitalize; line-height: 1.3;
+      overflow: hidden; text-overflow: ellipsis;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .ex-card.selected .ex-card-name { color: #d25353; }
+    .ex-card-target {
+      font-size: 0.65rem; font-weight: 700; color: #aaa;
+      text-transform: capitalize; margin-top: 2px;
+    }
+    .ex-card-equip {
+      display: inline-block; font-size: 0.6rem; font-weight: 700;
+      background: rgba(59,130,246,0.08); color: #3b82f6;
+      border: 1px solid rgba(59,130,246,0.2);
+      padding: 1px 5px; border-radius: 999px;
+      text-transform: capitalize; margin-top: 3px;
+    }
+
+    .no-results {
+      text-align: center; color: #bbb; font-size: 0.85rem;
+      padding: 2rem 0; display: none; grid-column: 1 / -1;
+    }
+
+    /* ── SELECT ALL ROW ── */
+    .select-all-row {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0.6rem; font-size: 0.8rem; font-weight: 700; color: #555;
+      cursor: pointer;
+    }
+    .select-all-row input { accent-color: #d25353; cursor: pointer; }
+
+    @media (max-width: 640px) {
+      .page-wrap { padding: 1rem 1rem 3rem; }
+      .exercise-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+      .gym-selector-head { flex-direction: column; align-items: flex-start; }
+    }
+    /* ── INFO BUTTON ON CARD ── */
+    .ex-card-info-btn {
+      position: absolute; top: 5px; right: 5px;
+      width: 18px; height: 18px; border-radius: 50%;
+      border: none;
+      background: rgba(210,83,83,0.12);
+      color: #d25353;
+      font-size: 0.62rem; font-weight: 900; font-style: normal;
+      font-family: "DM Sans", sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+      z-index: 2;
+      line-height: 1;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .ex-card-info-btn:hover {
+      background: #d25353;
+      color: white;
+      transform: scale(1.15);
+    }
+    .ex-card-info-btn::after {
+      content: "ⓘ";
+      font-size: 0.75rem;
+      font-style: normal;
+      font-weight: 400;
+    }
+    .ex-card-info-btn:hover { background: #d25353; color: white; border-color: #d25353; }
+    .ex-card { position: relative; }
+
+    /* ── EXERCISE INFO OVERLAY ── */
+    .ex-info-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000; padding: 1rem;
+      animation: fadeIn 0.2s ease;
+    }
+    .ex-info-overlay.hidden { display: none; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .ex-info-modal {
+      background: white; border-radius: 16px;
+      width: 100%; max-width: 680px; max-height: 88vh;
+      overflow-y: auto; position: relative;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.25s ease;
+      scrollbar-width: thin; scrollbar-color: rgba(210,83,83,0.3) transparent;
+    }
+    @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .ex-info-modal::before {
+      content: ""; display: block; height: 4px; border-radius: 16px 16px 0 0;
+      background: linear-gradient(90deg, #d25353, #f4c430);
+    }
+
+    .ex-info-close {
+      position: absolute; top: 0.75rem; right: 0.75rem;
+      width: 32px; height: 32px; border-radius: 50%;
+      border: none; background: rgba(210,83,83,0.1); color: #d25353;
+      font-size: 1rem; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.15s; z-index: 1;
+    }
+    .ex-info-close:hover { background: #d25353; color: white; }
+
+    .ex-info-body {
+      padding: 1.2rem 1.5rem 1.5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+      align-items: start;
+    }
+
+    .ex-info-gif-wrap {
+      border-radius: 12px; overflow: hidden;
+      background: #f5f5f5; aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ex-info-gif {
+      width: 100%; height: 100%; object-fit: contain;
+    }
+
+    .ex-info-details { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .ex-info-name {
+      font-family: "DM Sans", sans-serif; font-size: 1.1rem;
+      font-weight: 800; color: #1a1a1a; text-transform: capitalize;
+      line-height: 1.3;
+    }
+
+    .ex-info-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .ex-info-tag {
+      font-size: 0.7rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 999px; text-transform: capitalize;
+    }
+    .ex-info-tag--target { background: rgba(210,83,83,0.1); color: #d25353; border: 1px solid rgba(210,83,83,0.2); }
+    .ex-info-tag--equip  { background: rgba(59,130,246,0.08); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); }
+
+    .ex-info-steps {
+      list-style: none; display: flex; flex-direction: column;
+      gap: 0.45rem; counter-reset: step;
+      max-height: 340px; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: rgba(210,83,83,0.2) transparent;
+      padding-right: 4px;
+    }
+    .ex-info-steps li {
+      counter-increment: step; position: relative;
+      padding: 0.5rem 0.75rem 0.5rem 2.2rem;
+      background: #f9f9f9; border-radius: 8px;
+      border-left: 3px solid #d25353;
+      font-size: 0.8rem; line-height: 1.5; color: #333;
+    }
+    .ex-info-steps li::before {
+      content: counter(step); position: absolute;
+      left: 0.55rem; top: 50%; transform: translateY(-50%);
+      font-size: 0.62rem; font-weight: 800; color: #d25353;
+    }
+    .ex-info-no-steps { font-size: 0.8rem; color: #bbb; font-style: italic; }
+
+    @media (max-width: 560px) {
+      .ex-info-body { grid-template-columns: 1fr; }
+      .ex-info-gif-wrap { max-height: 220px; }
+    }
 
 block content
 
-  a.back-btn(href='/adminDashboard') ← Back
+  nav.navbar
+    .nav-logo
+      a(href='/adminDashboard') GymSpire
+    a.nav-back(href='/adminDashboard')
+      | ← Dashboard
 
-  .ex-container
+  .page-wrap
 
-    //- Hero header
-    .ex-hero
+    .page-header
       if user.pfpUrl
-        img.ex-hero-avatar(src=user.pfpUrl alt=user.username)
+        img(src=user.pfpUrl alt=user.username onerror="this.onerror=null;this.src='/img/default-user.png'")
       else
-        img.ex-hero-avatar(src="/img/default-user.png" alt="Default")
-      .ex-hero-text
+        img(src="/img/default-user.png" alt="Default")
+      div
         h1 #{title}
         p Logged in as #{user.username}
 
-    //- Import section
-    .ex-section-card
-      .ex-section-label
+    //- ── IMPORT ──────────────────────────────────────────────
+    .section-card
+      .section-title
         svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
           path(d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4')
           polyline(points='17 8 12 3 7 8')
           line(x1='12' y1='3' x2='12' y2='15')
         span Import All Exercises
       p
-        | Fetches ALL exercises from the ExerciseDB API — all muscle groups, all equipment types.
+        | Fetches ALL exercises from ExerciseDB API — all muscle groups, all equipment.
         br
-        | ⚠️ This process is slow and rate-limited (≈1–2 min per muscle group per page).
-        br
-        | ⚠️ Do not close this tab or refresh during import.
-      button#importExercisesBtn Import All Exercises
-      p#importMessage
+        | ⚠️ This is slow and rate-limited. Do not close this tab during import.
+      button.btn-primary#importExercisesBtn Import All Exercises
+      p.msg#importMessage
 
-    //- Danger zone
-    .ex-section-card
-      .ex-section-label
+    //- ── GYM EXERCISE SELECTOR ───────────────────────────────
+    .section-card
+      .section-title
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z')
+        span Gym Exercise Selection
+      p
+        | Select which exercises are available for
+        strong  Gym workouts
+        | . Home workouts use all exercises automatically.
+
+      .gym-selector-head
+        input.gym-search#gymSearch(type="text" placeholder="Search exercises...")
+        select.gym-filter-select#muscleFilter
+          option(value="") All Muscles
+        select.gym-filter-select#equipFilter
+          option(value="") All Equipment
+        span.gym-stats#gymStats
+          | #[span#selectedCount 0] selected
+
+      label.select-all-row
+        input(type="checkbox" id="selectAllCheck")
+        | Select all visible
+
+      .exercise-grid#exerciseGrid
+        p.no-results#noResults No exercises found.
+
+      .gym-selector-head(style="margin-top:1rem;margin-bottom:0;")
+        button.btn-save-gym#saveGymBtn Save Gym Exercises
+        p.msg#gymMessage
+
+    //- ── DANGER ZONE ─────────────────────────────────────────
+    .section-card
+      .section-title
         svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
           path(d='M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6')
         span Danger Zone
       p Permanently deletes ALL exercises from the database. This cannot be undone.
-      button#deleteAllExercisesBtn Delete ALL Exercises
-      p#deleteMessage
+      button.btn-danger#deleteAllExercisesBtn Delete ALL Exercises
+      p.msg#deleteMessage
+
+  //- ── EXERCISE INFO MODAL ─────────────────────────────────
+  .ex-info-overlay.hidden#exInfoOverlay
+    .ex-info-modal
+      button.ex-info-close#exInfoClose ×
+      .ex-info-body
+        .ex-info-gif-wrap
+          img.ex-info-gif#exInfoGif(src="" alt="Exercise")
+        .ex-info-details
+          h2.ex-info-name#exInfoName
+          .ex-info-tags
+            span.ex-info-tag.ex-info-tag--target#exInfoTarget
+            span.ex-info-tag.ex-info-tag--equip#exInfoEquip
+          ol.ex-info-steps#exInfoSteps
+
+  script#exercisesData(type="application/json") !{JSON.stringify(exercises)}
 
 block scripts
   script(src="/js/exercisesManagement.js")

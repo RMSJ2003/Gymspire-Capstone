@@ -5,9 +5,6 @@ block styles
 
 block content
 
-  // =========================
-  // NAVBAR
-  // =========================
   nav.navbar
     .nav-logo
       if user.userType === "user"
@@ -26,16 +23,10 @@ block content
         form(action="/api/v1/auth/logout" method="GET")
           button(type="submit") Logout
 
-  // =========================
-  // QUOTE BANNER
-  // =========================
   .quote-banner
     .quote-banner__inner
       span.quote-banner__text#quoteBannerText
 
-  // =========================
-  // COMPACT DASHBOARD HEADER
-  // =========================
   .dash-header
     .dash-header__left
       img.dash-logo(src="/img/gymspirelogo.png" alt="GymSpire Logo" onerror="this.onerror=null;this.src='/img/default-user.png'")
@@ -47,12 +38,42 @@ block content
       else
         strong.dash-week-val #{workoutCount}
 
-  // =========================
-  // STATUS + EXERCISE LOG GRID
-  // =========================
+  //- ── PROFILE SUGGESTION CARD ─────────────────────────
+  if profileSuggestion && profileSuggestion.hasProfile
+    .suggestion-card
+      .suggestion-card-header
+        .suggestion-card-title
+          span.suggestion-icon 🎯
+          strong Today's Recommendation
+        span.suggestion-goal-badge= profileSuggestion.goalLabel
+      .suggestion-body
+        .suggestion-row
+          .suggestion-item
+            span.suggestion-item-label 💪 Focus
+            span.suggestion-item-val
+              each muscle, i in profileSuggestion.suggestedMuscles
+                span.muscle-tag= muscle
+                if i < profileSuggestion.suggestedMuscles.length - 1
+                  |  
+          .suggestion-item
+            span.suggestion-item-label ⚡ Intensity
+            - const intensityColor = profileSuggestion.intensity === 'hard' ? '#dc2626' : profileSuggestion.intensity === 'easy' ? '#16a34a' : '#d97706'
+            span.suggestion-item-val(style=`color: ${intensityColor}`)= profileSuggestion.intensity.charAt(0).toUpperCase() + profileSuggestion.intensity.slice(1)
+          .suggestion-item
+            span.suggestion-item-label 🎓 Level
+            span.suggestion-item-val= profileSuggestion.experience.charAt(0).toUpperCase() + profileSuggestion.experience.slice(1)
+      p.suggestion-note Based on your fitness profile. Update anytime in #[a(href="/editProfile") Edit Profile].
+
+  //- ── ONGOING WORKOUT RESUME BANNER ──────────────────
+  if ongoingLog
+    .ongoing-banner
+      .ongoing-banner__icon 🏋️
+      .ongoing-banner__body
+        strong You have an unfinished workout
+        p Started #{ongoingLog.workoutType} workout — #{ongoingLog.exercises ? ongoingLog.exercises.length : 0} exercise(s)
+      a.ongoing-banner__btn(href=`/workoutLogs/${ongoingLog._id}`) Resume →
   .status-exercise-grid
 
-    //- Card 1 — Workout recommendation
     .status-card
       p
         if recommended
@@ -64,7 +85,29 @@ block content
         | Active GymSpire Sessions:&nbsp;
         data(value=currentLoad) #{currentLoad}
 
-    //- Card 2 — Currently Working Out
+      //- ── GYM HOURS TODAY ─────────────────────────────
+      if todaySchedule
+        .gym-today-hours
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+            circle(cx='12' cy='12' r='10')
+            polyline(points='12 6 12 12 16 14')
+          if todaySchedule.isOpen
+            span Today (#{todaySchedule.day}):&nbsp;
+            strong #{formatHour12(todaySchedule.openingHour)} — #{formatHour12(todaySchedule.closingHour)}
+          else
+            span.gym-closed Today (#{todaySchedule.day}): Closed
+
+      //- ── WEEKLY SCHEDULE TOGGLE ──────────────────────
+      button.gym-schedule-toggle#gymScheduleToggle(type='button') View Weekly Schedule ▾
+      .gym-schedule-table.hidden#gymScheduleTable
+        each day in gymSchedule
+          .gym-schedule-row(class=day.isOpen ? '' : 'gym-schedule-row--closed')
+            span.gym-schedule-day= day.day.slice(0,3)
+            if day.isOpen
+              span.gym-schedule-hours= formatHour12(day.openingHour) + ' — ' + formatHour12(day.closingHour)
+            else
+              span.gym-schedule-closed Closed
+
     .status-card.checkin-card
       h3 Currently Working Out
 
@@ -116,7 +159,6 @@ block content
       .checkout-row#checkoutRow
         button.checkout-link#checkoutBtn Leave gym / Check out
 
-    //- Card 3 — Targeted muscles
     .exercise-log-card
       h3 Targeted Muscles This Week
       if frequencies.length === 0
@@ -133,9 +175,6 @@ block content
               span.muscle-name #{item.muscle}:
               span(class='muscle-count' + (isDone ? ' done' : '')) #{item.trained} / #{item.target}
 
-  // =========================
-  // DASHBOARD GRID — 4 columns (no congestion card)
-  // =========================
   .dashboard(data-type="user")
     - const cards = ["Challenges", "Workout Plan", "Workout Logs", "Solo Workout"];
     each item, index in cards
@@ -147,10 +186,6 @@ block content
             a.card-link(href=url) #{item}
             button.info-btn(data-index=index title="More Info") i
 
-  // =========================
-  // INLINE GYM CONGESTION PANEL
-  // Uses same IDs as congestion.js — no JS changes needed
-  // =========================
   .congestion-panel
     .congestion-panel__head
       .congestion-panel__title
@@ -162,17 +197,13 @@ block content
         span Gym Congestion
       .congestion-panel__meta
         span.congestion-live-badge#congestionLive
-        a.congestion-full-link(href='/congestion') Full view →
 
-    //- Loading
     .congestion-loading#loadingState
       .cong-spinner
       span Analyzing attendance data...
 
-    //- Content (hidden until JS populates)
     .congestion-body.hidden#contentWrap
 
-      //- Left column — hour chart
       .congestion-col-chart
         .congestion-section-label
           svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
@@ -181,16 +212,12 @@ block content
           span Today's predicted busyness
         .hour-chart#hourChart
 
-      //- Right column — recommendation + weekly + stats
       .congestion-col-side
-
-        //- Recommendation
         .congestion-rec#recommendationCard
           .congestion-rec__label Your best time to visit
           .congestion-rec__time#recTime —
           .congestion-rec__sub#recSub Loading...
 
-        //- Weekly heatmap
         .congestion-section-label.congestion-section-label--side
           svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
             rect(x='3' y='4' width='18' height='18' rx='2' ry='2')
@@ -200,7 +227,6 @@ block content
           span Quietest days this week
         .day-chart#dayChart
 
-        //- Stats row
         .congestion-stats
           .cong-stat
             span.cong-stat__val#peakTime —
@@ -212,21 +238,21 @@ block content
             span.cong-stat__val#totalRecords —
             span.cong-stat__label Check-ins
 
-        //- Low data banner
         .cong-low-data.hidden#lowDataBanner
           span ⚠️ Limited data — predictions improve as more members check in.
 
-  // =========================
-  // MODAL
-  // =========================
   .modal.hidden#modal
     .modal-content
       button#closeModal ×
       p#modalText
 
-  // =========================
-  // SCRIPTS
-  // =========================
+  script.
+    document.getElementById('gymScheduleToggle').addEventListener('click', function() {
+      const table = document.getElementById('gymScheduleTable');
+      const isHidden = table.classList.contains('hidden');
+      table.classList.toggle('hidden', !isHidden);
+      this.textContent = isHidden ? 'Hide Schedule ▴' : 'View Weekly Schedule ▾';
+    });
   script(src="/js/dashboard.js")
   script(src="/js/quoteBanner.js")
   script(src="/js/gymCheckin.js")

@@ -28,5 +28,37 @@ router
     userController.uploadUserPhoto,
     authController.createAdmin,
   );
+router.patch(
+  "/gymHours",
+  authController.protect,
+  authController.restrictTo("admin"),
+  adminController.updateGymHours,
+);
 
+router.patch(
+  "/gymLocation",
+  authController.protect,
+  authController.restrictTo("admin"),
+  adminController.updateGymLocation,
+);
+
+router.get("/gymHours", authController.protect, adminController.getGymHours);
+
+// TEMPORARY ENDPOINT (NOT USED BY THE SYSTEM BUT DEV)
+router.post(
+  "/test-cleanup",
+  authController.protect,
+  authController.restrictTo("admin"),
+  async (req, res) => {
+    try {
+      const {
+        runExpiredChallengeCleanup,
+      } = require("../services/autoCheckout");
+      await runExpiredChallengeCleanup(true);
+      res.json({ status: "success", message: "Cleanup ran." });
+    } catch (err) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  },
+);
 module.exports = router;

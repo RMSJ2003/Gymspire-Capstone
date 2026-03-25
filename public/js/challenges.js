@@ -162,7 +162,10 @@ leaderboardButtons.forEach((btn) => {
           )
           .join("");
 
-      let html = `<h4>Leaderboard</h4>`;
+      let html = `
+        <h4>Leaderboard</h4>
+        <p class="lb-disclaimer">⚠️ Scores are estimated 1RM in KG using the Epley formula. LB weights are automatically converted for fair comparison.</p>
+      `;
 
       if (verified.length) {
         html += `
@@ -219,6 +222,34 @@ document.addEventListener("click", async (e) => {
       const data = await res.json();
       if (data.status === "success") {
         window.location.href = `/workoutLogs/${data.data._id}`;
+      } else if (
+        data.message &&
+        data.message.toLowerCase().includes("already have a workout log")
+      ) {
+        // Ongoing log exists — fetch it and redirect
+        showToast("Redirecting to your ongoing workout...", "info");
+        try {
+          const logsRes = await fetch("/api/v1/workout-logs/my", {
+            credentials: "include",
+          });
+          const logsData = await logsRes.json();
+          const logs = logsData.data || [];
+          const ongoing = logs.find(
+            (l) =>
+              l.challengeId &&
+              l.challengeId.toString() === challengeId &&
+              l.status === "ongoing",
+          );
+          if (ongoing) {
+            setTimeout(() => {
+              window.location.href = `/workoutLogs/${ongoing._id}`;
+            }, 800);
+          } else {
+            showToast(data.message || "Cannot start challenge.", "error");
+          }
+        } catch {
+          showToast(data.message || "Cannot start challenge.", "error");
+        }
       } else {
         showToast(data.message || "Cannot start challenge.", "error");
       }

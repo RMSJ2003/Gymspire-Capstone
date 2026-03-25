@@ -7,7 +7,9 @@ const pfpInput = document.querySelector("#pfp");
 const emailError = document.querySelector("#emailError");
 const passwordError = document.querySelector("#passwordError");
 const passwordConfirmError = document.querySelector("#passwordConfirmError");
-const formMessage = document.querySelector("#formMessage") || { textContent: "" };
+const formMessage = document.querySelector("#formMessage") || {
+  textContent: "",
+};
 
 const submitBtn = document.querySelector("#submitBtn");
 const btnText = submitBtn.querySelector(".btn-text");
@@ -68,7 +70,7 @@ form.addEventListener("submit", async (e) => {
 
     const res = await fetch("/api/v1/admin/createCoach", {
       method: "POST",
-      body: formData,    // 🔥 NO HEADERS — browser sets multipart
+      body: formData, // 🔥 NO HEADERS — browser sets multipart
     });
 
     const data = await res.json();
@@ -84,9 +86,8 @@ form.addEventListener("submit", async (e) => {
 
     // 🔥 SHORT DELAY THEN REDIRECT
     setTimeout(() => {
-      window.location.href = data.redirectTo || "/users";
+      window.location.href = data.redirectTo || "/admindashboard";
     }, 800);
-
   } catch (err) {
     const message = err.message || "Create coach failed";
 

@@ -1,8 +1,60 @@
-// Avatar preview
+// ── DOM ───────────────────────────────────────────────────
+const form = document.querySelector("#signupForm");
+const emailInput = document.querySelector("#email");
+const passwordInput = document.querySelector("#password");
+const passwordConfirmInput = document.querySelector("#passwordConfirm");
+const pfpInput = document.querySelector("#pfp");
+const agreeWaiverInput = document.querySelector("#agreeWaiver");
+const formMessage = document.querySelector("#formMessage");
+const submitBtn = document.querySelector("#submitBtn");
+const btnText = submitBtn.querySelector(".btn-text");
+const showPasswordCheckbox = document.getElementById("showPassword");
+const openWaiverBtn = document.getElementById("openWaiverBtn");
+const waiverModal = document.getElementById("waiverModal");
+const closeWaiverBtn = document.getElementById("closeWaiverBtn");
+const waiverDoneBtn = document.getElementById("waiverDoneBtn");
+const waiverModalBackdrop = document.getElementById("waiverModalBackdrop");
+const waiverCheckboxLabel = document.getElementById("waiverCheckboxLabel");
+
+// Hide server-side messages once JS kicks in
+const serverError = document.querySelector(".server-error");
+const serverSuccess = document.querySelector(".server-success");
+if (serverError) serverError.style.display = "none";
+if (serverSuccess) serverSuccess.style.display = "none";
+
+// ── WAIVER VIEWED FLAG — source of truth ─────────────────
+let waiverViewed = false;
+
+// ── WAIVER MODAL ──────────────────────────────────────────
+function openWaiver() {
+  waiverModal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeWaiver() {
+  waiverModal.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+openWaiverBtn.addEventListener("click", openWaiver);
+closeWaiverBtn.addEventListener("click", closeWaiver);
+waiverModalBackdrop.addEventListener("click", closeWaiver);
+
+waiverDoneBtn.addEventListener("click", () => {
+  waiverViewed = true;
+  agreeWaiverInput.disabled = false;
+  agreeWaiverInput.checked = true;
+  waiverCheckboxLabel.textContent =
+    "I have read and agree to the GymSpire waiver.";
+  waiverCheckboxLabel.style.color = "";
+  waiverCheckboxLabel.style.fontStyle = "";
+  closeWaiver();
+});
+
+// ── AVATAR PREVIEW ────────────────────────────────────────
 document.getElementById("pfp").addEventListener("change", function () {
   const file = this.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = (e) => {
     const img = document.getElementById("avatarImg");
@@ -15,31 +67,20 @@ document.getElementById("pfp").addEventListener("change", function () {
   reader.readAsDataURL(file);
 });
 
-// ===== DOM =====
-const form = document.querySelector("#signupForm");
-const emailInput = document.querySelector("#email");
-const passwordInput = document.querySelector("#password");
-const passwordConfirmInput = document.querySelector("#passwordConfirm");
-const pfpInput = document.querySelector("#pfp");
-const agreeWaiverInput = document.querySelector("#agreeWaiver");
-const formMessage = document.querySelector("#formMessage");
-const submitBtn = document.querySelector("#submitBtn");
-const btnText = submitBtn.querySelector(".btn-text");
+// ── SHOW PASSWORD TOGGLE ──────────────────────────────────
+showPasswordCheckbox.addEventListener("change", () => {
+  const type = showPasswordCheckbox.checked ? "text" : "password";
+  passwordInput.type = type;
+  passwordConfirmInput.type = type;
+});
 
-// Hide server-side messages once JS kicks in — JS will handle its own
-const serverError = document.querySelector(".server-error");
-const serverSuccess = document.querySelector(".server-success");
-if (serverError) serverError.style.display = "none";
-if (serverSuccess) serverSuccess.style.display = "none";
-
+// ── VALIDATION ────────────────────────────────────────────
 const IACADEMY_EMAIL_REGEX =
   /^[a-zA-Z0-9._%+-]+@(iacademy\.ph|iacademy\.edu\.ph)$/;
 
-// ===== Validation =====
 function validateEmail() {
-  const email = emailInput.value.trim().toLowerCase();
   emailInput.setCustomValidity(
-    IACADEMY_EMAIL_REGEX.test(email)
+    IACADEMY_EMAIL_REGEX.test(emailInput.value.trim().toLowerCase())
       ? ""
       : "Only iACADEMY emails (@iacademy.ph or @iacademy.edu.ph) are allowed.",
   );
@@ -54,9 +95,15 @@ function validatePasswords() {
 }
 
 function validateWaiver() {
-  agreeWaiverInput.setCustomValidity(
-    agreeWaiverInput.checked ? "" : "You must agree to the waiver.",
-  );
+  if (!waiverViewed) {
+    agreeWaiverInput.setCustomValidity(
+      "You must view the waiver before agreeing.",
+    );
+  } else if (!agreeWaiverInput.checked) {
+    agreeWaiverInput.setCustomValidity("You must agree to the waiver.");
+  } else {
+    agreeWaiverInput.setCustomValidity("");
+  }
 }
 
 emailInput.addEventListener("input", validateEmail);
@@ -64,7 +111,7 @@ passwordInput.addEventListener("input", validatePasswords);
 passwordConfirmInput.addEventListener("input", validatePasswords);
 agreeWaiverInput.addEventListener("change", validateWaiver);
 
-// ===== Submit =====
+// ── SUBMIT ────────────────────────────────────────────────
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   validateEmail();
@@ -72,6 +119,21 @@ form.addEventListener("submit", async (e) => {
   validateWaiver();
   formMessage.textContent = "";
   formMessage.classList.remove("signup__message--active", "success");
+
+  // Hard block: waiver not viewed
+  if (!waiverViewed) {
+    formMessage.classList.add("signup__message--active");
+    formMessage.textContent = "Please view the waiver first before agreeing.";
+    openWaiverBtn.focus();
+    return;
+  }
+
+  // Hard block: waiver not checked
+  if (!agreeWaiverInput.checked) {
+    formMessage.classList.add("signup__message--active");
+    formMessage.textContent = "You must check the waiver agreement box.";
+    return;
+  }
 
   if (!form.checkValidity()) {
     form.reportValidity();
@@ -93,7 +155,6 @@ form.addEventListener("submit", async (e) => {
 
     const res = await fetch("/api/v1/auth/signup", {
       method: "POST",
-      // ✅ This header lets the server know it's a JS fetch, not a plain form submit
       headers: { "X-Requested-With": "XMLHttpRequest" },
       body: formData,
     });
@@ -102,10 +163,10 @@ form.addEventListener("submit", async (e) => {
 
     success = true;
     formMessage.classList.add("signup__message--active", "success");
-    formMessage.textContent =
-      "Account created! A verification email has been sent to your iACADEMY email. Please verify before logging in.";
-    submitBtn.textContent = "Verification sent ✓";
-    submitBtn.disabled = true;
+    formMessage.textContent = "Account created! Redirecting to login...";
+    setTimeout(() => {
+      window.location.href = "/login?signup=success";
+    }, 1000);
   } catch (err) {
     formMessage.classList.add("signup__message--active");
     formMessage.textContent = err.message || "Signup failed";

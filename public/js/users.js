@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ─────────────────────────────────────────────
-  // CONFIRM MODAL (replaces confirm())
+  // CONFIRM MODAL
   // ─────────────────────────────────────────────
   function showConfirm(message, onConfirm) {
     const existing = document.getElementById("confirmModal");
@@ -53,32 +53,22 @@ document.addEventListener("DOMContentLoaded", () => {
       display:flex;align-items:center;justify-content:center;
       z-index:9998;padding:1rem;
     `;
-
     overlay.innerHTML = `
-      <div style="
-        background:white;border-radius:16px;padding:1.5rem;
+      <div style="background:white;border-radius:16px;padding:1.5rem;
         max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);
-        font-family:'DM Sans',Arial,sans-serif;
-      ">
+        font-family:'DM Sans',Arial,sans-serif;">
         <p style="margin:0 0 1.2rem;font-size:0.95rem;color:#1a1a1a;line-height:1.5;">${message}</p>
         <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
-          <button id="confirmCancel" style="
-            padding:0.5rem 1.1rem;border-radius:8px;border:1.5px solid #ddd;
+          <button id="confirmCancel" style="padding:0.5rem 1.1rem;border-radius:8px;border:1.5px solid #ddd;
             background:white;color:#555;font-weight:700;font-size:0.85rem;cursor:pointer;
-            font-family:'DM Sans',Arial,sans-serif;
-          ">Cancel</button>
-          <button id="confirmOk" style="
-            padding:0.5rem 1.1rem;border-radius:8px;border:none;
+            font-family:'DM Sans',Arial,sans-serif;">Cancel</button>
+          <button id="confirmOk" style="padding:0.5rem 1.1rem;border-radius:8px;border:none;
             background:linear-gradient(135deg,#d25353,#b11226);color:white;
             font-weight:700;font-size:0.85rem;cursor:pointer;
-            font-family:'DM Sans',Arial,sans-serif;
-          ">Confirm</button>
+            font-family:'DM Sans',Arial,sans-serif;">Confirm</button>
         </div>
-      </div>
-    `;
-
+      </div>`;
     document.body.appendChild(overlay);
-
     overlay.querySelector("#confirmOk").addEventListener("click", () => {
       overlay.remove();
       onConfirm();
@@ -97,7 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".delete-user-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const userId = btn.dataset.userId;
-
       showConfirm(
         "Are you sure you want to deactivate this user?",
         async () => {
@@ -107,7 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
               credentials: "include",
             });
             const data = await res.json();
-
             if (!res.ok) {
               showToast(data.message || "Failed to deactivate user.", "error");
               return;
@@ -115,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast("User deactivated.", "success");
             setTimeout(() => window.location.reload(), 1000);
           } catch (err) {
-            console.error(err);
             showToast("Network error.", "error");
           }
         },
@@ -129,14 +116,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", async (e) => {
     const approveBtn = e.target.closest(".approve-user-btn");
     const declineBtn = e.target.closest(".decline-user-btn");
-
     if (approveBtn) {
       await fetch(`/api/v1/clinic/approve/${approveBtn.dataset.userId}`, {
         method: "PATCH",
       });
       location.reload();
     }
-
     if (declineBtn) {
       await fetch(`/api/v1/clinic/decline/${declineBtn.dataset.userId}`, {
         method: "PATCH",
@@ -149,30 +134,28 @@ document.addEventListener("DOMContentLoaded", () => {
   // ATTENDANCE DRAWER
   // ─────────────────────────────────────────────
   const drawer = document.getElementById("attendanceDrawer");
-  const overlay = document.getElementById("drawerOverlay");
+  const drawerOverlay = document.getElementById("drawerOverlay");
   const drawerClose = document.getElementById("drawerClose");
   const drawerPfp = document.getElementById("drawerPfp");
   const drawerUsername = document.getElementById("drawerUsername");
   const drawerBody = document.getElementById("drawerBody");
-
   const drawerTotalVisits = document.getElementById("drawerTotalVisits");
   const drawerThisMonth = document.getElementById("drawerThisMonth");
   const drawerAvgDuration = document.getElementById("drawerAvgDuration");
 
   function openDrawer() {
     drawer.classList.add("open");
-    overlay.classList.add("open");
+    drawerOverlay.classList.add("open");
     document.body.style.overflow = "hidden";
   }
-
   function closeDrawer() {
     drawer.classList.remove("open");
-    overlay.classList.remove("open");
+    drawerOverlay.classList.remove("open");
     document.body.style.overflow = "";
   }
 
-  drawerClose.addEventListener("click", closeDrawer);
-  overlay.addEventListener("click", closeDrawer);
+  drawerClose?.addEventListener("click", closeDrawer);
+  drawerOverlay?.addEventListener("click", closeDrawer);
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeDrawer();
   });
@@ -187,11 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
     drawerTotalVisits.textContent = "—";
     drawerThisMonth.textContent = "—";
     drawerAvgDuration.textContent = "—";
-    drawerBody.innerHTML = `
-      <div class="drawer-loading">
-        <div class="spinner"></div>
-        <p>Loading attendance...</p>
-      </div>`;
+    drawerBody.innerHTML = `<div class="drawer-loading"><div class="spinner"></div><p>Loading attendance...</p></div>`;
     openDrawer();
 
     try {
@@ -199,10 +178,9 @@ document.addEventListener("DOMContentLoaded", () => {
         credentials: "include",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load attendance");
+      if (!res.ok) throw new Error(data.message || "Failed");
       renderAttendance(data.data || []);
     } catch (err) {
-      console.error(err);
       drawerBody.innerHTML = `<div class="no-attendance"><p>⚠️ Could not load attendance data.</p></div>`;
     }
   }
@@ -215,20 +193,18 @@ document.addEventListener("DOMContentLoaded", () => {
         d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
       );
     });
-    const withDuration = records.filter(
+    const withDur = records.filter(
       (r) => r.durationMinutes != null && r.durationMinutes > 0,
     );
-    const avgDuration = withDuration.length
+    const avg = withDur.length
       ? Math.round(
-          withDuration.reduce((sum, r) => sum + r.durationMinutes, 0) /
-            withDuration.length,
+          withDur.reduce((s, r) => s + r.durationMinutes, 0) / withDur.length,
         )
       : null;
 
     drawerTotalVisits.textContent = records.length;
     drawerThisMonth.textContent = thisMonth.length;
-    drawerAvgDuration.textContent =
-      avgDuration != null ? `${avgDuration}` : "—";
+    drawerAvgDuration.textContent = avg != null ? avg : "—";
 
     if (!records.length) {
       drawerBody.innerHTML = `<div class="no-attendance"><p>No gym visits recorded yet.</p></div>`;
@@ -237,43 +213,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     drawerBody.innerHTML = records
       .map((r) => {
-        const checkin = new Date(r.checkinTime);
-        const checkout = r.checkoutTime ? new Date(r.checkoutTime) : null;
-        const dateStr = checkin.toLocaleDateString("en-US", {
+        const ci = new Date(r.checkinTime);
+        const co = r.checkoutTime ? new Date(r.checkoutTime) : null;
+        const dateStr = ci.toLocaleDateString("en-US", {
           weekday: "short",
           month: "short",
           day: "numeric",
           year: "numeric",
         });
-        const checkinTimeStr = checkin.toLocaleTimeString("en-US", {
+        const ciStr = ci.toLocaleTimeString("en-US", {
           hour: "numeric",
           minute: "2-digit",
           hour12: true,
         });
-        const checkoutTimeStr = checkout
-          ? checkout.toLocaleTimeString("en-US", {
+        const coStr = co
+          ? co.toLocaleTimeString("en-US", {
               hour: "numeric",
               minute: "2-digit",
               hour12: true,
             })
           : "Still at gym";
-        const icon = r.source === "workout" ? "🏋️" : "📍";
-        const durText =
+        const dur =
           r.durationMinutes != null
             ? `${r.durationMinutes} min`
-            : checkout
+            : co
               ? "< 1 min"
               : "Ongoing";
-
+        const icon = r.source === "workout" ? "🏋️" : "📍";
         return `
         <div class="attendance-record">
           <div class="record-icon ${r.source}">${icon}</div>
           <div class="record-info">
             <div class="record-date">${dateStr}</div>
-            <div class="record-time">${checkinTimeStr} → ${checkoutTimeStr}</div>
+            <div class="record-time">${ciStr} → ${coStr}</div>
             <div class="record-meta">
               <span class="record-source source-${r.source}">${r.source}</span>
-              <span class="record-duration">⏱ ${durText}</span>
+              <span class="record-duration">⏱ ${dur}</span>
             </div>
           </div>
         </div>`;
@@ -287,4 +262,125 @@ document.addEventListener("DOMContentLoaded", () => {
       loadAttendance(userId, username, pfp);
     });
   });
+
+  // Expose for adminDashboard.js dynamic rows
+  window._loadAttendance = loadAttendance;
+  window._showConfirm = showConfirm;
+
+  // ─────────────────────────────────────────────
+  // USER TABLE — SEARCH + FILTER + PAGINATION
+  // ─────────────────────────────────────────────
+  const ROWS_PER_PAGE = 8;
+  const table = document.getElementById("userTable");
+  if (!table) return;
+
+  const tbody = table.querySelector("tbody");
+  const searchInput = document.getElementById("userSearch");
+  const resultLabel = document.getElementById("userResultLabel");
+  const pagination = document.getElementById("userPagination");
+  const prevBtn = document.getElementById("userPrevBtn");
+  const nextBtn = document.getElementById("userNextBtn");
+  const pageInfo = document.getElementById("userPageInfo");
+  const filterBtns = document.querySelectorAll(".user-filter-btn[data-filter]");
+  const statusBtns = document.querySelectorAll(
+    ".user-filter-btn[data-filter-status]",
+  );
+
+  let activeRole = "all";
+  let activeStatus = "all";
+  let searchQuery = "";
+  let currentPage = 1;
+  let visibleRows = [];
+
+  function getAllRows() {
+    return Array.from(tbody.querySelectorAll("tr[data-user-id]"));
+  }
+
+  function applyFilters() {
+    const rows = getAllRows();
+
+    visibleRows = rows.filter((row) => {
+      const name = row.dataset.name || "";
+      const email = row.dataset.email || "";
+      const role = row.dataset.role || "";
+      const status = row.dataset.status || "";
+      const matchSearch =
+        !searchQuery ||
+        name.includes(searchQuery) ||
+        email.includes(searchQuery);
+      const matchRole = activeRole === "all" || role === activeRole;
+      const matchStatus = activeStatus === "all" || status === activeStatus;
+      return matchSearch && matchRole && matchStatus;
+    });
+
+    rows.forEach((r) => r.classList.add("u-hidden"));
+
+    const total = visibleRows.length;
+    const totalPages = Math.max(1, Math.ceil(total / ROWS_PER_PAGE));
+    currentPage = Math.min(currentPage, totalPages);
+    const start = (currentPage - 1) * ROWS_PER_PAGE;
+    const end = start + ROWS_PER_PAGE;
+
+    visibleRows.forEach((r, i) => {
+      if (i >= start && i < end) r.classList.remove("u-hidden");
+    });
+
+    if (resultLabel) {
+      resultLabel.textContent =
+        total === rows.length
+          ? `${total} user${total !== 1 ? "s" : ""}`
+          : `${total} of ${rows.length} user${rows.length !== 1 ? "s" : ""}`;
+    }
+
+    if (!pagination) return;
+    if (total <= ROWS_PER_PAGE) {
+      pagination.classList.add("hidden");
+    } else {
+      pagination.classList.remove("hidden");
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+    }
+  }
+
+  searchInput?.addEventListener("input", () => {
+    searchQuery = searchInput.value.toLowerCase().trim();
+    currentPage = 1;
+    applyFilters();
+  });
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filterBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeRole = btn.dataset.filter;
+      currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  statusBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      statusBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeStatus = btn.dataset.filterStatus;
+      currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  prevBtn?.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      applyFilters();
+    }
+  });
+  nextBtn?.addEventListener("click", () => {
+    if (currentPage < Math.ceil(visibleRows.length / ROWS_PER_PAGE)) {
+      currentPage++;
+      applyFilters();
+    }
+  });
+
+  applyFilters();
 });

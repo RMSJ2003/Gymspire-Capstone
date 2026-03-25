@@ -2,6 +2,8 @@ const WorkoutLog = require("../models/workoutLogModel");
 const User = require("../models/userModel");
 const getGymspireTime = require("../utils/getGymspireTime");
 const formatHourAMPM = require("../utils/formatHourAMPM");
+const GymSettings = require("../models/gymSettingsModel");
+
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
@@ -53,7 +55,6 @@ exports.getGymspireNowStatus = catchAsync(async (req, res, next) => {
   // STEP 1: Get current time
   // ================================
   const now = new Date();
-
   const currentHour = now.getHours();
   const currentTime = now.toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -62,20 +63,26 @@ exports.getGymspireNowStatus = catchAsync(async (req, res, next) => {
   });
 
   // ================================
-  // STEP 2: Enforce gym operating hours
+  // STEP 2: Load today's schedule from DB
   // ================================
-  const openHour = parseInt(process.env.GYM_OPENING_HOUR, 10);
-  const closeHour = parseInt(process.env.GYM_CLOSING_HOUR, 10);
+  const GymSettings = require("../models/gymSettingsModel");
+  const gymSettings = await GymSettings.getSettings();
 
-  // if (currentHour < openHour || currentHour >= closeHour) {
-  //   res.locals.currentTime = currentTime;
-  //   res.locals.currentLoad = 0;
-  //   res.locals.recommended = false;
-  //   res.locals.message =
-  //     "Not recommended to workout now. iACADEMY - Gym is currently closed.";
-  //   res.locals.onlineUsers = [];
-  //   return next();
-  // }
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const todayName = days[now.getDay()];
+  const todaySchedule = gymSettings.schedule.find((s) => s.day === todayName);
+
+  const openHour = todaySchedule?.openingHour ?? 6;
+  const closeHour = todaySchedule?.closingHour ?? 23;
+  const gymIsOpen = todaySchedule?.isOpen ?? true;
 
   // ================================
   // STEP 3: Recent activity window (last 2 hours)
@@ -90,7 +97,6 @@ exports.getGymspireNowStatus = catchAsync(async (req, res, next) => {
     date: { $gte: startTime, $lt: now },
   }).populate("userId", "username pfpUrl gymStatus isAtGym");
 
-  // Deduplicate by userId
   const onlineUsersMap = new Map();
 
   onlineWorkoutLogs.forEach((log) => {
@@ -100,14 +106,13 @@ exports.getGymspireNowStatus = catchAsync(async (req, res, next) => {
         username: log.userId.username,
         pfpUrl: log.userId.pfpUrl,
         gymStatus: "logging",
-        isAtGym: log.userId.isAtGym || false, // true = logging AND physically at gym
+        isAtGym: log.userId.isAtGym || false,
       });
     }
   });
 
   // ================================
-  // STEP 4B: Users who checked in manually ("I'm at the gym")
-  //          but are NOT already in the map (no ongoing workout log)
+  // STEP 4B: Users checked in manually but no ongoing workout log
   // ================================
   const checkedInUsers = await User.find({
     gymStatus: "atGym",
@@ -127,17 +132,21 @@ exports.getGymspireNowStatus = catchAsync(async (req, res, next) => {
   });
 
   const onlineUsers = Array.from(onlineUsersMap.values());
-  console.log(onlineUsers);
+  const currentLoad = onlineUsers.length;
 
   // ================================
   // STEP 5: Recommendation logic
   // ================================
-  const currentLoad = onlineUsers.length;
-
   let recommended;
   let message;
 
-  if (currentLoad <= 5) {
+  if (!gymIsOpen) {
+    recommended = false;
+    message = `The gym is closed today (${todayName}).`;
+  } else if (currentHour < openHour || currentHour >= closeHour) {
+    recommended = false;
+    message = `The gym is currently closed. Hours today: ${formatHour12(openHour)} — ${formatHour12(closeHour)}.`;
+  } else if (currentLoad <= 5) {
     recommended = true;
     message = "Recommended to workout now. Few people currently at the gym.";
   } else if (currentLoad <= 15) {
@@ -156,6 +165,70 @@ exports.getGymspireNowStatus = catchAsync(async (req, res, next) => {
   res.locals.recommended = recommended;
   res.locals.message = message;
   res.locals.onlineUsers = onlineUsers;
+  res.locals.gymOpeningHour = openHour;
+  res.locals.gymClosingHour = closeHour;
+  res.locals.gymIsOpen = gymIsOpen;
+  res.locals.gymSchedule = gymSettings.schedule;
+  res.locals.todaySchedule = todaySchedule;
+  res.locals.gymLat = gymSettings.gymLat || parseFloat(process.env.GYM_LAT);
+  res.locals.gymLng = gymSettings.gymLng || parseFloat(process.env.GYM_LNG);
+  res.locals.gymRadiusMeters =
+    gymSettings.gymRadiusMeters ||
+    parseInt(process.env.GYM_RADIUS_METERS) ||
+    150;
+  res.locals.gymName = gymSettings.gymName || "iAcademy Gym";
 
   next();
+});
+
+// ── Helper (add at top of adminController.js) ──────────────
+function formatHour12(h) {
+  if (h === 0) return "12:00 AM";
+  if (h === 12) return "12:00 PM";
+  return h < 12 ? `${h}:00 AM` : `${h - 12}:00 PM`;
+}
+exports.getGymHours = catchAsync(async (req, res, next) => {
+  const settings = await GymSettings.getSettings();
+  res.status(200).json({ status: "success", data: settings });
+});
+
+exports.updateGymHours = catchAsync(async (req, res, next) => {
+  const { schedule } = req.body;
+  if (!Array.isArray(schedule) || schedule.length !== 7)
+    return next(new AppError("Schedule must contain all 7 days", 400));
+
+  for (const day of schedule) {
+    if (day.isOpen && day.openingHour >= day.closingHour)
+      return next(
+        new AppError(
+          `${day.day}: Opening hour must be before closing hour`,
+          400,
+        ),
+      );
+  }
+
+  const settings = await GymSettings.getSettings();
+  settings.schedule = schedule;
+  await settings.save();
+
+  res.status(200).json({ status: "success", data: settings });
+});
+exports.updateGymLocation = catchAsync(async (req, res, next) => {
+  const { gymName, gymLat, gymLng, gymRadiusMeters } = req.body;
+
+  if (!gymLat || !gymLng)
+    return next(new AppError("Latitude and longitude are required", 400));
+  if (gymLat < -90 || gymLat > 90)
+    return next(new AppError("Latitude must be between -90 and 90", 400));
+  if (gymLng < -180 || gymLng > 180)
+    return next(new AppError("Longitude must be between -180 and 180", 400));
+
+  const settings = await GymSettings.getSettings();
+  if (gymName) settings.gymName = gymName.trim();
+  if (gymLat) settings.gymLat = Number(gymLat);
+  if (gymLng) settings.gymLng = Number(gymLng);
+  if (gymRadiusMeters) settings.gymRadiusMeters = Number(gymRadiusMeters);
+  await settings.save();
+
+  res.status(200).json({ status: "success", data: settings });
 });

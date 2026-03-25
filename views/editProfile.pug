@@ -4,13 +4,7 @@ block styles
   style.
     @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700;800&display=swap");
 
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: "DM Sans", Arial, sans-serif;
@@ -20,259 +14,272 @@ block styles
     }
 
     .top-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 56px;
+      position: fixed; top: 0; left: 0; right: 0; height: 56px;
       background: linear-gradient(135deg, #d25353, #b11226);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.2rem;
-      z-index: 1000;
-      box-shadow: 0 2px 16px rgba(177, 18, 38, 0.35);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.2rem; z-index: 1000;
+      box-shadow: 0 2px 16px rgba(177,18,38,0.35);
     }
     .top-bar a {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 0.38rem 0.9rem;
-      border-radius: 7px;
-      font-weight: 700;
-      font-size: 0.8rem;
-      text-decoration: none;
-      color: white;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      transition: 0.18s;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 0.38rem 0.9rem; border-radius: 7px;
+      font-weight: 700; font-size: 0.8rem; text-decoration: none;
+      color: white; background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.22); transition: 0.18s;
     }
-    .top-bar a:hover {
-      background: rgba(255, 255, 255, 0.28);
-      color: #f4c430;
-    }
+    .top-bar a:hover { background: rgba(255,255,255,0.28); color: #f4c430; }
 
     .edit-profile-page {
-      min-height: 100vh;
-      padding: 80px 1rem 3rem;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
+      min-height: 100vh; padding: 80px 1rem 3rem;
+      display: flex; align-items: flex-start; justify-content: center;
     }
 
     .edit-card {
-      background: white;
-      border-radius: 20px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
-      border: 1px solid rgba(210, 83, 83, 0.1);
-      overflow: hidden;
+      background: white; border-radius: 20px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+      border: 1px solid rgba(210,83,83,0.1); overflow: hidden;
     }
 
     .edit-card__header {
       background: linear-gradient(135deg, #d25353, #b11226);
-      padding: 1.4rem 1.8rem 1.2rem;
-      text-align: center;
+      padding: 1.4rem 1.8rem 1.2rem; text-align: center;
     }
     .edit-card__header h1 {
       font-family: "Bebas Neue", sans-serif;
-      font-size: 2rem;
-      letter-spacing: 0.06em;
-      color: white;
+      font-size: 2rem; letter-spacing: 0.06em; color: white;
     }
 
     .edit-avatar-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 1.5rem 1.8rem 0.5rem;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.75rem; padding: 1.5rem 1.8rem 0.5rem;
     }
     .edit-profile-pic {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      object-fit: cover;
+      width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
       border: 3px solid #d25353;
-      box-shadow: 0 0 0 5px rgba(210, 83, 83, 0.12);
-      transition: opacity 0.2s;
+      box-shadow: 0 0 0 5px rgba(210,83,83,0.12); transition: opacity 0.2s;
     }
     .avatar-change-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0.4rem 1rem;
-      border-radius: 999px;
-      background: rgba(210, 83, 83, 0.08);
-      border: 1.5px solid rgba(210, 83, 83, 0.25);
-      color: #d25353;
-      font-weight: 700;
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: 0.18s;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0.4rem 1rem; border-radius: 999px;
+      background: rgba(210,83,83,0.08);
+      border: 1.5px solid rgba(210,83,83,0.25);
+      color: #d25353; font-weight: 700; font-size: 0.78rem;
+      cursor: pointer; transition: 0.18s;
     }
-    .avatar-change-btn:hover {
-      background: rgba(210, 83, 83, 0.14);
-      border-color: #d25353;
-    }
+    .avatar-change-btn:hover { background: rgba(210,83,83,0.14); border-color: #d25353; }
     .avatar-change-btn svg {
-      width: 13px;
-      height: 13px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
+      width: 13px; height: 13px; stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
 
     form {
       padding: 1.2rem 1.8rem 1.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+      display: flex; flex-direction: column; gap: 1rem;
     }
 
     .form-message {
-      text-align: center;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #d25353;
-      min-height: 18px;
+      text-align: center; font-size: 0.82rem; font-weight: 600;
+      color: #d25353; min-height: 18px;
     }
-    .form-message.success {
-      color: #16a34a;
-    }
+    .form-message.success { color: #16a34a; }
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
 
     label {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: #aaa;
+      font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #aaa;
     }
 
     input[type="text"] {
-      width: 100%;
-      padding: 0.65rem 0.85rem;
-      border: 1.5px solid #e5e5e5;
-      border-radius: 9px;
-      background: #fafafa;
-      color: #1a1a1a;
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.9rem;
-      font-weight: 500;
-      outline: none;
-      transition: border-color 0.18s, box-shadow 0.18s;
+      width: 100%; padding: 0.65rem 0.85rem;
+      border: 1.5px solid #e5e5e5; border-radius: 9px;
+      background: #fafafa; color: #1a1a1a;
+      font-family: "DM Sans", sans-serif; font-size: 0.9rem; font-weight: 500;
+      outline: none; transition: border-color 0.18s, box-shadow 0.18s;
     }
     input[type="text"]:focus {
       border-color: #d25353;
-      box-shadow: 0 0 0 3px rgba(210, 83, 83, 0.1);
-      background: white;
+      box-shadow: 0 0 0 3px rgba(210,83,83,0.1); background: white;
     }
-    input[type="text"]::placeholder {
-      color: #ccc;
-    }
+    input[type="text"]::placeholder { color: #ccc; }
 
-    .file-group {
-      position: relative;
-    }
     input[type="file"] {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      overflow: hidden;
-      z-index: -1;
+      position: absolute; width: 1px; height: 1px;
+      opacity: 0; overflow: hidden; z-index: -1;
     }
 
-    .file-group label {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0.55rem 1rem;
-      border-radius: 9px;
-      border: 1.5px dashed rgba(210, 83, 83, 0.35);
-      background: rgba(210, 83, 83, 0.03);
-      color: #d25353;
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: 0.18s;
-      width: fit-content;
+    /* ── PASSWORD DIVIDER ── */
+    .password-divider {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin: 0.4rem 0 0.2rem;
     }
-    .file-group label:hover {
-      background: rgba(210, 83, 83, 0.07);
+    .password-divider::before,
+    .password-divider::after {
+      content: ""; flex: 1; height: 1px;
+      background: rgba(210,83,83,0.2);
+    }
+    .password-divider span:first-child {
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #d25353;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .password-divider__note {
+      font-size: 0.65rem; font-weight: 500; color: #bbb;
+      text-transform: none; letter-spacing: 0;
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* ── PASSWORD INPUT WRAP ── */
+    .password-input-wrap {
+      position: relative; display: flex; align-items: center;
+    }
+    .password-input-wrap input[type="password"],
+    .password-input-wrap input[type="text"] {
+      width: 100%;
+      padding: 0.65rem 2.8rem 0.65rem 0.85rem;
+      border: 1.5px solid #e5e5e5; border-radius: 9px;
+      background: #fafafa; color: #1a1a1a;
+      font-family: "DM Sans", sans-serif; font-size: 0.9rem; font-weight: 500;
+      outline: none; transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .password-input-wrap input[type="password"]:focus,
+    .password-input-wrap input[type="text"]:focus {
       border-color: #d25353;
+      box-shadow: 0 0 0 3px rgba(210,83,83,0.1); background: white;
+    }
+    .password-input-wrap input::placeholder { color: #ccc; }
+
+    .pw-toggle {
+      position: absolute; right: 0.7rem; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      padding: 0; color: #ccc;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.15s; width: 20px; height: 20px;
+    }
+    .pw-toggle:hover { color: #d25353; }
+    .pw-toggle svg {
+      width: 16px; height: 16px; stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      display: block;
     }
 
-    .file-hint {
-      font-size: 0.72rem;
-      color: #bbb;
-      font-weight: 500;
-      margin-top: 3px;
-    }
-
+    /* ── SUBMIT BUTTON ── */
     button[type="submit"] {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 0.78rem 1rem;
-      border: none;
-      border-radius: 11px;
-      background: linear-gradient(135deg, #d25353, #b11226);
-      color: white;
-      font-family: "DM Sans", sans-serif;
-      font-weight: 800;
-      font-size: 0.9rem;
-      cursor: pointer;
-      box-shadow: 0 4px 18px rgba(177, 18, 38, 0.28);
-      transition: filter 0.2s, transform 0.2s;
-      margin-top: 0.2rem;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 0.78rem 1rem; border: none; border-radius: 11px;
+      background: linear-gradient(135deg, #d25353, #b11226); color: white;
+      font-family: "DM Sans", sans-serif; font-weight: 800; font-size: 0.9rem;
+      cursor: pointer; box-shadow: 0 4px 18px rgba(177,18,38,0.28);
+      transition: filter 0.2s, transform 0.2s; margin-top: 0.2rem;
     }
-    button[type="submit"]:hover {
-      filter: brightness(1.08);
-      transform: translateY(-1px);
-    }
-    button[type="submit"]:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
+    button[type="submit"]:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     button[type="submit"] svg {
-      width: 15px;
-      height: 15px;
-      stroke: white;
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      flex-shrink: 0;
+      width: 15px; height: 15px; stroke: white; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
     }
 
     @media (max-width: 480px) {
-      .edit-card {
-        border-radius: 16px;
-      }
-      form {
-        padding: 1rem 1.2rem 1.5rem;
-      }
-      .edit-avatar-wrap {
-        padding: 1.2rem 1.2rem 0.4rem;
-      }
-      .edit-profile-pic {
-        width: 90px;
-        height: 90px;
-      }
+      .edit-card { border-radius: 16px; }
+      form { padding: 1rem 1.2rem 1.5rem; }
+      .edit-avatar-wrap { padding: 1.2rem 1.2rem 0.4rem; }
+      .edit-profile-pic { width: 90px; height: 90px; }
+    }
+
+    .ob-select {
+      width: 100%; padding: 0.65rem 0.85rem;
+      border: 1.5px solid #e5e5e5; border-radius: 9px;
+      background: #fafafa; color: #1a1a1a;
+      font-family: "DM Sans", sans-serif; font-size: 0.9rem; font-weight: 500;
+      outline: none; cursor: pointer;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.85rem center;
+      padding-right: 2.2rem;
+    }
+    .ob-select:focus {
+      border-color: #d25353;
+      box-shadow: 0 0 0 3px rgba(210,83,83,0.1);
+      background-color: white;
+    }
+
+    .rir-explainer-edit {
+      background: rgba(210,83,83,0.04);
+      border: 1px solid rgba(210,83,83,0.15);
+      border-left: 3px solid #d25353;
+      border-radius: 9px; padding: 0.75rem 0.9rem;
+      margin-top: -0.2rem;
+    }
+    .rir-explainer-edit-header {
+      display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem;
+    }
+    .rir-explainer-edit-header strong {
+      font-size: 0.75rem; color: #d25353; text-transform: none; letter-spacing: 0;
+    }
+    .rir-explainer-edit p {
+      font-size: 0.72rem; color: #666; line-height: 1.55; margin-bottom: 0.5rem;
+      text-transform: none; letter-spacing: 0; font-weight: 400;
+    }
+    .rir-edit-examples {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem;
+    }
+    .rir-edit-badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 999px;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      color: white; font-size: 0.62rem; font-weight: 800;
+    }
+    .rir-edit-label {
+      font-size: 0.68rem; color: #888; margin-right: 0.4rem;
+      text-transform: none; letter-spacing: 0; font-weight: 500;
+    }
+
+    /* ── HEALTH SECTION ── */
+    .health-section {
+      background: #fff8f0;
+      border: 1.5px solid rgba(245,158,11,0.3);
+      border-left: 4px solid #f59e0b;
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+    }
+    .health-section-title {
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #92400e; margin-bottom: 0.6rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .health-toggle-label {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.85rem; font-weight: 600; color: #1a1a1a;
+      cursor: pointer; margin-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    .health-toggle-label input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: #d25353; cursor: pointer; flex-shrink: 0;
+    }
+    .health-notes-wrap {
+      display: none; margin-top: 0.7rem;
+    }
+    .health-notes-wrap.show { display: block; }
+    .health-notes-wrap label {
+      font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #aaa; display: block; margin-bottom: 4px;
+    }
+    .health-notes-wrap textarea {
+      width: 100%; padding: 0.6rem 0.8rem;
+      border: 1.5px solid #e5e5e5; border-radius: 9px;
+      font-family: "DM Sans", sans-serif; font-size: 0.88rem;
+      resize: vertical; outline: none; transition: border-color 0.15s;
+      background: #fafafa; color: #1a1a1a; min-height: 72px;
+    }
+    .health-notes-wrap textarea:focus { border-color: #d25353; }
+    .health-warn-note {
+      font-size: 0.7rem; color: #92400e; margin-top: 0.5rem;
+      line-height: 1.5; font-weight: 500;
     }
 
 block content
@@ -297,6 +304,7 @@ block content
           img.edit-profile-pic#previewImg(src=currentUser.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
         else
           img.edit-profile-pic#previewImg(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+        input(type="file" name="pfp" id="pfp" accept="image/*" style="display:none")
         label.avatar-change-btn(for="pfp")
           svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
             path(d='M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z')
@@ -316,10 +324,124 @@ block content
             placeholder="Enter new username"
           )
 
-        .form-group.file-group
-          label(for="pfp") Profile Picture
-          input(type="file" name="pfp" id="pfp" accept="image/*")
-          .file-hint Select an image file (JPG, PNG, GIF)
+        if currentUser.userType === 'user'
+          - const fp = currentUser.fitnessProfile || {}
+
+          .password-divider
+            span Fitness Profile
+            span.password-divider__note (finish any ongoing workout first)
+
+          .form-group
+            label(for="fitnessGoal") Fitness Goal
+            select.ob-select#fitnessGoal(name="fitnessGoal")
+              option(value="strength"        selected=fp.fitnessGoal === 'strength')        Strength — Low reps, heavy weight
+              option(value="muscle_gain"     selected=fp.fitnessGoal === 'muscle_gain')     Muscle Gain — Moderate reps
+              option(value="endurance"       selected=fp.fitnessGoal === 'endurance')       Endurance — High reps, short rest
+              option(value="weight_loss"     selected=fp.fitnessGoal === 'weight_loss')     Weight Loss — Circuit style
+              option(value="general_fitness" selected=fp.fitnessGoal === 'general_fitness') General Fitness — Balanced
+
+          .form-group
+            label(for="intensity") Workout Intensity
+            select.ob-select#intensity(name="intensity")
+              option(value="easy"     selected=fp.intensity === 'easy')     🟢 Easy — fewer sets, less effort (RIR +1)
+              option(value="moderate" selected=fp.intensity === 'moderate') 🟡 Moderate — standard sets, moderate effort
+              option(value="hard"     selected=fp.intensity === 'hard')     🔴 Hard — more sets, push harder (RIR -1)
+
+          .rir-explainer-edit
+            .rir-explainer-edit-header
+              span 💡
+              strong What is RIR?
+            p
+              | #[strong Reps in Reserve] = how many reps you have left before failure.
+              | Your intensity setting adjusts this: Hard pushes you closer to failure (lower RIR), Easy keeps you further from failure (higher RIR).
+            .rir-edit-examples
+              span.rir-edit-badge RIR 0
+              span.rir-edit-label = failure
+              span.rir-edit-badge RIR 2
+              span.rir-edit-label = 2 reps left (challenging)
+              span.rir-edit-badge RIR 4
+              span.rir-edit-label = 4 reps left (comfortable)
+
+          .form-group
+            label(for="experienceLevel") Experience Level
+            select.ob-select#experienceLevel(name="experienceLevel")
+              option(value="beginner"     selected=fp.experienceLevel === 'beginner')     Beginner
+              option(value="intermediate" selected=fp.experienceLevel === 'intermediate') Intermediate
+              option(value="advanced"     selected=fp.experienceLevel === 'advanced')     Advanced
+
+          //- ── HEALTH & INJURY SECTION ─────────────────
+          .password-divider
+            span Health & Injury
+            span.password-divider__note (warns you before workouts)
+
+          .health-section
+            p.health-section-title
+              | ⚠️ Health Conditions / Injuries
+            label.health-toggle-label
+              input(
+                type='checkbox'
+                id='hasHealthConditions'
+                name='hasHealthConditions'
+                checked=(fp.hasHealthConditions ? true : false)
+              )
+              span I have existing health conditions or injuries
+            .health-notes-wrap#healthNotesWrap(class=(fp.hasHealthConditions ? 'show' : ''))
+              label(for='healthNotes') Describe your condition
+              textarea#healthNotes(
+                name='healthNotes'
+                placeholder='e.g. left knee injury, mild hypertension, lower back pain...'
+              )= fp.healthNotes || ''
+            p.health-warn-note
+              | 💡 When enabled, GymSpire will show a warning before each workout reminding you to exercise within your limits.
+
+        .password-divider
+          span Change Password
+          span.password-divider__note (leave blank to keep current)
+
+        .form-group
+          label(for="currentPassword") Current Password
+          .password-input-wrap
+            input(
+              type="password"
+              name="currentPassword"
+              id="currentPassword"
+              placeholder="Enter current password"
+              autocomplete="current-password"
+            )
+            button.pw-toggle(type="button" data-target="currentPassword")
+              svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                path(d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z')
+                circle(cx='12' cy='12' r='3')
+
+        .form-group
+          label(for="newPassword") New Password
+          .password-input-wrap
+            input(
+              type="password"
+              name="newPassword"
+              id="newPassword"
+              placeholder="Enter new password"
+              autocomplete="new-password"
+            )
+            button.pw-toggle(type="button" data-target="newPassword")
+              svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                path(d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z')
+                circle(cx='12' cy='12' r='3')
+
+        .form-group
+          label(for="newPasswordConfirm") Confirm New Password
+          .password-input-wrap
+            input(
+              type="password"
+              name="newPasswordConfirm"
+              id="newPasswordConfirm"
+              placeholder="Repeat new password"
+              autocomplete="new-password"
+            )
+            button.pw-toggle(type="button" data-target="newPasswordConfirm")
+              svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                path(d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z')
+                circle(cx='12' cy='12' r='3')
 
         button(type="submit")
           svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')

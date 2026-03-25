@@ -42,22 +42,19 @@ block content
     // CREATE COACH FORM
     // =========================
     form(id='createCoachForm' novalidate)
+      input(type="file" name="pfp" id="pfp" accept="image/*" style="display:none")
       p.form-message#formMessage
 
       .field-group
         label(for='email') Email
         .input-wrap
-          input(type='email' name='email' id='email' placeholder='coach@gymspire.com' required)
+          input(type='email' name='email' id='email' placeholder='coach@iacademy.ph' required)
         small.form-error#emailError
 
       .field-group
         label(for='username') Username
         .input-wrap
           input(type='text' name='username' id='username' placeholder='e.g. CoachJuan' required)
-
-      .field-group
-        label(for='pfp') Profile Picture
-        input(type="file" name="pfp" id="pfp" accept="image/*")
 
       .field-group
         label(for='password') Password

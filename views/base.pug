@@ -1,35 +1,39 @@
-doctype html 
+doctype html
 
-html 
-  head 
+html
+  head
     meta(charset='UTF-8')
-  meta(name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
-  title Gymspire | #{title} 
+    meta(name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+    title GymSpire | #{title}
 
-  link(rel="stylesheet" href="/css/main.css")
-  link(rel="stylesheet" href="/css/quote.css")
+    link(rel="stylesheet" href="/css/main.css")
+    link(rel="stylesheet" href="/css/quote.css")
 
-  link(rel="manifest" href="/manifest.json")
-  meta(name="apple-mobile-web-app-capable" content="yes")
-  meta(name="apple-mobile-web-app-status-bar-style" content="black-translucent")
-  meta(name="apple-mobile-web-app-title" content="GymSpire")
-  meta(name="theme-color" content="#d25353")
-  link(rel="apple-touch-icon" href="/img/gymspirelogo.png")
+    link(rel="manifest" href="/manifest.json")
+    meta(name="apple-mobile-web-app-capable" content="yes")
+    meta(name="apple-mobile-web-app-status-bar-style" content="black-translucent")
+    meta(name="apple-mobile-web-app-title" content="GymSpire")
+    meta(name="theme-color" content="#d25353")
+    link(rel="apple-touch-icon" href="/img/gymspirelogo.png")
 
-  block styles
+    block styles
 
   body
-    //- include ./partials/navbar
-
-    //- if error
-    //-     .alert.alert-error= error
-
-    //- This will be overwritten 
     block content
+
     script(src='https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js')
     link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css')
     script(src='/js/tutorial.js')
 
-  // ✅ add this to allow pages to inject JS
-  block scripts
-    script(src='/js/pwa.js')
+    block scripts
+      script(src='/js/pwa.js')
+
+    script.
+      // ── BFCACHE GUARD ────────────────────────────────────
+      // Fires when browser restores a page from back-forward cache
+      // without making a new request — forces a fresh server check
+      window.addEventListener("pageshow", function (e) {
+        if (e.persisted) {
+          window.location.reload();
+        }
+      });

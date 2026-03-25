@@ -11,7 +11,7 @@ const catchAsync = require("../utils/catchAsync");
 const factory = require("./handlerFactory");
 
 // ============================================================
-// CLOUDINARY CONFIG (once, at the top)
+// CLOUDINARY CONFIG
 // ============================================================
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -37,7 +37,7 @@ const upload = multer({
 exports.uploadUserPhoto = upload.single("pfp");
 
 // ============================================================
-// HELPER — upload buffer to Cloudinary, return secure_url
+// HELPER — upload buffer to Cloudinary
 // ============================================================
 const uploadToCloudinary = (buffer) =>
   new Promise((resolve, reject) => {
@@ -47,45 +47,19 @@ const uploadToCloudinary = (buffer) =>
     );
     stream.end(buffer);
   });
+
 // ============================================================
-// AUTO CHECKOUT HELPER
-// Call this whenever a workout ends OR user logs out.
-// Closes the open GymAttendance record and clears User status.
+// HELPER — format hour to 12h AM/PM string
 // ============================================================
+function formatHour12(h) {
+  if (h === 0) return "12:00 AM";
+  if (h === 12) return "12:00 PM";
+  return h < 12 ? `${h}:00 AM` : `${h - 12}:00 PM`;
+}
 
-// Add to top of userController.js:
-// const GymAttendance = require("../models/gymAttendanceModel");
-
-// ── REUSABLE HELPER (not a route handler) ───────────────────
-// Use this inside other controllers too (e.g. workoutLogController)
-const closeAttendance = async (userId) => {
-  const now = new Date();
-
-  // Close open attendance record
-  const openRecord = await GymAttendance.findOne({
-    user: userId,
-    checkoutTime: null,
-  }).sort({ checkinTime: -1 });
-
-  if (openRecord) {
-    const durationMs = now - openRecord.checkinTime;
-    openRecord.checkoutTime = now;
-    openRecord.durationMinutes = Math.round(durationMs / 60000);
-    await openRecord.save();
-  }
-
-  // Clear live status on User
-  await User.findByIdAndUpdate(userId, {
-    isAtGym: false,
-    gymStatus: "offline",
-    gymCheckinTime: null,
-  });
-};
-
-// Export so other controllers can use it
-exports.closeAttendance = closeAttendance;
-
-// Add this helper function near the top of userController.js
+// ============================================================
+// HELPER — Haversine distance in meters
+// ============================================================
 function getDistanceMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -99,12 +73,42 @@ function getDistanceMeters(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+// ============================================================
+// HELPER — close attendance record + clear user gym status
+// ============================================================
+const closeAttendance = async (userId) => {
+  const now = new Date();
+
+  const openRecord = await GymAttendance.findOne({
+    user: userId,
+    checkoutTime: null,
+  }).sort({ checkinTime: -1 });
+
+  if (openRecord) {
+    const durationMs = now - openRecord.checkinTime;
+    openRecord.checkoutTime = now;
+    openRecord.durationMinutes = Math.round(durationMs / 60000);
+    await openRecord.save();
+  }
+
+  await User.findByIdAndUpdate(userId, {
+    isAtGym: false,
+    gymStatus: "offline",
+    gymCheckinTime: null,
+  });
+};
+
+exports.closeAttendance = closeAttendance;
+
+// ============================================================
+// GET USER ATTENDANCE (admin)
+// ============================================================
 exports.getUserAttendance = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
   const records = await GymAttendance.find({ user: id })
-    .sort({ checkinTime: -1 }) // newest first
-    .limit(100); // cap at 100 records
+    .sort({ checkinTime: -1 })
+    .limit(100);
 
   res.status(200).json({
     status: "success",
@@ -113,67 +117,111 @@ exports.getUserAttendance = catchAsync(async (req, res, next) => {
   });
 });
 
-// ── ROUTE HANDLER: manual "Leave gym" button ─────────────────
-// PATCH /api/v1/users/gymCheckin  body: { status: "offline" }
+// ============================================================
+// GYM CHECK-IN / CHECK-OUT
+// PATCH /api/v1/users/gymCheckin
+// Body: { status: "atGym" | "offline", latitude?, longitude? }
+// ============================================================
 exports.gymCheckin = catchAsync(async (req, res, next) => {
   const { status, latitude, longitude } = req.body;
-  console.log("gym checkin start");
 
   if (!["atGym", "offline"].includes(status)) {
-    console.log("first if");
-
     return next(new AppError('Status must be "atGym" or "offline"', 400));
   }
 
   if (status === "atGym") {
-    console.log("2nd if");
+    // ── STEP 1: Enforce gym operating hours ──────────
+    const GymSettings = require("../models/gymSettingsModel");
+    const gymSettings = await GymSettings.getSettings();
+    const now = new Date();
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const todaySchedule = gymSettings.schedule.find(
+      (s) => s.day === days[now.getDay()],
+    );
 
-    // ── GPS VERIFICATION ──
+    if (!todaySchedule || !todaySchedule.isOpen) {
+      return res.status(400).json({
+        status: "fail",
+        message: `The gym is closed today (${days[now.getDay()]}). Check-in is not available.`,
+      });
+    }
+
+    const currentHour = now.getHours();
+    if (
+      currentHour < todaySchedule.openingHour ||
+      currentHour >= todaySchedule.closingHour
+    ) {
+      return res.status(400).json({
+        status: "fail",
+        message: `The gym is currently closed. Today's hours: ${formatHour12(todaySchedule.openingHour)} — ${formatHour12(todaySchedule.closingHour)}.`,
+      });
+    }
+
+    // ── STEP 2: GPS verification ──────────────────────
     if (!latitude || !longitude) {
-      console.log("2nd.1st if");
       return res.status(400).json({
         status: "fail",
         message: "Location is required to check in at the gym.",
       });
     }
 
-    const gymLat = parseFloat(process.env.GYM_LAT);
-    const gymLng = parseFloat(process.env.GYM_LNG);
-    const radius = parseFloat(process.env.GYM_RADIUS_METERS) || 150;
+    // ── Read location from DB, fall back to env ───────
+    const gymLat = gymSettings.gymLat || parseFloat(process.env.GYM_LAT);
+    const gymLng = gymSettings.gymLng || parseFloat(process.env.GYM_LNG);
+    const radius =
+      gymSettings.gymRadiusMeters ||
+      parseFloat(process.env.GYM_RADIUS_METERS) ||
+      150;
+
+    if (!gymLat || !gymLng) {
+      return res.status(400).json({
+        status: "fail",
+        message:
+          "Gym location has not been configured yet. Please contact the administrator.",
+      });
+    }
 
     const distance = getDistanceMeters(latitude, longitude, gymLat, gymLng);
 
     if (distance > radius) {
-      console.log("3rd if");
       return res.status(400).json({
         status: "fail",
         message: `You must be at the gym to check in. You are ${Math.round(distance)}m away.`,
       });
     }
 
-    const now = new Date();
+    // ── STEP 3: Record check-in ───────────────────────
+    const checkinTime = new Date();
 
     await User.findByIdAndUpdate(req.user.id, {
       isAtGym: true,
       gymStatus: "atGym",
-      gymCheckinTime: now,
+      gymCheckinTime: checkinTime,
     });
 
     await GymAttendance.create({
       user: req.user.id,
-      checkinTime: now,
+      checkinTime,
       source: "manual",
     });
   } else {
-    // CHECKOUT — no location needed
+    // ── CHECKOUT ─────────────────────────────────────
     const now = new Date();
 
-    // Guard: if already offline, do nothing (prevents double-close)
     const currentUser = await User.findById(req.user.id).select("gymStatus");
     if (currentUser.gymStatus === "offline") {
-      return res
-        .status(200)
-        .json({ status: "success", message: "Already checked out." });
+      return res.status(200).json({
+        status: "success",
+        message: "Already checked out.",
+      });
     }
 
     await User.findByIdAndUpdate(req.user.id, {
@@ -198,6 +246,7 @@ exports.gymCheckin = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ status: "success" });
 });
+
 // ============================================================
 // GET ME
 // ============================================================
@@ -207,10 +256,9 @@ exports.getMe = (req, res, next) => {
 };
 
 // ============================================================
-// UPDATE ME (username + optional photo)
+// UPDATE ME
 // ============================================================
 exports.updateMe = catchAsync(async (req, res, next) => {
-  // Block password changes through this route
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
@@ -222,7 +270,47 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   const updates = {};
 
-  if (req.body.username) updates.username = req.body.username;
+  const { fitnessGoal, intensity, experienceLevel } = req.body;
+  const isFitnessUpdate =
+    fitnessGoal ||
+    intensity ||
+    experienceLevel ||
+    req.body.hasHealthConditions !== undefined ||
+    req.body.healthNotes !== undefined;
+
+  if (isFitnessUpdate) {
+    const ongoingLog = await WorkoutLog.findOne({
+      userId: req.user._id,
+      status: "ongoing",
+    });
+    if (ongoingLog) {
+      return next(
+        new AppError(
+          "You have an ongoing workout. Please finish it before updating your fitness profile.",
+          400,
+        ),
+      );
+    }
+
+    updates.fitnessProfile = {
+      ...(req.user.fitnessProfile?.toObject?.() ||
+        req.user.fitnessProfile ||
+        {}),
+    };
+    if (fitnessGoal) updates.fitnessProfile.fitnessGoal = fitnessGoal;
+    if (intensity) updates.fitnessProfile.intensity = intensity;
+    if (experienceLevel)
+      updates.fitnessProfile.experienceLevel = experienceLevel;
+    // ── Health condition update ───────────────────────
+    if (req.body.hasHealthConditions !== undefined) {
+      updates.fitnessProfile.hasHealthConditions =
+        req.body.hasHealthConditions === "true" ||
+        req.body.hasHealthConditions === true;
+    }
+    if (req.body.healthNotes !== undefined) {
+      updates.fitnessProfile.healthNotes = req.body.healthNotes || "";
+    }
+  }
 
   if (req.file) {
     try {
@@ -232,6 +320,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       return next(new AppError("Image upload failed", 500));
     }
   }
+
+  if (req.body.username) updates.username = req.body.username;
 
   const updatedUser = await User.findByIdAndUpdate(req.user.id, updates, {
     new: true,
@@ -252,8 +342,52 @@ exports.deleteMe = catchAsync(async (req, res) => {
     active: false,
     emailVerified: false,
   });
-
   res.status(204).json({ status: "success", data: null });
+});
+
+// ============================================================
+// SAVE ONBOARDING
+// ============================================================
+exports.saveOnboarding = catchAsync(async (req, res, next) => {
+  const {
+    age,
+    sex,
+    weightKg,
+    heightCm,
+    fitnessGoal,
+    intensity,
+    experienceLevel,
+    healthDisclaimer,
+    hasHealthConditions,
+    healthNotes,
+  } = req.body;
+
+  if (!healthDisclaimer) {
+    return next(new AppError("You must agree to the health disclaimer.", 400));
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user.id,
+    {
+      fitnessProfile: {
+        age: Number(age),
+        sex,
+        weightKg: weightKg ? Number(weightKg) : undefined,
+        heightCm: heightCm ? Number(heightCm) : undefined,
+        fitnessGoal,
+        intensity: intensity || "moderate",
+        experienceLevel: experienceLevel || "intermediate",
+        healthDisclaimer: true,
+        hasHealthConditions:
+          hasHealthConditions === "true" || hasHealthConditions === true,
+        healthNotes: healthNotes || "",
+        profileComplete: true,
+      },
+    },
+    { new: true, runValidators: true },
+  );
+
+  res.status(200).json({ status: "success", data: { user } });
 });
 
 // ============================================================
@@ -262,37 +396,17 @@ exports.deleteMe = catchAsync(async (req, res) => {
 exports.permanentDeleteMe = catchAsync(async (req, res) => {
   const userId = req.user.id;
 
-  // Remove user from all challenge participant lists
   await Challenge.updateMany(
     { participants: userId },
     { $pull: { participants: userId } },
   );
-
-  // Delete all workout logs (solo + challenge submissions)
   await WorkoutLog.deleteMany({ userId });
-
-  // Delete workout plan
   await WorkoutPlan.deleteMany({ userId });
-
-  // Delete all gym attendance records
-  await GymAttendance.deleteMany({ user: userId }); // ← note: field is "user" not "userId"
-
-  // Delete the user
+  await GymAttendance.deleteMany({ user: userId });
   await User.findByIdAndDelete(userId);
 
   res.status(204).json({ status: "success", data: null });
 });
-
-// ============================================================
-// GYM CHECK-IN
-// PATCH /api/v1/users/gymCheckin
-// Body: { status: "atGym" | "offline" }
-//
-// Uses fields on the User model — no separate collection needed:
-//   isAtGym:        Boolean  (default: false)
-//   gymStatus:      String   enum ["atGym", "logging", "offline"]
-//   gymCheckinTime: Date
-// ============================================================
 
 // ============================================================
 // UPDATE USER ROLE (admin only)
@@ -320,7 +434,6 @@ exports.updateUserRole = catchAsync(async (req, res, next) => {
 // ============================================================
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.params.id);
-
   if (!user) return next(new AppError("User not found", 404));
 
   user.emailVerified = false;
@@ -342,7 +455,7 @@ exports.getUser = factory.getOne(User);
 exports.updateUser = factory.updateOne(User);
 
 // ============================================================
-// MIDDLEWARE — attach all users to req (no JSON response)
+// MIDDLEWARE — attach all users to req
 // ============================================================
 exports.acquireAllUsers = catchAsync(async (req, res, next) => {
   req.users = await User.find();

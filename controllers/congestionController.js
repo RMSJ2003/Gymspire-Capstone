@@ -1,35 +1,46 @@
 const GymAttendance = require("../models/gymAttendanceModel");
+const GymSettings = require("../models/gymSettingsModel");
 const formatHourAMPM = require("../utils/formatHourAMPM");
 const catchAsync = require("../utils/catchAsync");
 
-// ============================================================
-// HELPER: Label a count as a congestion tier
-// ============================================================
+// ── HELPER ───────────────────────────────────────────────────
 function congestionTier(count) {
-  if (count === 0)       return { label: "Empty",    color: "#94a3b8", emoji: "🌑" };
-  if (count <= 3)        return { label: "Quiet",    color: "#22c55e", emoji: "🟢" };
-  if (count <= 8)        return { label: "Moderate", color: "#f59e0b", emoji: "🟡" };
-  if (count <= 15)       return { label: "Busy",     color: "#f97316", emoji: "🟠" };
-  return                        { label: "Packed",   color: "#d25353", emoji: "🔴" };
+  if (count === 0) return { label: "Empty", color: "#16a34a", emoji: "🟢" };
+  if (count <= 5) return { label: "Light", color: "#16a34a", emoji: "🟢" };
+  if (count <= 10) return { label: "Moderate", color: "#d97706", emoji: "🟡" };
+  if (count <= 15) return { label: "Busy", color: "#dc2626", emoji: "🔴" };
+  return { label: "Packed", color: "#dc2626", emoji: "🔴" };
+}
+
+// ── Read today's gym hours from DB ────────────────────────────
+async function getTodaySchedule() {
+  const gymSettings = await GymSettings.getSettings();
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const todayName = days[new Date().getDay()];
+  const todaySchedule = gymSettings.schedule.find((s) => s.day === todayName);
+
+  const isOpen = todaySchedule ? todaySchedule.isOpen : true;
+  const openHour = todaySchedule ? todaySchedule.openingHour : 6;
+  const closeHour = todaySchedule ? todaySchedule.closingHour : 23;
+
+  return { isOpen, openHour, closeHour, schedule: gymSettings.schedule };
 }
 
 // ============================================================
 // GET /api/v1/gymspire/congestion
-//
-// Returns:
-//  - hourlyAvg[]     → avg visitors per hour across all history
-//  - peakHour        → busiest hour of the day
-//  - bestHours[]     → top 3 quietest hours (within gym open hours)
-//  - bestDay         → quietest day of the week
-//  - todayPrediction → predicted load for each remaining hour today
-//  - personalBest    → best time specifically for THIS user
-//                      (avoids hours they consistently skip)
 // ============================================================
 exports.getCongestionPrediction = catchAsync(async (req, res, next) => {
-  const openHour  = parseInt(process.env.GYM_OPENING_HOUR,  10) || 5;
-  const closeHour = parseInt(process.env.GYM_CLOSING_HOUR,  10) || 23;
+  const { isOpen, openHour, closeHour, schedule } = await getTodaySchedule();
 
-  // ── 1. Aggregate avg visitors by hour (Manila time) ──────
+  // ── 1. Aggregate avg visitors by hour ─────────────────────
   const byHour = await GymAttendance.aggregate([
     {
       $group: {
@@ -37,7 +48,6 @@ exports.getCongestionPrediction = catchAsync(async (req, res, next) => {
           $hour: { date: "$checkinTime", timezone: "Asia/Manila" },
         },
         totalVisits: { $sum: 1 },
-        // count distinct days this hour appears so we can compute avg
         days: {
           $addToSet: {
             $dateToString: {
@@ -62,30 +72,33 @@ exports.getCongestionPrediction = catchAsync(async (req, res, next) => {
     { $sort: { _id: 1 } },
   ]);
 
-  // Build full 24-hour map
+  // ── 2. Build full 24-hour map using DB schedule ───────────
+  // isOpen = within today's opening-closing range AND gym is open today
   const hourMap = Array.from({ length: 24 }, (_, h) => ({
-    hour:        h,
-    time:        formatHourAMPM(h),
+    hour: h,
+    time: formatHourAMPM(h),
     avgVisitors: 0,
-    tier:        congestionTier(0),
-    isOpen:      h >= openHour && h < closeHour,
+    tier: congestionTier(0),
+    isOpen: isOpen && h >= openHour && h < closeHour,
   }));
 
   byHour.forEach((b) => {
     if (b.hour >= 0 && b.hour < 24) {
       hourMap[b.hour].avgVisitors = b.avgVisitors;
-      hourMap[b.hour].tier        = congestionTier(b.avgVisitors);
+      hourMap[b.hour].tier = congestionTier(b.avgVisitors);
     }
   });
 
-  // ── 2. Peak hour (busiest, within open hours) ─────────────
+  // ── 3. Open hours only (within admin schedule) ────────────
   const openHours = hourMap.filter((h) => h.isOpen);
-  const peakHour  = openHours.reduce(
-    (max, h) => (h.avgVisitors > max.avgVisitors ? h : max),
-    openHours[0]
-  );
 
-  // ── 3. Best hours (quietest 3, within open hours) ─────────
+  const peakHour = openHours.length
+    ? openHours.reduce(
+        (max, h) => (h.avgVisitors > max.avgVisitors ? h : max),
+        openHours[0],
+      )
+    : null;
+
   const bestHours = [...openHours]
     .sort((a, b) => a.avgVisitors - b.avgVisitors)
     .slice(0, 3);
@@ -96,7 +109,6 @@ exports.getCongestionPrediction = catchAsync(async (req, res, next) => {
       $group: {
         _id: {
           $dayOfWeek: { date: "$checkinTime", timezone: "Asia/Manila" },
-          // $dayOfWeek: 1=Sun, 2=Mon ... 7=Sat
         },
         totalVisits: { $sum: 1 },
         days: {
@@ -122,36 +134,49 @@ exports.getCongestionPrediction = catchAsync(async (req, res, next) => {
   ]);
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const dayMap   = dayNames.map((name, i) => ({
-    name,
-    avgVisitors: 0,
-    tier: congestionTier(0),
-  }));
+
+  // Mark days that are closed in admin schedule
+  const dayMap = dayNames.map((name, i) => {
+    const fullDayName = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ][i];
+    const daySchedule = schedule.find((s) => s.day === fullDayName);
+    return {
+      name,
+      avgVisitors: 0,
+      tier: congestionTier(0),
+      isOpen: daySchedule ? daySchedule.isOpen : true,
+    };
+  });
 
   byDay.forEach((d) => {
-    const idx = d.dayOfWeek - 1; // 1-indexed → 0-indexed
+    const idx = d.dayOfWeek - 1;
     if (idx >= 0 && idx < 7) {
       dayMap[idx].avgVisitors = d.avgVisitors;
-      dayMap[idx].tier        = congestionTier(d.avgVisitors);
+      dayMap[idx].tier = congestionTier(d.avgVisitors);
     }
   });
 
-  const bestDay = [...dayMap].sort((a, b) => a.avgVisitors - b.avgVisitors)[0];
+  // Best day = quietest open day
+  const bestDay =
+    [...dayMap]
+      .filter((d) => d.isOpen)
+      .sort((a, b) => a.avgVisitors - b.avgVisitors)[0] || dayMap[0];
 
-  // ── 5. Today's prediction (remaining open hours) ──────────
-  const now         = new Date();
-  const currentHour = now.getHours();
-  const currentDay  = now.getDay(); // 0=Sun
+  // ── 5. Today's prediction (remaining open hours only) ─────
+  const currentHour = new Date().getHours();
 
   const todayPrediction = hourMap
     .filter((h) => h.isOpen && h.hour >= currentHour)
-    .map((h) => ({
-      ...h,
-      isPast: false,
-    }));
+    .map((h) => ({ ...h, isPast: false }));
 
   // ── 6. Personal best time for THIS user ───────────────────
-  //    Find the quiet hours the user hasn't already been going to consistently
   let personalBest = null;
 
   if (req.user) {
@@ -159,31 +184,30 @@ exports.getCongestionPrediction = catchAsync(async (req, res, next) => {
       { $match: { user: req.user._id } },
       {
         $group: {
-          _id: {
-            $hour: { date: "$checkinTime", timezone: "Asia/Manila" },
-          },
+          _id: { $hour: { date: "$checkinTime", timezone: "Asia/Manila" } },
           visits: { $sum: 1 },
         },
       },
     ]);
 
     const userHours = new Set(userHistory.map((u) => u._id));
-
-    // Best hour = quiet gym + user hasn't been going there already
-    const unusedQuietHours = bestHours.filter((h) => !userHours.has(h.hour));
-    personalBest = unusedQuietHours[0] || bestHours[0];
+    const unusedQuiet = bestHours.filter((h) => !userHours.has(h.hour));
+    personalBest = unusedQuiet[0] || bestHours[0] || null;
   }
 
-  // ── 7. Data sufficiency warning ───────────────────────────
+  // ── 7. Data sufficiency ───────────────────────────────────
   const totalRecords = await GymAttendance.countDocuments();
-  const hasEnoughData = totalRecords >= 10; // need at least 10 check-ins for meaningful prediction
+  const hasEnoughData = totalRecords >= 10;
 
   res.status(200).json({
     status: "success",
     data: {
       hasEnoughData,
       totalRecords,
-      hourlyAvg:       hourMap,
+      hourlyAvg: hourMap,
+      openHour,
+      closeHour,
+      gymOpenToday: isOpen,
       peakHour,
       bestHours,
       bestDay,
@@ -196,21 +220,16 @@ exports.getCongestionPrediction = catchAsync(async (req, res, next) => {
 
 // ============================================================
 // GET /api/v1/gymspire/congestion/now
-// Lightweight — just current hour's predicted load vs actual
-// Used for the dashboard card live indicator
+// Lightweight — for dashboard card live indicator
 // ============================================================
 exports.getCongestionNow = catchAsync(async (req, res, next) => {
-  const now         = new Date();
+  const now = new Date();
   const currentHour = now.getHours();
-  const currentDay  = now.getDay();
 
-  // Predicted (historical avg for this hour)
   const predicted = await GymAttendance.aggregate([
     {
       $group: {
-        _id: {
-          $hour: { date: "$checkinTime", timezone: "Asia/Manila" },
-        },
+        _id: { $hour: { date: "$checkinTime", timezone: "Asia/Manila" } },
         totalVisits: { $sum: 1 },
         days: {
           $addToSet: {
@@ -223,9 +242,7 @@ exports.getCongestionNow = catchAsync(async (req, res, next) => {
         },
       },
     },
-    {
-      $match: { _id: currentHour },
-    },
+    { $match: { _id: currentHour } },
     {
       $project: {
         avgVisitors: {
@@ -237,10 +254,9 @@ exports.getCongestionNow = catchAsync(async (req, res, next) => {
 
   const predictedLoad = predicted[0]?.avgVisitors ?? 0;
 
-  // Actual (real check-ins in last 2 hours)
   const windowStart = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-  const actualLoad  = await GymAttendance.countDocuments({
-    checkinTime:  { $gte: windowStart },
+  const actualLoad = await GymAttendance.countDocuments({
+    checkinTime: { $gte: windowStart },
     $or: [{ checkoutTime: null }, { checkoutTime: { $gte: now } }],
   });
 

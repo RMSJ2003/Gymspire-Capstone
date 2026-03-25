@@ -1,23 +1,25 @@
 const WorkoutPlan = require("../models/workoutPlanModel");
-const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
 module.exports = catchAsync(async (req, res, next) => {
-  const workoutPlan = await WorkoutPlan.findOne({
+  const plans = await WorkoutPlan.find({
     userId: req.user._id,
   }).populate("exerciseDetails");
 
-  // 🔥 IF NO WORKOUT PLAN → REDIRECT TO WORKOUT PLAN PAGE
-  if (!workoutPlan) {
+  const gymPlan = plans.find((p) => p.type === "Gym") || null;
+  const homePlan = plans.find((p) => p.type === "Home") || null;
+
+  // Must have at least a gym plan to start workout
+  if (!gymPlan) {
     return res.status(200).render("noWorkoutPlan", {
       title: "No Workout Plan",
       user: req.user,
     });
   }
 
-  // It attaches data to the request object so the next middleware / controller can
-  // reuse it
-  req.workoutPlan = workoutPlan;
+  req.gymPlan = gymPlan;
+  req.homePlan = homePlan;
+  req.workoutPlan = gymPlan; // keep backward compat
 
   next();
 });

@@ -14,299 +14,235 @@ block styles
     }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
-    body {
-      font-family: "DM Sans", sans-serif;
-      background: var(--bg);
-      padding-top: 64px;
-      min-height: 100vh;
-    }
+    body { font-family: "DM Sans", sans-serif; background: var(--bg); padding-top: 64px; min-height: 100vh; }
 
     /* ── NAVBAR ── */
-    .navbar {
-      width: 100%; height: 64px;
-      background: linear-gradient(135deg, #d25353, #b11226);
-      padding: 0 1.5rem;
-      display: flex; justify-content: space-between; align-items: center;
-      position: fixed; top:0; left:0; z-index: 1000;
-      box-shadow: 0 2px 16px rgba(177,18,38,0.35);
+    .navbar { width:100%; height:64px; background:linear-gradient(135deg,#d25353,#b11226); padding:0 1.5rem; display:flex; justify-content:space-between; align-items:center; position:fixed; top:0; left:0; z-index:1000; box-shadow:0 2px 16px rgba(177,18,38,0.35); }
+    .nav-logo a { font-family:"Bebas Neue",sans-serif; color:white; font-size:1.6rem; text-decoration:none; letter-spacing:0.08em; }
+    .nav-logo a:hover { color:var(--yellow); }
+    .nav-right { display:flex; align-items:center; gap:0.5rem; }
+    .nav-back[type="submit"] {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.22);
+      cursor: pointer;
     }
-    .nav-logo a {
-      font-family: "Bebas Neue", sans-serif; color: white; font-size: 1.6rem;
-      text-decoration: none; letter-spacing: 0.08em;
-    }
-    .nav-logo a:hover { color: var(--yellow); }
-    .nav-right { display: flex; align-items: center; gap: 0.5rem; }
-    .nav-back {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 0.38rem 0.9rem;
-      background: rgba(255,255,255,0.15); color: white;
-      font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 0.8rem;
-      text-decoration: none; border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.22); transition: 0.18s;
-    }
-    .nav-back svg {
-      width:13px; height:13px; stroke:white; fill:none;
-      stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
-    }
-    .nav-back:hover { background: rgba(255,255,255,0.25); color: var(--yellow); }
-    .nav-back:hover svg { stroke: var(--yellow); }
+    .nav-back svg { width:13px; height:13px; stroke:white; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-back:hover { background:rgba(255,255,255,0.25); color:var(--yellow); }
+    .nav-back:hover svg { stroke:var(--yellow); }
 
     /* ── PAGE HEADER ── */
-    .page-header {
-      max-width: 1100px; margin: 0 auto;
-      padding: 0.7rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    }
-    .page-header__left { display: flex; align-items: center; gap: 0.6rem; }
-    .profile-pic {
-      width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
-      border: 2px solid rgba(210,83,83,0.35); flex-shrink: 0;
-    }
-    .page-header__title {
-      font-family: "Bebas Neue", sans-serif; font-size: 1.5rem;
-      letter-spacing: 0.05em; color: var(--text); line-height: 1;
-    }
-    .page-header__sub { font-size: 0.72rem; color: #999; font-weight: 500; margin-top: 1px; }
+    .page-header { max-width:1100px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; gap:1rem; }
+    .page-header__left { display:flex; align-items:center; gap:0.6rem; }
+    .profile-pic { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid rgba(210,83,83,0.35); flex-shrink:0; }
+    .page-header__title { font-family:"Bebas Neue",sans-serif; font-size:1.5rem; letter-spacing:0.05em; color:var(--text); line-height:1; }
+    .page-header__sub { font-size:0.72rem; color:#999; font-weight:500; margin-top:1px; }
 
     /* ── PLAN WRAP ── */
-    .plan-wrap {
-      max-width: 1100px; margin: 0 auto;
-      padding: 0 1.5rem 3rem;
-    }
+    .plan-wrap { max-width:1100px; margin:0 auto; padding:0 1.5rem 3rem; }
 
-    /* ── SECTION LABEL ── */
-    .section-label {
-      font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.8px; color: #aaa; margin-bottom: 0.7rem;
-    }
+    /* ── STEP INDICATOR ── */
+    .step-indicator { display:flex; align-items:center; gap:0.5rem; margin-bottom:1.4rem; }
+    .step-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.72rem; background:#e8e8e8; color:#aaa; transition:0.2s; }
+    .step-dot.active { background:var(--red); color:white; }
+    .step-dot.done { background:#22c55e; color:white; }
+    .step-line { flex:1; height:2px; background:#e8e8e8; border-radius:1px; }
+    .step-line.done { background:#22c55e; }
+    .step-label { font-size:0.68rem; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:0.5px; }
+    .step-label.active { color:var(--red); }
+
+    /* ── TYPE STEP ── */
+    .type-prompt { font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#aaa; margin-bottom:1rem; }
+    .type-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-width:500px; margin-bottom:1rem; }
+    .type-card { background:white; border-radius:16px; border:2px solid rgba(210,83,83,0.12); padding:1.8rem 1.2rem; text-align:center; cursor:pointer; box-shadow:var(--shadow); transition:transform 0.18s,box-shadow 0.18s,border-color 0.18s,background 0.18s; display:flex; flex-direction:column; align-items:center; gap:0.6rem; }
+    .type-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-hover); border-color:var(--red-light); }
+    .type-card.active { background:var(--red); color:white; border-color:var(--red); box-shadow:0 4px 20px rgba(210,83,83,0.3); }
+    .type-card .type-icon { font-size:2.2rem; line-height:1; }
+    .type-card .type-name { font-family:"Bebas Neue",sans-serif; font-size:1.3rem; letter-spacing:0.06em; }
+    .type-card .type-desc { font-size:0.72rem; font-weight:600; color:#999; line-height:1.4; }
+    .type-card.active .type-desc { color:rgba(255,255,255,0.75); }
+    .type-required { font-size:0.62rem; font-weight:800; background:var(--yellow); color:#111; padding:2px 8px; border-radius:999px; }
+    .type-hint { font-size:0.72rem; color:#aaa; font-weight:600; margin-bottom:1rem; }
+
+    /* ── STEPS ── */
+    .step-section { display:none; }
+    .step-section.visible { display:block; }
+
+    .step-back-btn { display:inline-flex; align-items:center; gap:5px; background:none; border:1.5px solid #ddd; border-radius:8px; padding:0.38rem 0.9rem; font-weight:700; font-size:0.8rem; color:#888; cursor:pointer; margin-bottom:1rem; transition:0.15s; font-family:"DM Sans",sans-serif; }
+    .step-back-btn:hover { border-color:var(--red); color:var(--red); }
+    .step-back-btn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+
+    .step-heading { font-family:"Bebas Neue",sans-serif; font-size:1.3rem; letter-spacing:0.05em; color:var(--text); margin-bottom:0.3rem; display:flex; align-items:center; gap:0.5rem; }
+    .step-sub { font-size:0.72rem; color:#999; font-weight:600; margin-bottom:1rem; }
+
+    .section-label { font-size:0.62rem; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#aaa; margin-bottom:0.7rem; }
 
     /* ── TARGET GRID ── */
-    .target-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 0.6rem;
-      margin-bottom: 1.2rem;
-    }
-    .target-card {
-      background: var(--card-bg); padding: 0.9rem 1rem;
-      border-radius: var(--radius); text-align: center;
-      font-weight: 700; font-size: 0.85rem; cursor: pointer;
-      border: 1.5px solid rgba(210,83,83,0.12); box-shadow: var(--shadow);
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-      text-transform: capitalize;
-      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s, background 0.18s;
-    }
-    .target-card:hover {
-      transform: translateY(-2px); box-shadow: var(--shadow-hover);
-      border-color: var(--red-light);
-    }
-    .target-card.active {
-      background: var(--red); color: white;
-      border-color: var(--red); box-shadow: 0 4px 16px rgba(210,83,83,0.3);
-    }
-    .muscle-count {
-      font-size: 0.62rem; font-weight: 800;
-      background: var(--yellow); color: #111;
-      padding: 2px 8px; border-radius: 999px;
-    }
+    .target-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0.6rem; margin-bottom:1.2rem; }
+    .target-card { background:var(--card-bg); padding:0.9rem 1rem; border-radius:var(--radius); text-align:center; font-weight:700; font-size:0.85rem; cursor:pointer; border:1.5px solid rgba(210,83,83,0.12); box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; gap:5px; text-transform:capitalize; transition:transform 0.18s,box-shadow 0.18s,border-color 0.18s,background 0.18s; }
+    .target-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-hover); border-color:var(--red-light); }
+    .target-card.active { background:var(--red); color:white; border-color:var(--red); box-shadow:0 4px 16px rgba(210,83,83,0.3); }
+    .muscle-count { font-size:0.62rem; font-weight:800; background:var(--yellow); color:#111; padding:2px 8px; border-radius:999px; }
 
-    /* ── SUBMIT SECTION ── */
-    .update-section {
-      display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;
-      padding-top: 0.4rem;
-    }
-    .form-message { font-size: 0.82rem; font-weight: 700; color: var(--red); min-height: 1.2em; }
-    .create-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 0.55rem 1.5rem;
-      background: linear-gradient(135deg, #d25353, #b11226);
-      color: white; border: none; border-radius: 9px;
-      font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 0.85rem;
-      cursor: pointer; box-shadow: 0 3px 12px rgba(177,18,38,0.28);
-      transition: filter 0.18s, transform 0.15s;
-    }
-    .create-btn:hover { filter: brightness(1.1); transform: translateY(-1px); color: var(--yellow); }
+    /* ── BUTTONS ── */
+    .create-btn { display:inline-flex; align-items:center; gap:6px; padding:0.55rem 1.5rem; background:linear-gradient(135deg,#d25353,#b11226); color:white; border:none; border-radius:9px; font-family:"DM Sans",sans-serif; font-weight:700; font-size:0.85rem; cursor:pointer; box-shadow:0 3px 12px rgba(177,18,38,0.28); transition:filter 0.18s,transform 0.15s; }
+    .create-btn:hover { filter:brightness(1.1); transform:translateY(-1px); color:var(--yellow); }
     .create-btn svg { width:14px; height:14px; stroke:white; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .next-btn { display:inline-flex; align-items:center; gap:6px; padding:0.55rem 1.5rem; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; border:none; border-radius:9px; font-family:"DM Sans",sans-serif; font-weight:700; font-size:0.85rem; cursor:pointer; box-shadow:0 3px 12px rgba(59,130,246,0.28); transition:filter 0.18s,transform 0.15s; }
+    .next-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+    .next-btn svg { width:14px; height:14px; stroke:white; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
-    /* ══════════════════════════════════════
-      MODALS
-    ══════════════════════════════════════ */
-    .modal {
-      position: fixed; inset: 0;
-      background: rgba(15,10,5,0.6); backdrop-filter: blur(4px);
-      display: flex; justify-content: center; align-items: center;
-      z-index: 1200; padding: 1rem; animation: fadeIn 0.2s ease;
-    }
-    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-    .modal.hidden { display: none; }
+    .update-section { display:flex; flex-direction:column; align-items:flex-start; gap:0.5rem; padding-top:0.4rem; }
+    .form-message { font-size:0.82rem; font-weight:700; color:var(--red); min-height:1.2em; }
 
-    /* ── Target modal (exercise list) ── */
-    .modal-content {
-      background: white; border-radius: 16px; width: 100%; max-width: 680px;
-      position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.2);
-      animation: slideUp 0.25s ease;
-    }
-    @keyframes slideUp { from { transform: translateY(16px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    /* ── MODALS ── */
+    .modal { position:fixed; inset:0; background:rgba(15,10,5,0.6); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:1200; padding:1rem; animation:fadeIn 0.2s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .modal.hidden { display:none; }
+    .modal-content { background:white; border-radius:16px; width:100%; max-width:680px; position:relative; box-shadow:0 24px 60px rgba(0,0,0,0.2); animation:slideUp 0.25s ease; }
+    @keyframes slideUp { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .modal-content.large { max-height:82vh; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--red-light) transparent; }
+    .modal-content.ex-info-modal { max-width:460px; }
+    .modal-content::before { content:""; display:block; height:4px; border-radius:16px 16px 0 0; background:linear-gradient(90deg,#d25353,#f4c430); }
+    .modal-header { padding:0.9rem 1.2rem 0.7rem; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:white; z-index:1; }
+    .modal-body { padding:0.85rem 1.1rem 1.1rem; }
+    .modal-search { width:100%; padding:0.5rem 0.85rem; border:1.5px solid #e8e8e8; border-radius:9px; font-family:"DM Sans",sans-serif; font-size:0.85rem; outline:none; margin-bottom:0.75rem; transition:border-color 0.15s; }
+    .modal-search:focus { border-color:var(--red); }
+    .modal-search::placeholder { color:#bbb; }
+    #targetTitle { font-family:"Bebas Neue",sans-serif; font-size:1.35rem; letter-spacing:0.06em; color:var(--text); text-transform:uppercase; }
+    .ex-modal-name { font-family:"Bebas Neue",sans-serif; font-size:1.2rem; letter-spacing:0.05em; color:var(--text); text-transform:capitalize; line-height:1.2; flex:1; padding-right:0.75rem; }
+    #closeModal, #closeTargetModal { border:none; background:rgba(210,83,83,0.08); color:var(--red); width:30px; height:30px; border-radius:50%; font-size:1rem; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:0.15s; }
+    #closeModal:hover, #closeTargetModal:hover { background:var(--red); color:white; }
+    .exercise-row { display:flex; align-items:center; justify-content:space-between; background:#fafafa; border:1.5px solid #eee; padding:0.7rem 0.85rem; border-radius:10px; margin-bottom:0.4rem; cursor:pointer; transition:border-color 0.15s,background 0.15s,transform 0.12s; }
+    .exercise-row:hover { border-color:var(--red-light); background:rgba(210,83,83,0.03); transform:translateX(2px); }
+    .exercise-row.selected { background:rgba(210,83,83,0.05); border-color:var(--red); }
+    .exercise-row.hidden { display:none; }
+    .exercise-left { display:flex; align-items:center; gap:0.6rem; flex:1; min-width:0; }
+    .exercise-info { display:flex; flex-direction:row; align-items:center; gap:0.6rem; flex:1; min-width:0; }
+    .exercise-gif { width:52px; height:52px; object-fit:cover; border-radius:7px; background:#f0f0f0; flex-shrink:0; border:1px solid #ececec; }
+    .exercise-left input[type="checkbox"] { width:16px; height:16px; accent-color:var(--red); cursor:pointer; flex-shrink:0; }
+    .exercise-name { font-weight:600; font-size:0.82rem; color:var(--text); line-height:1.3; text-transform:capitalize; overflow:hidden; text-overflow:ellipsis; }
+    .exercise-row.selected .exercise-name { color:var(--red); }
+    .no-results { text-align:center; color:#bbb; font-size:0.85rem; padding:2rem 0; display:none; }
+    .info-btn { border:1.5px solid #ddd; background:transparent; color:var(--text-muted); font-weight:800; font-size:0.72rem; font-style:italic; border-radius:50%; width:26px; height:26px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:0.15s; }
+    .info-btn:hover { border-color:var(--red); color:var(--red); background:rgba(210,83,83,0.06); }
+    #modalGif { width:100%; max-height:200px; object-fit:contain; border-radius:10px; background:#f5f5f5; display:block; margin-bottom:0.85rem; }
+    #toggleInstructions { display:flex; align-items:center; gap:0.45rem; width:100%; padding:0.55rem 0.9rem; background:#f5f5f7; border:1.5px solid #e8e8e8; border-radius:8px; font-family:"DM Sans",sans-serif; font-size:0.8rem; font-weight:700; color:var(--text-muted); cursor:pointer; margin-bottom:0.65rem; transition:background 0.15s,border-color 0.15s,color 0.15s; }
+    #toggleInstructions::before { content:"▶"; font-size:0.55rem; transition:transform 0.2s; display:inline-block; }
+    #toggleInstructions.open { background:rgba(210,83,83,0.06); border-color:var(--red-light); color:var(--red); }
+    #toggleInstructions.open::before { transform:rotate(90deg); }
+    #toggleInstructions:hover { background:rgba(210,83,83,0.06); border-color:var(--red-light); color:var(--red); }
+    #modalInstructions { padding:0; }
+    #modalInstructions.hidden { display:none; }
+    #modalInstructions ul { list-style:none; display:flex; flex-direction:column; gap:0.4rem; }
+    #modalInstructions ul li { padding:0.48rem 0.75rem; background:#f8f8f8; border-radius:8px; font-size:0.81rem; line-height:1.5; color:var(--text); border-left:3px solid var(--red); }
+    #modalInstructions p { color:#bbb; font-size:0.8rem; padding:0.4rem 0; }
 
-    .modal-content.large {
-      max-height: 82vh; overflow-y: auto;
-      scrollbar-width: thin; scrollbar-color: var(--red-light) transparent;
+    @media (max-width:768px) {
+      .plan-wrap { padding:0 1rem 2rem; }
+      .page-header { padding:0.65rem 1rem; }
+      .type-grid { gap:0.75rem; }
+      .target-grid { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); }
     }
-    .modal-content.ex-info-modal { max-width: 460px; }
-
-    /* Accent stripe on modals */
-    .modal-content::before {
-      content: ""; display: block; height: 4px; border-radius: 16px 16px 0 0;
-      background: linear-gradient(90deg, #d25353, #f4c430);
-    }
-
-    .modal-header {
-      padding: 0.9rem 1.2rem 0.7rem;
-      border-bottom: 1px solid #f0f0f0;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; background: white; z-index: 1;
-      /* no border-radius here — accent bar sits above */
-    }
-    .modal-body { padding: 0.85rem 1.1rem 1.1rem; }
-
-    #targetTitle {
-      font-family: "Bebas Neue", sans-serif; font-size: 1.35rem;
-      letter-spacing: 0.06em; color: var(--text); text-transform: uppercase;
-    }
-    .ex-modal-name {
-      font-family: "Bebas Neue", sans-serif; font-size: 1.2rem;
-      letter-spacing: 0.05em; color: var(--text); text-transform: capitalize;
-      line-height: 1.2; flex: 1; padding-right: 0.75rem;
-    }
-
-    #closeModal, #closeTargetModal {
-      border: none; background: rgba(210,83,83,0.08); color: var(--red);
-      width: 30px; height: 30px; border-radius: 50%;
-      font-size: 1rem; font-weight: 800; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: 0.15s;
-    }
-    #closeModal:hover, #closeTargetModal:hover { background: var(--red); color: white; }
-
-    /* ── Exercise rows ── */
-    .exercise-row {
-      display: flex; align-items: center; justify-content: space-between;
-      background: #fafafa; border: 1.5px solid #eee;
-      padding: 0.7rem 0.85rem; border-radius: 10px; margin-bottom: 0.4rem;
-      cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s;
-    }
-    .exercise-row:hover { border-color: var(--red-light); background: rgba(210,83,83,0.03); transform: translateX(2px); }
-    .exercise-row.selected { background: rgba(210,83,83,0.05); border-color: var(--red); }
-
-    .exercise-left { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
-    /* gif + name inline */
-    .exercise-info { display: flex; flex-direction: row; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
-    .exercise-gif {
-      width: 52px; height: 52px; object-fit: cover;
-      border-radius: 7px; background: #f0f0f0; flex-shrink: 0;
-      border: 1px solid #ececec;
-    }
-    .exercise-left input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; flex-shrink: 0; }
-    .exercise-name {
-      font-weight: 600; font-size: 0.82rem; color: var(--text); line-height: 1.3;
-      text-transform: capitalize; overflow: hidden; text-overflow: ellipsis;
-    }
-    .exercise-row.selected .exercise-name { color: var(--red); }
-
-    .info-btn {
-      border: 1.5px solid #ddd; background: transparent; color: var(--text-muted);
-      font-weight: 800; font-size: 0.72rem; font-style: italic;
-      border-radius: 50%; width: 26px; height: 26px; cursor: pointer; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; transition: 0.15s;
-    }
-    .info-btn:hover { border-color: var(--red); color: var(--red); background: rgba(210,83,83,0.06); }
-
-    /* ── Exercise info modal ── */
-    #modalGif {
-      width: 100%; max-height: 200px; object-fit: contain;
-      border-radius: 10px; background: #f5f5f5; display: block; margin-bottom: 0.85rem;
-    }
-
-    #toggleInstructions {
-      display: flex; align-items: center; gap: 0.45rem; width: 100%;
-      padding: 0.55rem 0.9rem; background: #f5f5f7;
-      border: 1.5px solid #e8e8e8; border-radius: 8px;
-      font-family: "DM Sans", sans-serif; font-size: 0.8rem; font-weight: 700;
-      color: var(--text-muted); cursor: pointer; margin-bottom: 0.65rem;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-    }
-    #toggleInstructions::before { content:"▶"; font-size:0.55rem; transition: transform 0.2s; display:inline-block; }
-    #toggleInstructions.open { background: rgba(210,83,83,0.06); border-color: var(--red-light); color: var(--red); }
-    #toggleInstructions.open::before { transform: rotate(90deg); }
-    #toggleInstructions:hover { background: rgba(210,83,83,0.06); border-color: var(--red-light); color: var(--red); }
-
-    #modalInstructions { padding: 0; }
-    #modalInstructions.hidden { display: none; }
-    #modalInstructions ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
-    #modalInstructions ul li {
-      padding: 0.48rem 0.75rem; background: #f8f8f8;
-      border-radius: 8px; font-size: 0.81rem; line-height: 1.5; color: var(--text);
-      border-left: 3px solid var(--red);
-    }
-    #modalInstructions p { color: #bbb; font-size: 0.8rem; padding: 0.4rem 0; }
-
-    /* ── Responsive ── */
-    @media (max-width: 768px) {
-      .plan-wrap { padding: 0 1rem 2rem; }
-      .page-header { padding: 0.65rem 1rem; }
-      .target-grid { grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); }
-    }
-    @media (max-width: 480px) {
-      .nav-logo a { font-size: 1.3rem; }
-      .target-grid { grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 0.5rem; }
-      .target-card { font-size: 0.8rem; padding: 0.75rem 0.6rem; }
+    @media (max-width:480px) {
+      .nav-logo a { font-size:1.3rem; }
+      .type-card { padding:1.3rem 0.8rem; }
+      .target-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:0.5rem; }
+      .target-card { font-size:0.8rem; padding:0.75rem 0.6rem; }
     }
 
 block content
 
-  //- ── NAVBAR ──────────────────────────────────────────────
   nav.navbar
     .nav-logo
-      if user.userType === "user"
+      if currentUser.userType === "user"
         a(href='/dashboard') GymSpire
-      if user.userType === "coach"
+      else if currentUser.userType === "coach"
         a(href='/coachDashboard') GymSpire
-      if user.userType === "admin"
+      else
         a(href='/adminDashboard') GymSpire
     .nav-right
-      a.nav-back(href='javascript:history.back()')
-        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
-          path(d='M19 12H5M5 12l7 7M5 12l7-7')
-        span Back
+      form(action='/api/v1/auth/logout')
+        button.nav-back(type='submit')
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+            path(d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4')
+            polyline(points='16 17 21 12 16 7')
+            line(x1='21' y1='12' x2='9' y2='12')
+          span Log Out
 
-  //- ── PAGE HEADER ─────────────────────────────────────────
   .page-header
     .page-header__left
       if currentUser.pfpUrl
         img.profile-pic(src=currentUser.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
       else
-        img.profile-pic(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+        img.profile-pic(src="/img/default-user.png" alt="Default Profile")
       div
         h1.page-header__title Create Workout Plan
         p.page-header__sub= currentUser.username
 
-  //- ── MAIN CONTENT ────────────────────────────────────────
   .plan-wrap
 
-    p.section-label Select exercises — multiple per muscle allowed
+    //- ── STEP INDICATOR ──────────────────────────────────
+    .step-indicator
+      .step-dot.active#dot1 1
+      .step-line#line1
+      .step-dot#dot2 2
+      .step-line#line2
+      .step-dot#dot3 3
+      span.step-label.active#stepLabel Where will you work out?
 
-    .target-grid#targetGrid
-
-    form#createWorkoutPlanForm.hidden
-
-    .update-section
-      p.form-message#formMessage
-      button.create-btn(type="submit" form="createWorkoutPlanForm")
+    //- ── STEP 1: TYPE SELECTION ──────────────────────────
+    #step-type.step-section.visible
+      p.type-prompt Where will you be working out?
+      .type-grid
+        .type-card#typeHome(onclick="toggleType('Home')")
+          span.type-icon 🏠
+          span.type-name Home
+          span.type-desc Optional — bodyweight & wide variety of exercises
+        .type-card.active#typeGym(onclick="toggleType('Gym')" style="cursor:default;")
+          span.type-icon 🏋️
+          span.type-name Gym
+          span.type-desc Required — full equipment exercises from gym
+          span.type-required ✦ Required
+      p.type-hint Also adding a Home workout plan? Click the Home card above.
+      button.create-btn#proceedBtn(type="button" onclick="proceedToGym()")
         svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
-          line(x1='12' y1='5' x2='12' y2='19')
-          line(x1='5' y1='12' x2='19' y2='12')
-        | Create Workout Plan
+          path(d='M5 12h14M12 5l7 7-7 7')
+        | Continue
+
+    //- ── STEP 2: GYM EXERCISES ───────────────────────────
+    #step-gym.step-section
+      button.step-back-btn(onclick="goBackToType()" type="button")
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M19 12H5M5 12l7 7M5 12l7-7')
+        span Back
+      h2.step-heading 🏋️ Select Gym Exercises
+      p.step-sub Choose exercises available at the gym. Multiple per muscle group allowed.
+      p.section-label Muscle Groups
+      .target-grid#gymTargetGrid
+      .update-section
+        p.form-message#gymMessage
+        button.next-btn#gymNextBtn(type="button" onclick="proceedFromGym()")
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+            path(d='M5 12h14M12 5l7 7-7 7')
+          span#gymNextLabel Next
+
+    //- ── STEP 3: HOME EXERCISES (only if Home selected) ──
+    #step-home.step-section
+      button.step-back-btn(onclick="goBackToGym()" type="button")
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M19 12H5M5 12l7 7M5 12l7-7')
+        span Back to Gym exercises
+      h2.step-heading 🏠 Select Home Exercises
+      p.step-sub Choose exercises you can do at home. Multiple per muscle group allowed.
+      p.section-label Muscle Groups
+      .target-grid#homeTargetGrid
+      .update-section
+        p.form-message#homeMessage
+        button.create-btn(type="button" onclick="submitPlans()")
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+            line(x1='12' y1='5' x2='12' y2='19')
+            line(x1='5' y1='12' x2='19' y2='12')
+          | Create Workout Plans
 
   //- ── TARGET EXERCISES MODAL ──────────────────────────────
   .modal.hidden#targetModal
@@ -315,7 +251,9 @@ block content
         h3#targetTitle
         button#closeTargetModal(type="button" aria-label="Close") ×
       .modal-body
+        input.modal-search#exerciseSearch(type="text" placeholder="Search exercises..." autocomplete="off")
         .exercise-list#targetExerciseList
+        p.no-results#noResults No exercises found.
 
   //- ── EXERCISE INFO MODAL ─────────────────────────────────
   .modal.hidden#exerciseModal
@@ -328,12 +266,14 @@ block content
         button#toggleInstructions(type="button") Show Instructions
         div#modalInstructions.hidden
 
-  //- ── DATA FOR JS ─────────────────────────────────────────
-  script#exercisesData(type="application/json").
-    !{JSON.stringify(exercises)}
-
+  script#gymExercisesData(type="application/json").
+    !{JSON.stringify(gymExercises)}
+  script#homeExercisesData(type="application/json").
+    !{JSON.stringify(homeExercises)}
   script.
-    window.exercises = JSON.parse(document.getElementById("exercisesData").textContent)
+    window.gymExercises  = JSON.parse(document.getElementById("gymExercisesData").textContent);
+    window.homeExercises = JSON.parse(document.getElementById("homeExercisesData").textContent);
+    window.exercises     = window.gymExercises;
 
 block scripts
   script(src="/js/createWorkoutPlan.js")

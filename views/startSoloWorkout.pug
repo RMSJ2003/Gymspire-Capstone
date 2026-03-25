@@ -1,7 +1,302 @@
 extends base
 
 block styles
-  link(rel="stylesheet" href="/css/startSoloWorkout.css")
+  style.
+    @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700;800&display=swap");
+
+    :root {
+      --red: #d25353; --red-dark: #b11226; --red-light: #ea7b7b;
+      --yellow: #f4c430; --green: #22c55e; --green-dark: #16a34a;
+      --bg: #f0f0f2; --card-bg: #fff; --text: #1a1a1a; --text-muted: #888;
+      --radius: 14px; --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: "DM Sans", sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      padding-bottom: 3rem;
+    }
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      box-shadow: 0 2px 16px rgba(177,18,38,0.35);
+    }
+    .top-bar__btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 0.38rem 0.9rem;
+      background: rgba(255,255,255,0.15); color: white;
+      font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 0.8rem;
+      text-decoration: none; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.22); transition: 0.18s;
+    }
+    .top-bar__btn svg {
+      width:13px; height:13px; stroke:white; fill:none;
+      stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
+    }
+    .top-bar__btn:hover { background: rgba(255,255,255,0.25); color: var(--yellow); }
+    .top-bar__btn:hover svg { stroke: var(--yellow); }
+
+    /* ── PAGE WRAP ── */
+    .page-wrap {
+      max-width: 680px; margin: 0 auto;
+      padding: 5rem 1.5rem 2rem;
+    }
+
+    /* ── HERO ── */
+    .hero { text-align: center; margin-bottom: 1.8rem; }
+    .logo-wrapper { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .logo-icon svg { width:28px; height:28px; fill:#d25353; }
+    .logo-text {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 1.6rem; letter-spacing: 0.1em; color: var(--text);
+    }
+    .logo-text span { color: var(--red); }
+    .logo-divider { width:40px; height:3px; background:linear-gradient(90deg,#d25353,#f4c430); border-radius:2px; margin:0.4rem auto; }
+    .hero__title {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 2.4rem; letter-spacing: 0.05em; color: var(--text); line-height:1;
+    }
+    .hero__sub { font-size:0.85rem; color:var(--text-muted); margin-top:0.3rem; }
+    .hero__sub strong { color: var(--text); }
+    .avatar-wrap { margin-top: 0.8rem; }
+    .avatar {
+      width:56px; height:56px; border-radius:50%; object-fit:cover;
+      border:3px solid var(--red); box-shadow:0 0 0 4px rgba(210,83,83,0.12);
+    }
+
+    /* ── STEPS INDICATOR ── */
+    .steps {
+      display: flex; align-items: center; gap: 0.4rem;
+      margin-bottom: 1.4rem;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      flex-shrink: 0;
+    }
+    .step-num {
+      width:26px; height:26px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:0.72rem;
+      background:#e8e8e8; color:#aaa; transition:0.2s;
+    }
+    .step.active .step-num { background:var(--red); color:white; }
+    .step.done   .step-num { background:var(--green); color:white; }
+    .step-label { font-size:0.6rem; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+    .step.active .step-label { color:var(--red); }
+    .step.done   .step-label { color:var(--green); }
+    .step-line { flex:1; height:2px; background:#e8e8e8; border-radius:1px; }
+    .step-line.done { background:var(--green); }
+
+    /* ── CARD ── */
+    .card {
+      background: white; border-radius: var(--radius);
+      border: 1px solid rgba(210,83,83,0.1);
+      box-shadow: var(--shadow);
+      padding: 1.3rem 1.4rem;
+      margin-bottom: 1rem;
+    }
+    .card.hidden { display:none; }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      display:flex; align-items:center; gap:6px;
+      font-size:0.68rem; font-weight:800; text-transform:uppercase;
+      letter-spacing:0.7px; color:var(--red); margin-bottom:1rem;
+    }
+    .section-label svg { width:13px; height:13px; fill:var(--red); stroke:none; flex-shrink:0; }
+
+    /* ── GPS BANNER ── */
+    .gps-banner {
+      display:flex; align-items:center; gap:0.6rem;
+      padding:0.65rem 1rem; border-radius:10px;
+      background:#f4f4f5; margin-bottom:1.2rem;
+      font-size:0.82rem; font-weight:600; color:#888;
+    }
+    .gps-banner--success { background:rgba(34,197,94,0.1); color:#16a34a; }
+    .gps-banner--warning { background:rgba(245,158,11,0.1); color:#d97706; }
+    .gps-spinner {
+      width:14px; height:14px; border:2px solid #ccc;
+      border-top-color:var(--red); border-radius:50%;
+      animation:spin 0.7s linear infinite; flex-shrink:0;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── WORKOUT TYPE GRID ── */
+    .workout-type-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1rem; }
+    .workout-type-card {
+      background:white; border-radius:14px; border:2px solid rgba(210,83,83,0.12);
+      padding:1.4rem 1rem; text-align:center; cursor:pointer; transition:0.18s;
+      display:flex; flex-direction:column; align-items:center; gap:0.4rem;
+      box-shadow:0 1px 6px rgba(0,0,0,0.05);
+    }
+    .workout-type-card:hover:not(.workout-type-card--locked) {
+      transform:translateY(-2px); border-color:rgba(210,83,83,0.3);
+      box-shadow:0 4px 16px rgba(210,83,83,0.12);
+    }
+    .workout-type-card--selected {
+      background:var(--red); color:white; border-color:var(--red);
+      box-shadow:0 4px 20px rgba(210,83,83,0.3);
+    }
+    .workout-type-card--locked { opacity:0.45; cursor:not-allowed; }
+    .workout-type-icon { font-size:2rem; line-height:1; }
+    .workout-type-name { font-family:"Bebas Neue",sans-serif; font-size:1.15rem; letter-spacing:0.05em; }
+    .workout-type-desc { font-size:0.7rem; color:#999; font-weight:600; line-height:1.3; }
+    .workout-type-card--selected .workout-type-desc { color:rgba(255,255,255,0.75); }
+    .workout-type-status { font-size:0.68rem; font-weight:700; margin-top:0.3rem; }
+    .status--success { color:#16a34a; }
+    .status--warning { color:#d97706; }
+    .status--error   { color:#ef4444; }
+
+    /* ── CHECK-IN BTN ── */
+    .checkin-btn {
+      display:inline-flex; align-items:center; gap:6px; width:100%; justify-content:center;
+      padding:0.65rem 1.2rem; margin-bottom:0.8rem;
+      background:linear-gradient(135deg,#22c55e,#16a34a); color:white; border:none;
+      border-radius:10px; font-family:"DM Sans",sans-serif; font-weight:700; font-size:0.88rem;
+      cursor:pointer; box-shadow:0 3px 12px rgba(22,163,74,0.25); transition:filter 0.18s,transform 0.15s;
+    }
+    .checkin-btn:hover { filter:brightness(1.08); transform:translateY(-1px); }
+    .checkin-btn.hidden { display:none; }
+    .checkin-btn svg { width:14px; height:14px; stroke:white; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    /* ── MUSCLE GRID ── */
+    .muscle-grid { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; }
+    .muscle-chip {
+      padding:0.4rem 1rem; border-radius:999px; border:1.5px solid rgba(210,83,83,0.2);
+      background:white; color:var(--text); font-family:"DM Sans",sans-serif; font-weight:700;
+      font-size:0.8rem; text-transform:capitalize; cursor:pointer; transition:0.15s;
+    }
+    .muscle-chip:hover { border-color:var(--red); color:var(--red); }
+    .muscle-chip.active { background:var(--red); color:white; border-color:var(--red); box-shadow:0 2px 8px rgba(210,83,83,0.25); }
+    .empty-muscles { font-size:0.85rem; color:#bbb; padding:1rem 0; }
+
+    /* ── PICKER SECTION ── */
+    .picker-section { margin-bottom:1.4rem; }
+    .picker-muscle-label { font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.7px; color:var(--red); margin-bottom:0.5rem; }
+    .picker-search {
+      width:100%; padding:0.45rem 0.8rem; border:1.5px solid #e8e8e8; border-radius:8px;
+      font-family:"DM Sans",sans-serif; font-size:0.82rem; outline:none; margin-bottom:0.5rem; transition:border-color 0.15s;
+    }
+    .picker-search:focus { border-color:var(--red); }
+    .picker-search::placeholder { color:#bbb; }
+    .picker-row {
+      display:flex; align-items:center; gap:0.7rem; padding:0.55rem 0.75rem; border-radius:9px;
+      border:1.5px solid #eee; background:#fafafa; margin-bottom:0.35rem; cursor:pointer; transition:0.15s;
+    }
+    .picker-row:hover { border-color:rgba(210,83,83,0.3); background:rgba(210,83,83,0.03); }
+    .picker-row.selected { border-color:var(--red); background:rgba(210,83,83,0.05); }
+    .picker-row input[type="radio"] { accent-color:var(--red); flex-shrink:0; }
+    .picker-row-info { display:flex; align-items:center; gap:0.55rem; flex:1; min-width:0; }
+    .picker-gif { width:46px; height:46px; object-fit:cover; border-radius:7px; flex-shrink:0; background:#f0f0f0; border:1px solid #ececec; }
+    .picker-name { font-size:0.8rem; font-weight:600; color:var(--text); text-transform:capitalize; line-height:1.3; }
+    .picker-row.selected .picker-name { color:var(--red); }
+    .picker-empty { font-size:0.8rem; color:#bbb; padding:0.5rem 0; text-align:center; }
+
+    /* ── BUTTONS ── */
+    .start-btn {
+      display:inline-flex; align-items:center; gap:6px; padding:0.6rem 1.5rem;
+      background:linear-gradient(135deg,#d25353,#b11226); color:white; border:none; border-radius:10px;
+      font-family:"DM Sans",sans-serif; font-weight:700; font-size:0.88rem; cursor:pointer;
+      box-shadow:0 3px 12px rgba(177,18,38,0.28); transition:filter 0.18s,transform 0.15s;
+    }
+    .start-btn:hover:not(:disabled) { filter:brightness(1.1); transform:translateY(-1px); }
+    .start-btn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
+    .start-btn svg { width:14px; height:14px; stroke:white; fill:white; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+    .ghost-btn {
+      display:inline-flex; align-items:center; gap:5px; padding:0.6rem 1rem;
+      background:none; border:1.5px solid #ddd; border-radius:10px;
+      font-family:"DM Sans",sans-serif; font-weight:700; font-size:0.85rem; color:#888; cursor:pointer; transition:0.15s;
+    }
+    .ghost-btn:hover { border-color:var(--red); color:var(--red); }
+    .ghost-btn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+    .step2-actions { display:flex; align-items:center; gap:0.75rem; padding-top:0.5rem; }
+    .step-message { font-size:0.8rem; font-weight:700; color:var(--red); min-height:1.2em; margin-bottom:0.5rem; }
+
+    /* ── PRE-WORKOUT SUGGESTION BANNER ── */
+    .pre-workout-suggestion {
+      background: white; border-radius: 14px;
+      border: 1px solid rgba(210,83,83,0.12);
+      border-left: 4px solid #d25353;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 0.9rem 1.1rem; margin-bottom: 1rem;
+    }
+    .pws-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0.75rem; flex-wrap: wrap;
+    }
+    .pws-header strong { font-size: 0.82rem; color: #1a1a1a; flex-shrink: 0; }
+    .pws-icon { font-size: 1rem; flex-shrink: 0; }
+    .pws-badge {
+      display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+      background: rgba(210,83,83,0.08); border: 1px solid rgba(210,83,83,0.18);
+      color: #d25353; font-size: 0.68rem; font-weight: 800; margin-left: auto;
+    }
+    .pws-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem; margin-bottom: 0.7rem;
+    }
+    @media (max-width:480px) {
+      .pws-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .pws-item {
+      background: #fafafa; border-radius: 8px; padding: 0.45rem 0.7rem;
+      border: 1px solid #f0f0f0; display: flex; flex-direction: column; gap: 2px;
+    }
+    .pws-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #bbb; }
+    .pws-val   { font-size: 0.82rem; font-weight: 700; color: #1a1a1a; }
+    .pws-tip {
+      font-size: 0.74rem; color: #666; line-height: 1.5;
+      background: rgba(210,83,83,0.04); border-radius: 8px;
+      padding: 0.5rem 0.75rem; border: 1px solid rgba(210,83,83,0.1);
+    }
+
+    /* ── HEALTH WARNING — fixed bottom toast ── */
+    .health-warning-toast {
+      position: fixed; bottom: 1.5rem; left: 50%;
+      transform: translateX(-50%);
+      background: #fff7ed;
+      border: 1px solid rgba(220,38,38,0.25);
+      border-left: 4px solid #dc2626;
+      border-radius: 12px; padding: 0.75rem 1rem;
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      box-shadow: 0 8px 28px rgba(220,38,38,0.18);
+      z-index: 500; max-width: 480px; width: calc(100% - 3rem);
+      animation: toastSlideUp 0.35s ease;
+    }
+    @keyframes toastSlideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .health-warning-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .health-warning-body { flex: 1; }
+    .health-warning-body strong { display: block; font-size: 0.82rem; color: #991b1b; margin-bottom: 2px; }
+    .health-warning-body p { font-size: 0.72rem; color: #7f1d1d; line-height: 1.5; }
+    .health-warning-dismiss {
+      flex-shrink: 0; align-self: flex-start;
+      padding: 0.22rem 0.65rem; border: 1.5px solid rgba(220,38,38,0.3);
+      border-radius: 6px; background: white; color: #dc2626;
+      font-family: "DM Sans", sans-serif; font-weight: 700;
+      font-size: 0.68rem; cursor: pointer; transition: 0.15s;
+    }
+    .health-warning-dismiss:hover { background: #dc2626; color: white; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:480px) {
+      .page-wrap { padding:4.5rem 1rem 2rem; }
+      .hero__title { font-size:1.9rem; }
+      .workout-type-grid { gap:0.6rem; }
+      .workout-type-card { padding:1rem 0.7rem; }
+      .steps { gap:0.2rem; }
+      .step-label { font-size:0.55rem; }
+      .pws-grid { grid-template-columns: 1fr 1fr; }
+    }
 
 block content
 
@@ -11,10 +306,15 @@ block content
         path(d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z")
         polyline(points="9 22 9 12 15 12 15 22")
       span Dashboard
-    a.top-bar__btn.top-bar__btn--ghost(href="javascript:history.back()")
-      svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24")
-        path(d="M19 12H5M5 12l7 7M5 12l7-7")
-      span Back
+
+  //- ── HEALTH WARNING — fixed bottom toast ─────────────
+  if hasHealthConditions
+    .health-warning-toast#healthWarningToast
+      .health-warning-icon ⚠️
+      .health-warning-body
+        strong Exercise within your limits.
+        p You have existing health conditions#{healthNotes ? ': "' + healthNotes + '"' : ''}. Stop if you feel discomfort or pain.
+      button.health-warning-dismiss(type="button") ✕
 
   .page-wrap
 
@@ -32,34 +332,104 @@ block content
         if user.pfpUrl
           img.avatar(src=user.pfpUrl alt=user.username onerror="this.onerror=null;this.src='/img/default-user.png'")
         else
-          img.avatar(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+          img.avatar(src="/img/default-user.png" alt="Default Profile")
 
     //- STEP INDICATOR
     .steps
-      .step.active#stepDot1
+      .step.active#stepDot0
         span.step-num 1
-        span.step-label Pick Muscles
-      .step-line
-      .step#stepDot2
+        span.step-label Workout Type
+      .step-line#stepLine1
+      .step#stepDot1
         span.step-num 2
+        span.step-label Pick Muscles
+      .step-line#stepLine2
+      .step#stepDot2
+        span.step-num 3
         span.step-label Choose Exercises
 
+    //- ── PROFILE SUGGESTION BANNER ──────────────────────
+    if profileSuggestion && profileSuggestion.hasProfile
+      .pre-workout-suggestion
+        .pws-header
+          span.pws-icon 🎯
+          strong Your Workout Profile
+          span.pws-badge= profileSuggestion.goalLabel + " · " + profileSuggestion.intensityLabel
+        .pws-grid
+          .pws-item
+            span.pws-label Target Reps
+            span.pws-val= profileSuggestion.targetReps + " reps"
+          .pws-item
+            span.pws-label Rest Between Sets
+            span.pws-val= profileSuggestion.restLabel
+          .pws-item
+            span.pws-label Working Sets
+            span.pws-val= profileSuggestion.sets
+          .pws-item
+            span.pws-label Warm-Up Sets
+            span.pws-val= profileSuggestion.warmups
+          .pws-item
+            span.pws-label RIR Target
+            span.pws-val RIR #{profileSuggestion.rir}
+          .pws-item
+            span.pws-label Experience
+            span.pws-val= profileSuggestion.experience.charAt(0).toUpperCase() + profileSuggestion.experience.slice(1)
+        p.pws-tip 💡 #{profileSuggestion.goalTip}
+    //- ── STEP 0: Choose Gym or Home ─────────────────────
+    .card#step0Card
+
+      .section-label
+        svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24")
+          path(d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z")
+          circle(cx="12" cy="10" r="3")
+        span Where are you working out today?
+
+      .gps-banner#gpsBanner
+        .gps-spinner#gpsSpinner
+        span#gpsText Detecting your location...
+
+      .workout-type-grid
+        .workout-type-card#gymCard
+          .workout-type-icon 🏋️
+          .workout-type-name Gym Workout
+          .workout-type-desc Use gym equipment exercises
+          .workout-type-status#gymStatus
+        .workout-type-card#homeCard
+          .workout-type-icon 🏠
+          .workout-type-name Home Workout
+          .workout-type-desc Bodyweight & home equipment
+          .workout-type-status#homeStatus
+
+      button.checkin-btn.hidden#checkinBtn(type="button")
+        svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24")
+          path(d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z")
+          circle(cx="12" cy="10" r="3")
+        span Check In to Gym
+
+      p#step0Message.step-message
+
+      button.start-btn#step0NextBtn(type="button" disabled)
+        span Continue
+        svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24")
+          path(d="M5 12h14M12 5l7 7-7 7")
+
     //- ── STEP 1: Pick muscle groups ─────────────────────
-    .card#step1Card
+    .card.hidden#step1Card
 
       .section-label
         svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24")
           path(d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z")
-        span Step 1 — Which muscles are you targeting?
+        span Step 2 — Which muscles are you targeting?
 
-      if muscles.length === 0
-        .empty-muscles No exercises found in your workout plan.
-      else
-        .muscle-grid#muscleGrid
-          //- JS will render unique muscle chips from the data
+      .muscle-grid#muscleGrid
 
-        p#step1Message.step-message
+      p#step1Message.step-message
 
+      .step2-actions
+        button.ghost-btn#backToStep0Btn(type="button")
+          svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24")
+            path(d="M19 12H5M5 12l7 7M5 12l7-7")
+          span Back
         button.start-btn#nextBtn(type="button" disabled)
           span Next — Choose Exercises
           svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24")
@@ -72,9 +442,8 @@ block content
         svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24")
           path(d="M22 11.08V12a10 10 0 1 1-5.93-9.14")
           polyline(points="22 4 12 14.01 9 11.01")
-        span Step 2 — Pick an exercise per muscle
+        span Step 3 — Pick an exercise per muscle
 
-      //- JS renders exercise pickers here
       #exercisePickers
 
       p#step2Message.step-message
@@ -89,8 +458,28 @@ block content
             polygon(points="5 3 19 12 5 21 5 3")
           span Start Workout
 
-  //- Embed all exercise data for JS
-  script(type="application/json")#musclesData !{JSON.stringify(muscles)}
+  script(type="application/json")#gymExercisesData !{JSON.stringify(gymExercises)}
+  script(type="application/json")#homeExercisesData !{JSON.stringify(homeExercises)}
+  script.
+    window.GYM_LAT        = !{JSON.stringify(parseFloat(gymLat))};
+    window.GYM_LNG        = !{JSON.stringify(parseFloat(gymLng))};
+    window.GYM_RADIUS     = !{JSON.stringify(parseInt(gymRadius))};
+    window.HAS_HOME_PLAN  = !{JSON.stringify(hasHomePlan)};
+    window.USER_IS_AT_GYM = !{JSON.stringify(user.isAtGym || false)};
+    window.GYM_TODAY      = !{JSON.stringify(todaySchedule || null)};
+
+    const dismissBtn = document.querySelector(".health-warning-dismiss");
+    if (dismissBtn) {
+      dismissBtn.addEventListener("click", () => {
+        const toast = document.getElementById("healthWarningToast");
+        if (toast) {
+          toast.style.transition = "opacity 0.3s, transform 0.3s";
+          toast.style.opacity    = "0";
+          toast.style.transform  = "translateX(-50%) translateY(12px)";
+          setTimeout(() => toast.remove(), 320);
+        }
+      });
+    }
 
 block scripts
   script(src="/js/startSoloWorkout.js")

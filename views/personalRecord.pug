@@ -1,47 +1,355 @@
 extends base
 
 block styles
-  link(rel="stylesheet" href="/css/personalRecord.css")
+  style.
+    @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700;800&display=swap");
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", Arial, sans-serif;
+      background: #f0f0f2; color: #1a1a1a;
+      min-height: 100vh; padding-top: 64px;
+    }
+
+    .navbar {
+      width: 100%; height: 64px;
+      background: linear-gradient(135deg, #d25353, #b11226);
+      padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      position: fixed; top: 0; left: 0; z-index: 1000;
+      box-shadow: 0 2px 16px rgba(177,18,38,0.35);
+    }
+    .nav-logo a {
+      font-family: "Bebas Neue", sans-serif; color: white; font-size: 1.6rem;
+      text-decoration: none; letter-spacing: 0.08em;
+    }
+    .nav-logo a:hover { color: #f4c430; }
+    .nav-right { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 0.38rem 0.9rem;
+      background: rgba(255,255,255,0.15); color: white;
+      font-weight: 700; font-size: 0.8rem; text-decoration: none;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.22); transition: 0.18s;
+    }
+    .nav-back svg { width: 13px; height: 13px; stroke: white; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-back:hover { background: rgba(255,255,255,0.25); color: #f4c430; }
+
+    .page-header {
+      max-width: 900px; margin: 0 auto; padding: 0.8rem 1.5rem 0.4rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .page-header__avatar {
+      width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
+      border: 2.5px solid rgba(210,83,83,0.4); flex-shrink: 0;
+    }
+    .page-header__info h1 {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.6rem;
+      letter-spacing: 0.05em; color: #1a1a1a; line-height: 1;
+    }
+    .page-header__info p {
+      font-size: 0.72rem; color: #999; font-weight: 500; margin-top: 1px;
+    }
+
+    .pr-summary {
+      max-width: 900px; margin: 0 auto 1rem; padding: 0 1.5rem;
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+    }
+    .pr-summary-pill {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: white; border-radius: 999px; padding: 0.3rem 0.85rem;
+      border: 1px solid rgba(210,83,83,0.12);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .pr-summary-pill .pill-num {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.1rem;
+      color: #d25353; line-height: 1;
+    }
+    .pr-summary-pill .pill-label {
+      font-size: 0.68rem; font-weight: 700; color: #aaa;
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .pr-summary-pill.loading .pill-num { color: #ccc; }
+
+    /* ── SEARCH BAR ── */
+    .pr-search-bar {
+      max-width: 900px; margin: 0 auto 0.85rem; padding: 0 1.5rem;
+      display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;
+    }
+    .pr-search-wrap {
+      flex: 1; min-width: 180px;
+      display: flex; align-items: center; gap: 0.5rem;
+      background: white; border: 1.5px solid rgba(210,83,83,0.15);
+      border-radius: 999px; padding: 0.42rem 1rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: border-color 0.15s;
+    }
+    .pr-search-wrap:focus-within { border-color: #d25353; }
+    .pr-search-wrap svg {
+      width: 14px; height: 14px; stroke: #ccc; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+    }
+    #prSearch {
+      flex: 1; border: none; outline: none;
+      font-family: "DM Sans", sans-serif; font-size: 0.85rem;
+      color: #1a1a1a; background: transparent;
+    }
+    #prSearch::placeholder { color: #ccc; }
+    .pr-filter-group { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .pr-filter-btn {
+      padding: 0.35rem 0.85rem; border-radius: 999px;
+      border: 1.5px solid #e5e5e5; background: white;
+      color: #888; font-family: "DM Sans", sans-serif;
+      font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: 0.15s;
+    }
+    .pr-filter-btn:hover { border-color: #d25353; color: #d25353; }
+    .pr-filter-btn.active { background: #d25353; border-color: #d25353; color: white; }
+
+    .section-label {
+      max-width: 900px; margin: 0 auto 0.65rem; padding: 0 1.5rem;
+      font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #aaa;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after { content: ""; flex: 1; height: 1px; background: rgba(210,83,83,0.12); }
+
+    .target-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.6rem;
+      max-width: 900px; margin: 0 auto; padding: 0 1.5rem 3rem;
+    }
+
+    .target-card {
+      background: white; border-radius: 12px; padding: 1rem 0.9rem;
+      border: 1.5px solid rgba(210,83,83,0.12);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+      cursor: pointer; transition: 0.18s;
+      display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      text-align: center; position: relative; overflow: hidden;
+      text-transform: capitalize;
+    }
+    .target-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(210,83,83,0.14);
+      border-color: rgba(210,83,83,0.35);
+    }
+    .target-card.has-pr {
+      border-color: #d25353;
+      background: linear-gradient(135deg, #fff8f8, white);
+    }
+    .target-card.has-pr::before {
+      content: "";
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #d25353, #f4c430);
+    }
+    .target-card.loading-pr { opacity: 0.6; }
+    .target-card.pr-hidden { display: none; }
+
+    .card-muscle-name { font-weight: 700; font-size: 0.85rem; color: #1a1a1a; line-height: 1.2; }
+    .card-pr-count {
+      display: none; font-size: 0.65rem; font-weight: 800;
+      background: rgba(210,83,83,0.1); color: #d25353;
+      padding: 2px 8px; border-radius: 999px;
+    }
+    .target-card.has-pr .card-pr-count { display: inline-block; }
+    .card-no-pr { font-size: 0.62rem; font-weight: 600; color: #ccc; }
+    .target-card.has-pr .card-no-pr { display: none; }
+    .card-trophy { font-size: 1.4rem; line-height: 1; display: none; }
+    .target-card.has-pr .card-trophy { display: block; }
+
+    .pr-empty-state {
+      max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem;
+      text-align: center; color: #bbb; font-size: 0.85rem; display: none;
+    }
+    .pr-empty-state.show { display: block; }
+
+    /* ── MODAL ── */
+    .modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1200; padding: 1rem;
+    }
+    .modal.hidden { display: none; }
+    .modal-content {
+      background: white; border-radius: 16px;
+      width: 100%; max-width: 540px; max-height: 82vh;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      animation: modalIn 0.22s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-content::before {
+      content: ""; display: block; height: 4px;
+      background: linear-gradient(90deg, #d25353, #f4c430); flex-shrink: 0;
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 1.2rem 0.7rem; flex-shrink: 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .modal-header h3 {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.35rem;
+      letter-spacing: 0.05em; color: #1a1a1a; text-transform: capitalize;
+    }
+    .modal-close {
+      width: 30px; height: 30px; border: none;
+      background: rgba(210,83,83,0.08); color: #d25353;
+      border-radius: 50%; font-size: 1rem; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: 0.15s; flex-shrink: 0;
+    }
+    .modal-close:hover { background: #d25353; color: white; }
+    .modal-body {
+      overflow-y: auto; flex: 1; padding: 0.85rem 1.1rem 1.1rem;
+      scrollbar-width: thin; scrollbar-color: rgba(210,83,83,0.2) transparent;
+    }
+
+    .exercise-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.65rem 0.85rem; border-radius: 10px;
+      background: #fafafa; border: 1.5px solid #eee;
+      margin-bottom: 0.4rem; cursor: pointer; transition: 0.15s;
+    }
+    .exercise-row:hover { border-color: rgba(210,83,83,0.3); background: rgba(210,83,83,0.03); }
+    .exercise-row.has-pr-row { border-color: rgba(210,83,83,0.25); background: rgba(210,83,83,0.03); }
+    .ex-row-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .ex-row-info { flex: 1; min-width: 0; }
+    .ex-row-name { font-size: 0.84rem; font-weight: 700; color: #1a1a1a; text-transform: capitalize; }
+    .ex-row-sub  { font-size: 0.7rem; color: #aaa; font-weight: 500; margin-top: 1px; }
+    .ex-row-sub.has-data { color: #d25353; font-weight: 700; }
+    .ex-row-arrow { color: #ccc; font-size: 0.8rem; flex-shrink: 0; }
+    .exercise-row.has-pr-row .ex-row-arrow { color: #d25353; }
+
+    .pr-card {
+      background: linear-gradient(135deg, #d25353, #b11226);
+      border-radius: 14px; padding: 1.2rem 1.3rem;
+      animation: modalIn 0.2s ease;
+    }
+    .pr-card-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+    .pr-card-top .trophy { font-size: 1.4rem; }
+    .pr-card-top strong {
+      font-family: "Bebas Neue", sans-serif; font-size: 1.2rem;
+      letter-spacing: 0.04em; color: white;
+    }
+    .pr-card-exercise {
+      font-size: 0.82rem; color: rgba(255,255,255,0.8);
+      text-transform: capitalize; margin-bottom: 1rem; font-weight: 500;
+    }
+    .pr-stats { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .pr-stat {
+      flex: 1; min-width: 80px; text-align: center;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 9px; padding: 0.55rem 0.5rem;
+    }
+    .pr-stat-label {
+      display: block; font-size: 0.62rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.65); margin-bottom: 3px;
+    }
+    .pr-stat-value { font-size: 1.2rem; font-weight: 800; color: white; }
+    .pr-stat-unit { font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-left: 2px; }
+    .pr-date { font-size: 0.72rem; color: rgba(255,255,255,0.55); text-align: right; }
+
+    .back-btn-modal {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 0.35rem 0.85rem; border-radius: 7px;
+      background: rgba(210,83,83,0.08); border: 1px solid rgba(210,83,83,0.2);
+      color: #d25353; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; margin-bottom: 0.85rem; transition: 0.15s;
+    }
+    .back-btn-modal:hover { background: #d25353; color: white; }
+
+    .pr-loading {
+      text-align: center; padding: 2rem 1rem;
+      color: #d25353; font-size: 0.88rem; font-weight: 600;
+    }
+    .pr-spinner {
+      width: 24px; height: 24px; border: 3px solid #f0f0f0;
+      border-top-color: #d25353; border-radius: 50%;
+      animation: spin 0.7s linear infinite; margin: 0 auto 0.6rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-modal { text-align: center; padding: 2rem 1rem; }
+    .empty-modal .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .empty-modal p { font-size: 0.84rem; color: #999; line-height: 1.5; }
+
+    @media (max-width: 600px) {
+      .target-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); padding: 0 1rem 2rem; }
+      .page-header, .pr-summary, .pr-search-bar, .section-label { padding-left: 1rem; padding-right: 1rem; }
+      .modal { padding: 0; align-items: flex-end; }
+      .modal-content { border-radius: 16px 16px 0 0; max-width: 100%; max-height: 88vh; }
+      .pr-stats { flex-direction: column; }
+      .pr-search-bar { flex-direction: column; align-items: stretch; }
+      .pr-search-wrap { min-width: unset; }
+    }
 
 block content
 
-  .top-bar
-    if user.userType === "user"
-      a.dashboard-btn(href='/dashboard') Dashboard
-    if user.userType === "coach"
-      a.dashboard-btn(href='/coachDashboard') Dashboard
-    if user.userType === "admin"
-      a.dashboard-btn(href='/adminDashboard') Dashboard
-    a.back-btn(href='javascript:history.back()') Back
+  nav.navbar
+    .nav-logo
+      if user.userType === "user"
+        a(href='/dashboard') GymSpire
+      if user.userType === "coach"
+        a(href='/coachDashboard') GymSpire
+      if user.userType === "admin"
+        a(href='/adminDashboard') GymSpire
+    .nav-right
+      a.nav-back(href='javascript:history.back()')
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+          path(d='M19 12H5M5 12l7 7M5 12l7-7')
+        span Back
 
-  h1 #{title}
-  h2 #{user.username}
+  .page-header
+    if user.pfpUrl
+      img.page-header__avatar(src=user.pfpUrl alt="Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+    else
+      img.page-header__avatar(src="/img/default-user.png" alt="Default")
+    .page-header__info
+      h1 Personal Records
+      p= user.username
 
-  if user.pfpUrl
-    img.profile-pic(src=user.pfpUrl alt="Profile Picture" onerror="this.onerror=null;this.src='/img/default-user.png'")
-  else
-    img.profile-pic(src="/img/default-user.png" alt="Default Profile" onerror="this.onerror=null;this.src='/img/default-user.png'")
+  .pr-summary
+    .pr-summary-pill.loading#pillMuscles
+      span.pill-num#muscleCount —
+      span.pill-label Muscles with PR
+    .pr-summary-pill.loading#pillExercises
+      span.pill-num#exerciseCount —
+      span.pill-label Exercises with PR
 
-  h3 Select a Muscle Group
+  .pr-search-bar
+    .pr-search-wrap
+      svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+        circle(cx='11' cy='11' r='8')
+        line(x1='21' y1='21' x2='16.65' y2='16.65')
+      input#prSearch(type='text' placeholder='Search muscle or exercise...')
+    .pr-filter-group
+      button.pr-filter-btn.active(data-filter='all') All
+      button.pr-filter-btn(data-filter='has-pr') 🏆 Has PR
+      button.pr-filter-btn(data-filter='no-pr') No PR
+
+  .section-label#sectionLabel Select a muscle group
 
   .target-grid#targetGrid
 
-  // EXERCISE + PR MODAL (single modal, two views)
+  .pr-empty-state#prEmptyState
+    | 🔍 No muscle groups match your search.
+
   .modal.hidden#targetModal
     .modal-content
       .modal-header
         h3#targetTitle Muscle Group
         button.modal-close#closeTargetModal ×
-
       .modal-body#modalBody
-        // JS fills this with exercise list or PR card
+
+  script#exercisesData(type="application/json") !{JSON.stringify(exercises)}
+  script.
+    window.exercises = JSON.parse(document.getElementById("exercisesData").textContent);
 
 block scripts
-
-  script#exercisesData(type="application/json").
-    !{JSON.stringify(exercises)}
-
-  script.
-    window.exercises = JSON.parse(document.getElementById("exercisesData").textContent)
-
   script(src="/js/pr.js")

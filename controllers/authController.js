@@ -6,72 +6,63 @@ const GymAttendance = require("../models/gymAttendanceModel");
 const sendEmail = require("./../utils/email");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-const { log } = require("console");
+const fs = require("fs");
+const path = require("path");
 
+// ============================================================
+// HELPERS
+// ============================================================
 const isStrongPassword = (password) => {
-  // at least 8 chars, 1 letter, 1 number
   const strongPasswordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
   return strongPasswordRegex.test(password);
 };
 
-const signToken = (id) => {
-  // .sign(<payload>, <secret>, <options>)
-  return jwt.sign(
-    {
-      id,
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    },
-  );
-};
+const signToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
 
-  const cookieOptions = {
+  res.cookie("jwt", token, {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
     ),
-    httpOnly: true, // The cookie can't be access or modified in anyway by the browser (important for xss attacks)
-  };
-
-  res.cookie("jwt", token, cookieOptions);
+    httpOnly: true,
+  });
 
   user.password = undefined;
 
   let redirectTo = "/dashboard";
-
   if (user.userType === "admin") redirectTo = "/adminDashboard";
-  if (user.userType === "coach") redirectTo = "/coachDashboard";
+  else if (user.userType === "coach") redirectTo = "/coachDashboard";
+  else if (user.userType === "user" && !user.fitnessProfile?.profileComplete) {
+    redirectTo = "/onboarding";
+  }
 
   res.status(statusCode).json({
     status: "success",
-    token, // This also will be used by .protect
-    redirectTo, // The backend now tells frontend where to go
-    data: {
-      user,
-    },
+    token,
+    redirectTo,
+    data: { user },
   });
 };
 
-const fs = require("fs");
-const path = require("path");
-
+// ============================================================
+// SIGNUP
+// ============================================================
 exports.signup = catchAsync(async (req, res, next) => {
   const isXHR = req.xhr;
 
-  // ✅ Server-side iACADEMY email domain validation (works even with JS disabled)
   const IACADEMY_REGEX = /^[^@]+@(iacademy\.ph|iacademy\.edu\.ph)$/i;
   if (!IACADEMY_REGEX.test(req.body.email || "")) {
     const msg =
       "Only iACADEMY emails (@iacademy.ph or @iacademy.edu.ph) are allowed.";
-    if (!isXHR) {
+    if (!isXHR)
       return res.redirect(
         `/signup?error=${encodeURIComponent(msg)}&email=${encodeURIComponent(req.body.email || "")}&username=${encodeURIComponent(req.body.username || "")}`,
       );
-    }
     return next(new AppError(msg, 400));
   }
 
@@ -84,12 +75,10 @@ exports.signup = catchAsync(async (req, res, next) => {
       existingUser.active === false
         ? "Unable to create account. Please use a different email address."
         : "Email already in use";
-
-    if (!isXHR) {
+    if (!isXHR)
       return res.redirect(
         `/signup?error=${encodeURIComponent(msg)}&email=${encodeURIComponent(req.body.email || "")}&username=${encodeURIComponent(req.body.username || "")}`,
       );
-    }
     return next(new AppError(msg, 400));
   }
 
@@ -119,9 +108,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const verificationToken = newUser.createEmailVerificationToken();
   await newUser.save({ validateBeforeSave: false });
 
-  const verifyURL = `${req.protocol}://${req.get(
-    "host",
-  )}/emailVerification?token=${verificationToken}`;
+  const verifyURL = `${req.protocol}://${req.get("host")}/emailVerification?token=${verificationToken}`;
 
   try {
     await sendEmail({
@@ -130,53 +117,43 @@ exports.signup = catchAsync(async (req, res, next) => {
       message: `Click this link to verify your email:\n${verifyURL}\n\nThis link expires in 10 minutes.`,
     });
   } catch (err) {
-    // Even if email fails, account was created — don't block the user
     console.error("Email send error:", err);
   }
 
-  if (!isXHR) {
-    // No-JS path: redirect back to signup with a success message
+  if (!isXHR)
     return res.redirect(
-      `/signup?success=${encodeURIComponent(
-        "Account created! Check your iACADEMY email for the verification link.",
-      )}`,
+      `/signup?success=${encodeURIComponent("Account created! Check your iACADEMY email for the verification link.")}`,
     );
-  }
 
-  // JS path: return JSON as before
   res.status(201).json({
     status: "success",
     message: "Account created. Please verify your email before logging in.",
   });
 });
 
+// ============================================================
+// CREATE COACH
+// ============================================================
 exports.createCoach = catchAsync(async (req, res, next) => {
   const { email, username, password, passwordConfirm } = req.body;
 
-  if (!password) {
-    return next(new AppError("Password is required", 400));
-  }
+  if (!password) return next(new AppError("Password is required", 400));
 
-  if (!isStrongPassword(password)) {
+  if (!isStrongPassword(password))
     return next(
       new AppError(
         "Password must be at least 8 characters long and contain at least one letter and one number.",
         400,
       ),
     );
-  }
 
   const existingUser = await User.findOne({ email }).select("+active");
-  if (existingUser) {
-    return next(new AppError("Email already in use", 400));
-  }
+  if (existingUser) return next(new AppError("Email already in use", 400));
 
-  // 🔥 HANDLE IMAGE
   let pfpUrl;
   if (req.file) {
     const ext = req.file.mimetype.split("/")[1];
     const filename = `coach-${Date.now()}.${ext}`;
-
     const filePath = path.join(
       __dirname,
       "..",
@@ -185,7 +162,6 @@ exports.createCoach = catchAsync(async (req, res, next) => {
       "users",
       filename,
     );
-
     await fs.promises.writeFile(filePath, req.file.buffer);
     pfpUrl = `/img/users/${filename}`;
   }
@@ -215,33 +191,29 @@ exports.createCoach = catchAsync(async (req, res, next) => {
   });
 });
 
+// ============================================================
+// CREATE ADMIN
+// ============================================================
 exports.createAdmin = catchAsync(async (req, res, next) => {
   const { email, username, password, passwordConfirm } = req.body;
 
-  if (!password) {
-    return next(new AppError("Password is required", 400));
-  }
+  if (!password) return next(new AppError("Password is required", 400));
 
-  if (!isStrongPassword(password)) {
+  if (!isStrongPassword(password))
     return next(
       new AppError(
         "Password must be at least 8 characters long and contain at least one letter and one number.",
         400,
       ),
     );
-  }
 
   const existingUser = await User.findOne({ email }).select("+active");
-  if (existingUser) {
-    return next(new AppError("Email already in use", 400));
-  }
+  if (existingUser) return next(new AppError("Email already in use", 400));
 
-  // 🔥 HANDLE IMAGE
   let pfpUrl;
   if (req.file) {
     const ext = req.file.mimetype.split("/")[1];
     const filename = `admin-${Date.now()}.${ext}`;
-
     const filePath = path.join(
       __dirname,
       "..",
@@ -250,7 +222,6 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
       "users",
       filename,
     );
-
     await fs.promises.writeFile(filePath, req.file.buffer);
     pfpUrl = `/img/users/${filename}`;
   }
@@ -267,7 +238,7 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
 
   res.status(201).json({
     status: "success",
-    message: "Coach account created successfully",
+    message: "Admin account created successfully",
     data: {
       user: {
         id: newUser._id,
@@ -280,37 +251,33 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
   });
 });
 
+// ============================================================
+// LOGIN
+// ============================================================
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
+  if (!email || !password)
     return next(new AppError("Please provide email and password", 400));
-  }
 
   const user = await User.findOne({ email })
     .setOptions({ includeInactive: true })
     .select("+password +emailVerified +active +userType");
 
-  // ❗ Check user + password FIRST
-  if (!user || !(await user.correctPassword(password, user.password))) {
+  if (!user || !(await user.correctPassword(password, user.password)))
     return next(new AppError("Incorrect email or password", 401));
-  }
 
-  // Email + deactivation logic
-  if (!user.emailVerified && !user.active) {
+  if (!user.emailVerified && !user.active)
     return next(
       new AppError(
         "Account is deactivated. To reactivate, please verify the email.",
         401,
       ),
     );
-  }
 
-  if (!user.emailVerified) {
+  if (!user.emailVerified)
     return next(new AppError("Please verify your email to get access.", 401));
-  }
 
-  // 🚨 Deactivated → special response
   if (user.active === false) {
     return res.status(200).json({
       status: "deactivated",
@@ -319,123 +286,114 @@ exports.login = catchAsync(async (req, res, next) => {
     });
   }
 
-  // ✅ Normal login
   createSendToken(user, 200, res);
 });
 
+// ============================================================
+// LOGOUT
+// ============================================================
 exports.logout = catchAsync(async (req, res, next) => {
-  // res.cookie("jwt", "loggedout", {
-  //   expires: new Date(Date.now() + 10 * 1000), // Overwrites the JWT cookie that it expires
-  //   // almost immediately
-  //   httpOnly: true,
-  // });
-  // ✅ Close any open attendance record on logout
-  if (req.user) {
-    const { closeAttendance } = require("./userController");
-    await closeAttendance(req.user.id);
-  }
   req.user = undefined;
-
   res.clearCookie("jwt");
-
-  res.redirect("/login");
+  res.redirect(303, "/login");
 });
 
+// ============================================================
+// PROTECT — authenticate every protected route
+// ============================================================
 exports.protect = catchAsync(async (req, res, next) => {
-  // 1) Getting token and check if it exists
   let token;
 
-  // 2) Get token from cookie OR header
   if (req.cookies.jwt && req.cookies.jwt !== "loggedout") {
     token = req.cookies.jwt;
   } else if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
-    token = req.headers.authorization.split(" ")[1]; // Getting the value of token cuz
-    // the authorization looks like this:
-    // Authorization: Bearer <token>
+    token = req.headers.authorization.split(" ")[1];
   }
 
-  if (!token)
-    res.redirect('/login');
+  if (!token) {
+    if (req.originalUrl.startsWith("/api"))
+      return next(
+        new AppError(
+          "You are not logged in. Please log in to get access.",
+          401,
+        ),
+      );
+    return res.redirect("/login");
+  }
 
-  // 2) Validate the token
-  // Decoding the token
-  // Promisifying .verify function
-  // The promisify(jwt.verify) part will promisify the jwt.verify
-  // The (token, process.env.JWT_SECRET) part will call the promisified jwt.verify
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  let decoded;
+  try {
+    decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  } catch (err) {
+    res.clearCookie("jwt");
+    if (req.originalUrl.startsWith("/api"))
+      return next(
+        new AppError("Invalid or expired token. Please log in again.", 401),
+      );
+    return res.redirect("/login");
+  }
 
-  // 3) Check if user still exists
   const currentUser = await User.findById(decoded.id);
 
-  if (!currentUser)
-    return next(
-      new AppError(
-        "The user belonging to this token does no longer exist.",
-        401,
-      ),
-    );
+  if (!currentUser) {
+    res.clearCookie("jwt");
+    if (req.originalUrl.startsWith("/api"))
+      return next(
+        new AppError("The user belonging to this token no longer exists.", 401),
+      );
+    return res.redirect("/login");
+  }
 
-  // 4) Check if user changed password after the JWT (token) was issued
-  // .iat means issued at, and .exp means (expire)(not used in this code)
-  if (currentUser.changedPasswordAfter(decoded.iat))
-    return next(
-      new AppError("User currently changed password! Please login again.", 401),
-    );
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    res.clearCookie("jwt");
+    if (req.originalUrl.startsWith("/api"))
+      return next(
+        new AppError(
+          "User recently changed password. Please log in again.",
+          401,
+        ),
+      );
+    return res.redirect("/login");
+  }
 
-  // Grant access to the protected route.
+  // ── Prevent bfcache from restoring protected pages ────────
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+
   req.user = currentUser;
   next();
 });
 
+// ============================================================
+// RESTRICT TO ROLES
+// ============================================================
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.userType))
       return next(
         new AppError("You do not have permission to perform this action", 403),
       );
-
     next();
   };
 };
 
-// CHANGING PASSWORD FUNCTIONALITIES - START
-
+// ============================================================
+// FORGOT PASSWORD
+// ============================================================
 exports.forgotPassword = catchAsync(async (req, res, next) => {
-  const user = await User.findOne({
-    email: req.body.email,
-  });
-
+  const user = await User.findOne({ email: req.body.email });
   if (!user)
     return next(new AppError("There is no user with that email address.", 404));
 
   const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
 
-  // We edited certain values from the user doc using the createPasswordResetToken function.
-  await user.save({
-    validateBeforeSave: false,
-  });
-
-  // req.protocol is https/http
-  // In here we will send the original reset token, not the encrypted one
-  // const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`;
-
-  // const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}\n
-  // If you didn't forget your password, please ignore this email!`;
-
-  // // try {
-
-  const resetURL = `${req.protocol}://${req.get(
-    "host",
-  )}/api/v1/auth/resetPassword/${resetToken}`; // In here we will send the original reset token, not the encrypted one
-
-  const resetUrlPage = `${req.protocol}://${req.get(
-    "host",
-  )}/reset-password/${resetToken}`;
-
-  const message = `If you didn't forget your password, please ignore this email!\n Use this link (page) to reset your password: ${resetUrlPage}`;
+  const resetUrlPage = `${req.protocol}://${req.get("host")}/reset-password/${resetToken}`;
+  const message = `If you didn't forget your password, please ignore this email!\nUse this link to reset your password: ${resetUrlPage}`;
 
   try {
     await sendEmail({
@@ -444,38 +402,27 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
       message,
     });
 
-    // We can't send the resetToken here it's dangerous - anyone can see it
-    // We send it via email cuz email is safe
-    res.status(200).json({
-      status: "success",
-      message: "Token sent to email!",
-    });
+    res
+      .status(200)
+      .json({ status: "success", message: "Token sent to email!" });
   } catch (err) {
-    user.createPasswordResetToken = undefined;
+    user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    await user.save({
-      validateBeforeSave: false,
-    });
-
-    // Fix Error
-    // return next(new AppError('There was an error sending an email. Try again later!', 500));
-    return;
-    // return apperror
+    await user.save({ validateBeforeSave: false });
   }
 });
 
+// ============================================================
+// RESET PASSWORD
+// ============================================================
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  // 1) Get user based on the given token
-  // req.params come from the URL
-
-  if (!isStrongPassword(req.body.password)) {
+  if (!isStrongPassword(req.body.password))
     return next(
       new AppError(
         "Password must be at least 8 characters long and contain at least one letter and one number.",
         400,
       ),
     );
-  }
 
   const hashedToken = crypto
     .createHash("sha256")
@@ -484,28 +431,23 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   const user = await User.findOne({
     passwordResetToken: hashedToken,
-    passwordResetExpires: {
-      $gt: Date.now(),
-    },
+    passwordResetExpires: { $gt: Date.now() },
   });
 
-  // 2} If token has not expired, and there is a user, set the new password.
-  if (!user) next(new AppError("Token is invalid or has expired", 400));
+  if (!user) return next(new AppError("Token is invalid or has expired", 400));
 
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
-
-  // Since we already updated the password, we can now remove the rest token fields
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
-
   await user.save();
 
   createSendToken(user, 200, res);
 });
 
-// CHANGING PASSWORD FUNCTIONALITIES - END
-
+// ============================================================
+// REACTIVATE ACCOUNT
+// ============================================================
 exports.reactivateAccount = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
@@ -519,10 +461,11 @@ exports.reactivateAccount = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   res.redirect("/login");
-
-  // createSendToken(user, 200, res); // auto login after reactivation
 });
 
+// ============================================================
+// VERIFY IACADEMY EMAIL (GET legacy + POST confirm)
+// ============================================================
 exports.verifyIacademyEmail = catchAsync(async (req, res, next) => {
   const hashedToken = crypto
     .createHash("sha256")
@@ -536,8 +479,11 @@ exports.verifyIacademyEmail = catchAsync(async (req, res, next) => {
     .setOptions({ includeInactive: true })
     .select("+active");
 
-  // 2} If token has not expired, and there is a user, set the new password.
-  if (!user) return next(new AppError("Token is invalid or has expired", 400));
+  if (!user) {
+    if (req.method === "GET")
+      return res.redirect("/emailVerification?token=invalid");
+    return next(new AppError("Token is invalid or has expired", 400));
+  }
 
   user.emailVerified = true;
   user.active = true;
@@ -545,30 +491,51 @@ exports.verifyIacademyEmail = catchAsync(async (req, res, next) => {
   user.emailVerificationExpires = undefined;
   await user.save({ validateBeforeSave: false });
 
+  if (req.method === "GET") return res.redirect("/login?verified=true");
+
+  res
+    .status(200)
+    .json({ status: "success", message: "Email verified successfully" });
+});
+
+// ============================================================
+// PREVIEW VERIFICATION TOKEN (returns user info, does NOT verify)
+// ============================================================
+exports.previewVerificationToken = catchAsync(async (req, res, next) => {
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    emailVerificationToken: hashedToken,
+    emailVerificationExpires: { $gt: Date.now() },
+  })
+    .setOptions({ includeInactive: true })
+    .select("+active");
+
+  if (!user) return next(new AppError("Token is invalid or has expired", 400));
+
   res.status(200).json({
     status: "success",
-    message: "Email verified successfully",
+    data: { username: user.username, email: user.email },
   });
 });
 
+// ============================================================
+// REQUEST EMAIL VERIFICATION
+// ============================================================
 exports.requestEmailVerification = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
-  // 1) Check if user exists
   const user = await User.findOne({ email })
     .setOptions({ includeInactive: true })
     .select("+active");
 
-  if (!user) {
-    return next(new AppError("No user found with that email", 404));
-  }
-
-  // 2) Check if email is already verified
-  if (user.emailVerified) {
+  if (!user) return next(new AppError("No user found with that email", 404));
+  if (user.emailVerified)
     return next(new AppError("Email is already verified", 400));
-  }
 
-  // 3) Check if a valid (non-expired) verification link already exists
   if (
     user.emailVerificationToken &&
     user.emailVerificationExpires &&
@@ -582,35 +549,29 @@ exports.requestEmailVerification = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 4) Create new verification token (old one is expired or missing)
   const verificationToken = user.createEmailVerificationToken();
-
   await user.save({ validateBeforeSave: false });
 
-  // 5) Send verification email
   const verificationURL = `${req.protocol}://${req.get("host")}/emailVerification?token=${verificationToken}`;
 
   await sendEmail({
     to: user.email,
     subject: user.active ? "Verify your Email" : "Account Reactivation",
-    message: `Did you request for ${user.active ? "Email Verification" : "Accont Reactivation"}? \nClick to verify your email: ${verificationURL}`,
+    message: `Did you request for ${user.active ? "Email Verification" : "Account Reactivation"}?\nClick to verify your email: ${verificationURL}`,
   });
 
-  // 6) Response
-  res.status(200).json({
-    status: "success",
-    message: "Verification email sent",
-  });
+  res
+    .status(200)
+    .json({ status: "success", message: "Verification email sent" });
 });
 
-// With this, pug files can now do something like this:
-// if user
-//   p Welcome #{user.username}
+// ============================================================
+// IS LOGGED IN — populates res.locals.user for pug templates
+// ============================================================
 exports.isLoggedIn = catchAsync(async (req, res, next) => {
   if (req.cookies.jwt) {
     try {
       const decoded = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
-
       const user = await User.findById(decoded.id);
       if (user) res.locals.user = user;
     } catch (err) {}
@@ -618,16 +579,59 @@ exports.isLoggedIn = catchAsync(async (req, res, next) => {
   next();
 });
 
+// ============================================================
+// REDIRECT IF LOGGED IN — prevents logged-in users hitting login/signup
+// ============================================================
 exports.redirectIfLoggedIn = catchAsync(async (req, res, next) => {
-  // console.log(res.locals.user);
-  if (res.locals.user) {
-    // res.locals.user came from isLoggedIn in this controller file
-    let redirectTo = "/dashboard";
+  // Prevent caching of login/signup pages
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
 
+  if (res.locals.user) {
+    let redirectTo = "/dashboard";
     if (res.locals.user.userType === "admin") redirectTo = "/adminDashboard";
-    else if (res.locals.user.userType === "coach")
-      redirectTo = "/coachDashboard";
+    if (res.locals.user.userType === "coach") redirectTo = "/coachDashboard";
     return res.redirect(redirectTo);
   }
   next();
+});
+
+// ============================================================
+// UPDATE PASSWORD
+// ============================================================
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const { passwordCurrent, password, passwordConfirm } = req.body;
+
+  if (!passwordCurrent || !password || !passwordConfirm)
+    return next(
+      new AppError(
+        "Please provide current password, new password, and confirmation.",
+        400,
+      ),
+    );
+
+  if (!isStrongPassword(password))
+    return next(
+      new AppError(
+        "Password must be at least 8 characters long and contain at least one letter and one number.",
+        400,
+      ),
+    );
+
+  if (password !== passwordConfirm)
+    return next(new AppError("New passwords do not match.", 400));
+
+  const user = await User.findById(req.user.id).select("+password");
+  if (!user) return next(new AppError("User not found.", 404));
+
+  const isCorrect = await user.correctPassword(passwordCurrent, user.password);
+  if (!isCorrect)
+    return next(new AppError("Current password is incorrect.", 401));
+
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  await user.save();
+
+  createSendToken(user, 200, res);
 });

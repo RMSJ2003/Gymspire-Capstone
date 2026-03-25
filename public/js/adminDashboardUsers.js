@@ -309,3 +309,130 @@
     });
   };
 })();
+/* ══════════════════════════════════════
+   ADMIN USER TABLE — SEARCH + FILTER + PAGINATION
+══════════════════════════════════════ */
+(function initUserControls() {
+  const ROWS_PER_PAGE = 8;
+
+  const table = document.getElementById("userTable");
+  if (!table) return;
+
+  const tbody = table.querySelector("tbody");
+  const searchInput = document.getElementById("userSearch");
+  const resultLabel = document.getElementById("userResultLabel");
+  const pagination = document.getElementById("userPagination");
+  const prevBtn = document.getElementById("userPrevBtn");
+  const nextBtn = document.getElementById("userNextBtn");
+  const pageInfo = document.getElementById("userPageInfo");
+  const filterBtns = document.querySelectorAll(".user-filter-btn[data-filter]");
+  const statusBtns = document.querySelectorAll(
+    ".user-filter-btn[data-filter-status]",
+  );
+
+  let activeRole = "all";
+  let activeStatus = "all";
+  let searchQuery = "";
+  let currentPage = 1;
+  let visibleRows = [];
+
+  function getAllRows() {
+    return Array.from(tbody.querySelectorAll("tr[data-user-id]"));
+  }
+
+  function applyFilters() {
+    const rows = getAllRows();
+
+    visibleRows = rows.filter((row) => {
+      const name = row.dataset.name || "";
+      const email = row.dataset.email || "";
+      const role = row.dataset.role || "";
+      const status = row.dataset.status || "";
+
+      const matchSearch =
+        !searchQuery ||
+        name.includes(searchQuery) ||
+        email.includes(searchQuery);
+      const matchRole = activeRole === "all" || role === activeRole;
+      const matchStatus = activeStatus === "all" || status === activeStatus;
+
+      return matchSearch && matchRole && matchStatus;
+    });
+
+    // Hide all first
+    rows.forEach((r) => r.classList.add("u-hidden"));
+
+    const total = visibleRows.length;
+    const totalPages = Math.max(1, Math.ceil(total / ROWS_PER_PAGE));
+    currentPage = Math.min(currentPage, totalPages);
+
+    const start = (currentPage - 1) * ROWS_PER_PAGE;
+    const end = start + ROWS_PER_PAGE;
+
+    visibleRows.forEach((r, i) => {
+      if (i >= start && i < end) r.classList.remove("u-hidden");
+    });
+
+    // Label
+    resultLabel.textContent =
+      total === rows.length
+        ? `${total} user${total !== 1 ? "s" : ""}`
+        : `${total} of ${rows.length} user${rows.length !== 1 ? "s" : ""}`;
+
+    // Pagination
+    if (total <= ROWS_PER_PAGE) {
+      pagination.classList.add("hidden");
+    } else {
+      pagination.classList.remove("hidden");
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+    }
+  }
+
+  // Search
+  searchInput.addEventListener("input", () => {
+    searchQuery = searchInput.value.toLowerCase().trim();
+    currentPage = 1;
+    applyFilters();
+  });
+
+  // Role filter
+  filterBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filterBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeRole = btn.dataset.filter;
+      currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  // Status filter
+  statusBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      statusBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeStatus = btn.dataset.filterStatus;
+      currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  // Pagination
+  prevBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      applyFilters();
+    }
+  });
+  nextBtn.addEventListener("click", () => {
+    const total = visibleRows.length;
+    if (currentPage < Math.ceil(total / ROWS_PER_PAGE)) {
+      currentPage++;
+      applyFilters();
+    }
+  });
+
+  applyFilters();
+})();
