@@ -321,8 +321,11 @@ exports.editProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.createWorkoutPlan = catchAsync(async (req, res, next) => {
-  if (req.workoutPlan)
-    return next(new AppError("You already have a workout plan."));
+  if (req.gymPlan && req.homePlan) return res.redirect("/workoutPlan");
+
+  // If user has gym plan and is trying to create gym again — redirect
+  // (but allow if they're adding home plan)
+  if (req.gymPlan && !req.query.skipToHome) return res.redirect("/workoutPlan");
   const allExercises = req.exercises || [];
   const gymExercises = allExercises.filter((ex) => ex.isGymExercise);
   const homeExercises = allExercises;

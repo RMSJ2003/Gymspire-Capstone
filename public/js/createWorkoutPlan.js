@@ -1,3 +1,13 @@
+// If user already has a gym plan, skip straight to home step
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get("type") === "Home") {
+  selectedTypes.add("Home");
+  // Skip step 1 type selection, go directly to home exercises
+  proceedToGym(); // builds gym first internally
+  // Then immediately proceed to home
+  setTimeout(() => proceedFromGym(), 50);
+}
+
 const gymExercises = window.gymExercises || [];
 const homeExercises = window.homeExercises || [];
 const exercises = gymExercises; // default reference kept for modal compatibility
@@ -356,6 +366,8 @@ async function submitPlans() {
       msgEl.style.color = "#16a34a";
       msgEl.textContent = `Workout plan${plans.length > 1 ? "s" : ""} created!`;
       setTimeout(() => {
+        // Replace current history entry so back button skips this page
+        history.replaceState(null, "", "/workoutPlan");
         window.location.href = "/workoutPlan";
       }, 700);
     } else {
@@ -380,6 +392,79 @@ async function submitPlans() {
       }
     }
   } catch (err) {
+    msgEl.style.color = "var(--red)";
+    msgEl.textContent = "Network error. Please try again.";
+  }
+}
+// ── AUTO-SKIP TO HOME if user already has a gym plan ──────
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("skipToHome") !== "true") return;
+
+  // Mark type selection — Home only needed
+  selectedTypes.add("Home");
+
+  // Update step indicator directly
+  dot1.classList.remove("active");
+  dot1.classList.add("done");
+  dot2.classList.add("done");
+  dot3.classList.add("active");
+  document.getElementById("line1").classList.add("done");
+  document.getElementById("line2").classList.add("done");
+  stepLabel.textContent = "Home Exercises";
+
+  // Build home grid
+  activeSet = homeSelectedSet;
+  activeGrouped = buildGrouped(homeExercises);
+  renderTargetGrid("homeTargetGrid", activeGrouped, homeSelectedSet);
+
+  // Hide back button on home step — nothing to go back to
+  const backBtn = document.querySelector("#step-home .step-back-btn");
+  if (backBtn) backBtn.style.display = "none";
+
+  // Show home step directly
+  showStep("step-home");
+
+  // Override the Create button to send Home plan only
+  const homeSubmitBtn = document.querySelector("#step-home .create-btn");
+  if (homeSubmitBtn) {
+    homeSubmitBtn.setAttribute("onclick", "");
+    homeSubmitBtn.addEventListener("click", submitHomePlanOnly);
+  }
+})();
+
+async function submitHomePlanOnly() {
+  const msgEl = document.getElementById("homeMessage");
+
+  if (homeSelectedSet.size === 0) {
+    msgEl.textContent = "Please select at least one home exercise.";
+    return;
+  }
+
+  msgEl.textContent = "";
+
+  try {
+    const res = await fetch("/api/v1/workout-plans", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        plans: [{ type: "Home", exerciseIds: Array.from(homeSelectedSet) }],
+      }),
+    });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      msgEl.style.color = "#16a34a";
+      msgEl.textContent = "Home plan created!";
+      setTimeout(() => {
+        history.replaceState(null, "", "/workoutPlan");
+        window.location.href = "/workoutPlan";
+      }, 700);
+    } else {
+      msgEl.style.color = "var(--red)";
+      msgEl.textContent = data.message || "Something went wrong.";
+    }
+  } catch {
     msgEl.style.color = "var(--red)";
     msgEl.textContent = "Network error. Please try again.";
   }

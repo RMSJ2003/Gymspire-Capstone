@@ -257,6 +257,15 @@ block styles
 
     /* push content down so it doesn't hide under the bar */
     body { padding-top: 52px; }
+    .ob-health-note {
+      font-size: 0.72rem; color: #92400e;
+      background: #fff8f0;
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 8px; padding: 0.5rem 0.75rem;
+      margin-top: 0.4rem; line-height: 1.5;
+      display: none;
+    }
+    #hasHealthConditions:checked ~ .ob-health-note { display: block; }
 
 block content
 
@@ -319,7 +328,7 @@ block content
       .ob-row
         .ob-field
           label.ob-label(for="obAge") Age
-          input.ob-input#obAge(type="number" min="13" max="100" placeholder="e.g. 20")
+          input.ob-input#obAge(type="number" min="13" max="80" placeholder="e.g. 20")
         .ob-field
           label.ob-label(for="obSex") Sex
           select.ob-select#obSex
@@ -331,18 +340,16 @@ block content
       .ob-row
         .ob-field
           label.ob-label(for="obWeight") Weight (kg)
-          input.ob-input#obWeight(type="number" min="30" max="300" step="0.5" placeholder="e.g. 70")
+          input.ob-input#obWeight(type="number" min="30" max="250" step="0.5" placeholder="e.g. 70")
         .ob-field
           label.ob-label(for="obHeight") Height (cm)
-          input.ob-input#obHeight(type="number" min="100" max="250" placeholder="e.g. 170")
+          input.ob-input#obHeight(type="number" min="100" max="220" placeholder="e.g. 170")
 
       .ob-field
         label.health-toggle
           input(type="checkbox" id="hasHealthConditions")
-          | I have existing health conditions
-        .health-notes-wrap#healthNotesWrap
-          label.ob-label(for="obHealthNotes") Describe your condition (optional)
-          textarea.ob-textarea#obHealthNotes(placeholder="e.g. mild hypertension, knee injury...")
+          | I have existing health conditions or injuries
+        p.ob-health-note 💡 GymSpire will show a safety reminder before every workout.
 
       p.ob-message#step2Msg
       .ob-btn-row
@@ -495,29 +502,40 @@ block scripts
     step1Next.addEventListener("click", () => showStep(1));
 
     // ── STEP 2 ─────────────────────────────────────
-    const hasHealthCheck  = document.getElementById("hasHealthConditions");
-    const healthNotesWrap = document.getElementById("healthNotesWrap");
+    const hasHealthCheck = document.getElementById("hasHealthConditions");
 
-    hasHealthCheck.addEventListener("change", () => {
-      healthNotesWrap.classList.toggle("show", hasHealthCheck.checked);
-    });
+    // Health notes wrap removed — checkbox only
 
     document.getElementById("step2Back").addEventListener("click", () => showStep(0));
     document.getElementById("step2Next").addEventListener("click", () => {
-      const age = document.getElementById("obAge").value;
-      const sex = document.getElementById("obSex").value;
-      const msg = document.getElementById("step2Msg");
+      const age    = Number(document.getElementById("obAge").value);
+      const sex    = document.getElementById("obSex").value;
+      const weight = Number(document.getElementById("obWeight").value);
+      const height = Number(document.getElementById("obHeight").value);
+      const msg    = document.getElementById("step2Msg");
 
-      if (!age || age < 13 || age > 100) { msg.textContent = "Please enter a valid age (13–100)."; return; }
-      if (!sex) { msg.textContent = "Please select your sex."; return; }
+      // ── Realistic validation ──────────────────────
+      if (!age || age < 13 || age > 80) {
+        msg.textContent = "Please enter a realistic age (13–80)."; return;
+      }
+      if (!sex) {
+        msg.textContent = "Please select your sex."; return;
+      }
+      if (weight && (weight < 30 || weight > 250)) {
+        msg.textContent = "Please enter a realistic weight (30–250 kg)."; return;
+      }
+      if (height && (height < 100 || height > 220)) {
+        msg.textContent = "Please enter a realistic height (100–220 cm)."; return;
+      }
+
       msg.textContent = "";
 
-      formData.age              = Number(age);
-      formData.sex              = sex;
-      formData.weightKg         = Number(document.getElementById("obWeight").value) || null;
-      formData.heightCm         = Number(document.getElementById("obHeight").value) || null;
+      formData.age                 = age;
+      formData.sex                 = sex;
+      formData.weightKg            = weight || null;
+      formData.heightCm            = height || null;
       formData.hasHealthConditions = hasHealthCheck.checked;
-      formData.healthNotes      = document.getElementById("obHealthNotes").value || "";
+      formData.healthNotes         = ""; // no longer collected
 
       showStep(2);
     });
