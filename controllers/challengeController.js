@@ -369,13 +369,25 @@ exports.getAllChallenges = catchAsync(async (req, res, next) => {
 // Without JSON
 exports.acquireAllChallenges = catchAsync(async (req, res, next) => {
   const challenges = await Challenge.find()
+    .sort({ createdAt: -1 }) // ← newest first
     .populate("exerciseDetails")
     .populate({
       path: "participants",
-      select: "username pfpUrl", // only send what UI needs
+      select: "username pfpUrl",
     });
 
   console.log("challenges: ", challenges);
   req.challenges = challenges;
   next();
+});
+exports.deleteChallenge = catchAsync(async (req, res, next) => {
+  const challenge = await Challenge.findById(req.params.id);
+  if (!challenge) return next(new AppError("Challenge not found", 404));
+
+  // Delete associated workout logs
+  await WorkoutLog.deleteMany({ challengeId: challenge._id });
+
+  await Challenge.findByIdAndDelete(req.params.id);
+
+  res.status(200).json({ status: "success", message: "Challenge deleted." });
 });

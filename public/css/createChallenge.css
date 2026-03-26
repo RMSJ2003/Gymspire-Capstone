@@ -785,3 +785,44 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+/* ── EXERCISE SEARCH ── */
+.exercise-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fafafa;
+  border: 1.5px solid #ececec;
+  border-radius: 8px;
+  padding: 0.42rem 0.75rem;
+  margin-bottom: 0.65rem;
+  transition: border-color 0.15s;
+}
+.exercise-search-wrap:focus-within {
+  border-color: var(--red);
+  background: white;
+}
+.exercise-search-wrap svg {
+  width: 13px;
+  height: 13px;
+  stroke: #bbb;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+#exerciseSearch {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: transparent;
+}
+#exerciseSearch::placeholder {
+  color: #bbb;
+}
+.exercise-row.ex-hidden {
+  display: none;
+}

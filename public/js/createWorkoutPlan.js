@@ -199,7 +199,7 @@ function openTargetModal(target, grouped, selectedSet, gridId) {
           <span class="exercise-name">${ex.name}</span>
         </div>
       </div>
-      <button class="info-btn" data-index="${ex.index}" type="button" title="View instructions">i</button>
+      <button class="info-btn" data-exercise-id="${ex.exerciseId}" type="button" title="View instructions">i</button>
     `;
 
     const checkbox = row.querySelector("input");
@@ -259,22 +259,33 @@ exerciseSearch.addEventListener("input", () => {
 
 // ── INFO BUTTON ───────────────────────────────────────────
 function attachInfoButtons() {
+  // Build a lookup map from both arrays so we can find any exercise by ID
+  const allExercises = [...gymExercises, ...homeExercises];
+  const exerciseMap = {};
+  allExercises.forEach((ex) => {
+    exerciseMap[ex.exerciseId] = ex;
+  });
+
   document.querySelectorAll(".info-btn").forEach((btn) => {
     btn.onclick = (e) => {
       e.stopPropagation();
-      const ex = exercises[btn.dataset.index];
+      const ex = exerciseMap[btn.dataset.exerciseId];
       if (!ex) return;
+
       modalExName.textContent = ex.name;
+
       if (ex.gifURL) {
         modalGif.src = ex.gifURL;
         modalGif.style.display = "block";
       } else {
         modalGif.style.display = "none";
       }
+
       const steps = ex.instructions || [];
       modalInstructions.innerHTML = steps.length
         ? "<ul>" + steps.map((s) => `<li>${s}</li>`).join("") + "</ul>"
         : "<p>No instructions available.</p>";
+
       modalInstructions.classList.add("hidden");
       toggleInstructions.textContent = "Show Instructions";
       toggleInstructions.classList.remove("open");
@@ -348,8 +359,25 @@ async function submitPlans() {
         window.location.href = "/workoutPlan";
       }, 700);
     } else {
-      msgEl.style.color = "var(--red)";
-      msgEl.textContent = data.message || "Something went wrong.";
+      const isAlreadyExists =
+        data.message && data.message.toLowerCase().includes("already");
+      if (isAlreadyExists) {
+        msgEl.innerHTML = `
+      You already have a workout plan.
+      <a href="/workoutPlan" style="
+        display:inline-block; margin-top:0.6rem;
+        padding:0.45rem 1.1rem;
+        background:linear-gradient(135deg,#d25353,#b11226);
+        color:white; text-decoration:none;
+        border-radius:8px; font-weight:700; font-size:0.82rem;
+        box-shadow:0 2px 8px rgba(177,18,38,0.25);
+      ">View My Workout Plan →</a>
+    `;
+        msgEl.style.color = "var(--red)";
+      } else {
+        msgEl.style.color = "var(--red)";
+        msgEl.textContent = data.message || "Something went wrong.";
+      }
     }
   } catch (err) {
     msgEl.style.color = "var(--red)";

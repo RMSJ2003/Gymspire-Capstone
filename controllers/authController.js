@@ -373,10 +373,25 @@ exports.protect = catchAsync(async (req, res, next) => {
 // ============================================================
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.userType))
-      return next(
-        new AppError("You do not have permission to perform this action", 403),
-      );
+    if (!roles.includes(req.user.userType)) {
+      // API routes — return JSON error
+      const isApiRoute = req.originalUrl.startsWith("/api/");
+      if (isApiRoute) {
+        return next(
+          new AppError(
+            "You do not have permission to perform this action",
+            403,
+          ),
+        );
+      }
+      // Page routes — silently redirect to their own dashboard
+      const dashMap = {
+        user: "/dashboard",
+        coach: "/coachDashboard",
+        admin: "/adminDashboard",
+      };
+      return res.redirect(303, dashMap[req.user.userType] || "/dashboard");
+    }
     next();
   };
 };
@@ -589,10 +604,12 @@ exports.redirectIfLoggedIn = catchAsync(async (req, res, next) => {
   res.set("Expires", "0");
 
   if (res.locals.user) {
-    let redirectTo = "/dashboard";
-    if (res.locals.user.userType === "admin") redirectTo = "/adminDashboard";
-    if (res.locals.user.userType === "coach") redirectTo = "/coachDashboard";
-    return res.redirect(redirectTo);
+    const dashMap = {
+      user: "/dashboard",
+      coach: "/coachDashboard",
+      admin: "/adminDashboard",
+    };
+    return res.redirect(303, dashMap[res.locals.user.userType] || "/dashboard");
   }
   next();
 });

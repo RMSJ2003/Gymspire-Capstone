@@ -94,6 +94,7 @@ router.get("/profile", authController.protect, viewController.profile);
 router.get(
   "/workoutPlan",
   authController.protect,
+  authController.restrictTo("user"),
   workoutPlanController.acquireMyWorkoutPlan,
   viewController.workoutPlan,
 );
@@ -109,6 +110,7 @@ router.get(
 router.get(
   "/workoutLogs",
   authController.protect,
+  authController.restrictTo("user"),
   workoutLogController.acquireMyWorkoutLogs,
   viewController.workoutLogs,
 );
@@ -116,6 +118,8 @@ router.get(
 router.get(
   "/workoutLogs/:id",
   authController.protect,
+  authController.restrictTo("user"),
+
   workoutLogController.acquireMyWorkoutLogs,
   workoutLogController.acquireMyWorkoutLog,
   viewController.workoutLog,
@@ -130,6 +134,7 @@ router.get(
 router.get(
   "/startSoloWorkout",
   authController.protect,
+  authController.restrictTo("user"),
   requireWorkoutplanView,
   viewController.startSoloWorkout,
 );
@@ -145,12 +150,16 @@ router.get(
 router.get(
   "/createWorkoutPlan",
   authController.protect,
+  authController.restrictTo("user"),
+
   exerciseController.acquireAllExericsesHome, // ← change this
   viewController.createWorkoutPlan,
 );
 router.get(
   "/editWorkoutPlan",
   authController.protect,
+  authController.restrictTo("user"),
+
   requireWorkoutPlan,
   exerciseController.acquireAllExericsesHome,
   viewController.editWorkoutPlan,
@@ -158,6 +167,8 @@ router.get(
 router.get(
   "/personalRecord",
   authController.protect,
+  authController.restrictTo("user"),
+
   exerciseController.acquireAllExericsesHome,
   viewController.personalRecord,
 );
@@ -174,7 +185,7 @@ router.get(
   "/createChallenge",
   authController.protect,
   authController.restrictTo("coach"),
-  exerciseController.acquireAllExericses,
+  exerciseController.acquireAllExercisesAdmin,
   viewController.createChallenge,
 );
 

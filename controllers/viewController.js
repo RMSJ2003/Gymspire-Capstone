@@ -92,6 +92,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   res.status(200).render("auth/forgotPassword", {
     title: "Forgot Password",
     hideNavbar: false,
+    user: req.user || null,
   });
 });
 

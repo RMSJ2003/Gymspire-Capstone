@@ -158,6 +158,15 @@ function openTargetModal(target) {
   });
 
   targetModal.classList.remove("hidden");
+
+  // ── Reset search on modal open ──
+  const searchInput = document.getElementById("exerciseSearch");
+  if (searchInput) {
+    searchInput.value = "";
+    document
+      .querySelectorAll(".exercise-row")
+      .forEach((r) => r.classList.remove("ex-hidden"));
+  }
 }
 
 /* ── CLOSE ── */
@@ -168,6 +177,19 @@ targetModal.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") targetModal.classList.add("hidden");
 });
+
+/* ── EXERCISE SEARCH ── */
+const exerciseSearch = document.getElementById("exerciseSearch");
+if (exerciseSearch) {
+  exerciseSearch.addEventListener("input", () => {
+    const q = exerciseSearch.value.toLowerCase().trim();
+    document.querySelectorAll(".exercise-row").forEach((row) => {
+      const name =
+        row.querySelector(".exercise-name")?.textContent.toLowerCase() || "";
+      row.classList.toggle("ex-hidden", q !== "" && !name.includes(q));
+    });
+  });
+}
 
 /* ── SUBMIT ── */
 form.addEventListener("submit", async (e) => {

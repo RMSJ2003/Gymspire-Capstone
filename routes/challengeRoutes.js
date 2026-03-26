@@ -31,4 +31,11 @@ router
   .post(authController.restrictTo("coach"), challengeController.createChallenge)
   .get(challengeController.getAllChallenges);
 
+router.delete(
+  "/:id",
+  authController.protect,
+  authController.restrictTo("coach", "admin"),
+  challengeController.deleteChallenge,
+);
+
 module.exports = router;

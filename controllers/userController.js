@@ -306,9 +306,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       updates.fitnessProfile.hasHealthConditions =
         req.body.hasHealthConditions === "true" ||
         req.body.hasHealthConditions === true;
-    }
-    if (req.body.healthNotes !== undefined) {
-      updates.fitnessProfile.healthNotes = req.body.healthNotes || "";
+      // Clear any previously stored notes for privacy
+      updates.fitnessProfile.healthNotes = "";
     }
   }
 

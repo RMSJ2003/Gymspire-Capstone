@@ -170,19 +170,8 @@ exports.createMyChallengeWorkoutLog = catchAsync(async (req, res, next) => {
     return next(new AppError(err.message, 409));
   }
 
-  const alreadyCheckedIn = await GymAttendance.findOne({
-    user: req.user.id,
-    checkoutTime: null,
-  }).catch(() => null);
-
-  if (alreadyCheckedIn) {
-    await User.findByIdAndUpdate(req.user.id, {
-      isAtGym: true,
-      gymStatus: "logging",
-    });
-  } else {
-    await User.findByIdAndUpdate(req.user.id, { gymStatus: "logging" });
-  }
+  // Challenge workouts — no gym check-in required, works anywhere
+  await User.findByIdAndUpdate(req.user.id, { gymStatus: "logging" });
 
   const newChallengeWorkoutLog = await WorkoutLog.create({
     userId: req.user._id,

@@ -29,11 +29,19 @@ html
       script(src='/js/pwa.js')
 
     script.
-      // ── BFCACHE GUARD ────────────────────────────────────
-      // Fires when browser restores a page from back-forward cache
-      // without making a new request — forces a fresh server check
+      // ── BFCACHE GUARD ─────────────────────────────────────
+      // Forces reload when browser restores from back-forward cache
       window.addEventListener("pageshow", function (e) {
         if (e.persisted) {
           window.location.reload();
         }
       });
+
+      // ── HISTORY GUARD ─────────────────────────────────────
+      // Replace login/signup in history so back button skips them
+      (function () {
+        const ref = document.referrer;
+        if (ref.includes('/login') || ref.includes('/signup') || ref.includes('/onboarding')) {
+          history.replaceState(null, '', window.location.href);
+        }
+      })();

@@ -1,27 +1,18 @@
-const express = require('express');
-const workoutPlanController = require('../controllers/workoutPlanController');
-const authController = require('../controllers/authController');
-const requireWorkoutPlan = require('../middlewares/requireWorkoutPlan');
+const express = require("express");
+const workoutPlanController = require("../controllers/workoutPlanController");
+const authController = require("../controllers/authController");
+const requireWorkoutPlan = require("../middlewares/requireWorkoutPlan");
 
 const router = express.Router();
 
 router.use(authController.protect);
 
 router
-    .route('/')
-    .post(workoutPlanController.createMyWorkoutPlan)
-    .get(
-        requireWorkoutPlan,
-        workoutPlanController.getMyWorkoutPlan
-    )
-    .patch(
-        requireWorkoutPlan,
-        workoutPlanController.updateMyWorkoutPlan
-    )
-    .delete(
-        requireWorkoutPlan,
-        workoutPlanController.deleteMyWorkoutPlan
-    );
+  .route("/")
+  .post(workoutPlanController.createMyWorkoutPlan)
+  .get(requireWorkoutPlan, workoutPlanController.getMyWorkoutPlan)
+  .patch(requireWorkoutPlan, workoutPlanController.updateMyWorkoutPlan)
+  .delete(requireWorkoutPlan, workoutPlanController.deleteMyWorkoutPlan);
 
 module.exports = router;
 

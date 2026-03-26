@@ -36,6 +36,13 @@ block content
           line(x1='5' y1='12' x2='19' y2='12')
         span Create Challenge
 
+  //- ── FILTER TABS ─────────────────────────────────────────
+  .challenge-filter-tabs
+    button.filter-tab.active(data-filter="all") All
+    button.filter-tab(data-filter="active") 🟢 Active
+    button.filter-tab(data-filter="upcoming") 🔵 Upcoming
+    button.filter-tab(data-filter="ended") ⚫ Ended
+
   .challenges-wrapper
 
     if challenges.length === 0
@@ -53,7 +60,15 @@ block content
           const ongoingLog     = allLogs.find(l => l.challengeId && l.challengeId._id && l.challengeId._id.toString() === cIdStr && l.status === 'ongoing');
           const submittedLog   = allLogs.find(l => l.challengeId && l.challengeId._id && l.challengeId._id.toString() === cIdStr && l.status === 'done');
 
-        .challenge-card(class=isEnded ? 'ended' : '')
+        -
+          const now = new Date();
+          const startTime = new Date(challenge.startTime);
+          const endTime   = new Date(challenge.endTime);
+          let cardStatus  = 'active';
+          if (now < startTime)     cardStatus = 'upcoming';
+          else if (now > endTime)  cardStatus = 'ended';
+
+        .challenge-card(class=isEnded ? 'ended' : '' data-status=cardStatus)
 
           .challenge-card__header
             h2.challenge-card__name= challenge.name
@@ -132,6 +147,13 @@ block content
                   path(d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z')
                   polyline(points='14 2 14 8 20 8')
                 | Review Submissions
+              button.delete-challenge-btn(
+                data-challenge-id=challenge._id
+                data-challenge-name=challenge.name
+              )
+                svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
+                  path(d='M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6')
+                | Delete
 
           .leaderboard-container(id=`leaderboard-${challenge._id}` style="display:none;")
 
@@ -159,6 +181,15 @@ block content
                                 li= step
 
   p#joinMessage
+
+  .modal.hidden#deleteChallengeModal
+    .modal-content
+      .modal-content__icon 🗑️
+      h3.modal-content__title Delete Challenge?
+      p.modal-content__msg#deleteModalMsg
+      .modal-content__actions
+        button.modal-btn.modal-btn--cancel#deleteCancelBtn Cancel
+        button.modal-btn.modal-btn--confirm#deleteConfirmBtn Delete
 
 block scripts
   script(src="/js/challenges.js")

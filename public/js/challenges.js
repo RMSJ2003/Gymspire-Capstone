@@ -57,22 +57,10 @@ function showToast(message, type = "warning") {
   }, 4500);
 }
 
-// ── GYM STATUS CHECK ──────────────────────────────────────
-async function checkGymStatus() {
-  try {
-    const res = await fetch("/api/v1/users/me");
-    const data = await res.json();
-    return data?.data?.data?.gymStatus || "offline";
-  } catch (e) {
-    return "offline";
-  }
-}
-
 // ==============================
 // JOIN CHALLENGE
 // ==============================
 const joinButtons = document.querySelectorAll(".join-btn");
-const joinMessage = document.querySelector("#joinMessage");
 
 joinButtons.forEach((btn) => {
   btn.addEventListener("click", async () => {
@@ -100,7 +88,6 @@ joinButtons.forEach((btn) => {
 // ==============================
 const leaderboardButtons = document.querySelectorAll(".leaderboard-btn");
 
-// Returns the correct status badge HTML for a leaderboard row
 function buildStatusBadge(row) {
   if (row.judgeStatus === "approved" && row.videoUrl) {
     return `<span class="lb-badge lb-verified">✔ Verified</span>`;
@@ -198,21 +185,11 @@ leaderboardButtons.forEach((btn) => {
 });
 
 // ==============================
-// START CHALLENGE
+// START CHALLENGE — no gym check-in required
 // ==============================
 document.addEventListener("click", async (e) => {
   if (e.target.classList.contains("start-btn")) {
     const challengeId = e.target.dataset.challengeId;
-
-    // ── GYM WARNING ──
-    const gymStatus = await checkGymStatus();
-    if (gymStatus !== "atGym" && gymStatus !== "logging") {
-      showToast(
-        "You are not checked in at the gym. Check in first so your attendance is recorded.",
-        "warning",
-      );
-      await new Promise((resolve) => setTimeout(resolve, 800));
-    }
 
     try {
       const res = await fetch(`/api/v1/workout-logs/challenge/${challengeId}`, {
@@ -220,13 +197,13 @@ document.addEventListener("click", async (e) => {
         credentials: "include",
       });
       const data = await res.json();
+
       if (data.status === "success") {
         window.location.href = `/workoutLogs/${data.data._id}`;
       } else if (
         data.message &&
         data.message.toLowerCase().includes("already have a workout log")
       ) {
-        // Ongoing log exists — fetch it and redirect
         showToast("Redirecting to your ongoing workout...", "info");
         try {
           const logsRes = await fetch("/api/v1/workout-logs/my", {
@@ -257,5 +234,90 @@ document.addEventListener("click", async (e) => {
       console.error(err);
       showToast("Something went wrong while starting the challenge.", "error");
     }
+  }
+});
+
+// ── FILTER TABS ───────────────────────────────────────────
+const filterTabs = document.querySelectorAll(".filter-tab");
+const allCards = document.querySelectorAll(".challenge-card");
+
+filterTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    filterTabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const filter = tab.dataset.filter;
+    allCards.forEach((card) => {
+      const status = card.dataset.status;
+      const show = filter === "all" || status === filter;
+      card.classList.toggle("tab-hidden", !show);
+    });
+  });
+});
+
+// ── DELETE CHALLENGE ──────────────────────────────────────
+const deleteModal = document.getElementById("deleteChallengeModal");
+const deleteModalMsg = document.getElementById("deleteModalMsg");
+const deleteCancelBtn = document.getElementById("deleteCancelBtn");
+const deleteConfirmBtn = document.getElementById("deleteConfirmBtn");
+
+let pendingDeleteId = null;
+let pendingDeleteCard = null;
+
+document.querySelectorAll(".delete-challenge-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    pendingDeleteId = btn.dataset.challengeId;
+    pendingDeleteCard = btn.closest(".challenge-card");
+    deleteModalMsg.textContent = `"${btn.dataset.challengeName}" will be permanently deleted along with all its submissions. This cannot be undone.`;
+    deleteModal.classList.remove("hidden");
+  });
+});
+
+deleteCancelBtn.addEventListener("click", () => {
+  deleteModal.classList.add("hidden");
+  pendingDeleteId = null;
+  pendingDeleteCard = null;
+});
+
+deleteModal.addEventListener("click", (e) => {
+  if (e.target === deleteModal) {
+    deleteModal.classList.add("hidden");
+    pendingDeleteId = null;
+    pendingDeleteCard = null;
+  }
+});
+
+deleteConfirmBtn.addEventListener("click", async () => {
+  if (!pendingDeleteId) return;
+
+  deleteConfirmBtn.disabled = true;
+  deleteConfirmBtn.textContent = "Deleting...";
+
+  try {
+    const res = await fetch(`/api/v1/challenges/${pendingDeleteId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      deleteModal.classList.add("hidden");
+      showToast("Challenge deleted.", "success");
+      if (pendingDeleteCard) {
+        pendingDeleteCard.style.transition = "opacity 0.3s, transform 0.3s";
+        pendingDeleteCard.style.opacity = "0";
+        pendingDeleteCard.style.transform = "translateY(-8px)";
+        setTimeout(() => pendingDeleteCard.remove(), 320);
+      }
+    } else {
+      showToast(data.message || "Failed to delete.", "error");
+    }
+  } catch {
+    showToast("Network error.", "error");
+  } finally {
+    deleteConfirmBtn.disabled = false;
+    deleteConfirmBtn.textContent = "Delete";
+    pendingDeleteId = null;
+    pendingDeleteCard = null;
   }
 });

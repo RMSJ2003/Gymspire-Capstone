@@ -281,6 +281,13 @@ block styles
       font-size: 0.7rem; color: #92400e; margin-top: 0.5rem;
       line-height: 1.5; font-weight: 500;
     }
+    .forgot-pw-link {
+      font-size: 0.68rem; font-weight: 700;
+      color: #d25353; text-decoration: none;
+      white-space: nowrap; flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .forgot-pw-link:hover { color: #b11226; text-decoration: underline; }
 
 block content
 
@@ -369,7 +376,6 @@ block content
               option(value="intermediate" selected=fp.experienceLevel === 'intermediate') Intermediate
               option(value="advanced"     selected=fp.experienceLevel === 'advanced')     Advanced
 
-          //- ── HEALTH & INJURY SECTION ─────────────────
           .password-divider
             span Health & Injury
             span.password-divider__note (warns you before workouts)
@@ -385,18 +391,13 @@ block content
                 checked=(fp.hasHealthConditions ? true : false)
               )
               span I have existing health conditions or injuries
-            .health-notes-wrap#healthNotesWrap(class=(fp.hasHealthConditions ? 'show' : ''))
-              label(for='healthNotes') Describe your condition
-              textarea#healthNotes(
-                name='healthNotes'
-                placeholder='e.g. left knee injury, mild hypertension, lower back pain...'
-              )= fp.healthNotes || ''
             p.health-warn-note
-              | 💡 When enabled, GymSpire will show a warning before each workout reminding you to exercise within your limits.
+              | 💡 When enabled, GymSpire will show a safety reminder before each workout. Your specific condition details stay private.
 
         .password-divider
           span Change Password
           span.password-divider__note (leave blank to keep current)
+          a.forgot-pw-link(href='/forgotPassword') Forgot password?
 
         .form-group
           label(for="currentPassword") Current Password
