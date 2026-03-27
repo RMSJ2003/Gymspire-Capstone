@@ -238,12 +238,11 @@ block content
       .target-grid#homeTargetGrid
       .update-section
         p.form-message#homeMessage
-        button.create-btn(type="button" onclick="submitPlans()")
+        button.create-btn#homeCreateBtn(type="button")
           svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24')
             line(x1='12' y1='5' x2='12' y2='19')
             line(x1='5' y1='12' x2='19' y2='12')
           | Create Workout Plans
-
   //- ── TARGET EXERCISES MODAL ──────────────────────────────
   .modal.hidden#targetModal
     .modal-content.large

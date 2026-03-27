@@ -14,8 +14,16 @@ exports.createMyWorkoutPlan = catchAsync(async (req, res, next) => {
   const validTypes = ["Home", "Gym"];
 
   const hasGym = plans.some((p) => p.type === "Gym");
+
+  // Only enforce gym requirement if user doesn't already have one in the DB
   if (!hasGym) {
-    return next(new AppError("A Gym workout plan is required.", 400));
+    const existingGym = await WorkoutPlan.findOne({
+      userId: req.user._id,
+      type: "Gym",
+    });
+    if (!existingGym) {
+      return next(new AppError("A Gym workout plan is required.", 400));
+    }
   }
 
   for (const plan of plans) {
@@ -129,23 +137,19 @@ exports.deleteMyWorkoutPlan = catchAsync(async (req, res, next) => {
   const { type } = req.body;
 
   if (type) {
-    // Delete a specific plan by type
     await WorkoutPlan.deleteOne({ userId: req.user._id, type });
   } else {
-    // Delete all plans for this user
     await WorkoutPlan.deleteMany({ userId: req.user._id });
   }
 
   res.status(204).json({ status: "success", data: null });
 });
 
-// ── Fetch both plans and attach to req ───────────────────
 exports.acquireMyWorkoutPlan = catchAsync(async (req, res, next) => {
   const plans = await WorkoutPlan.find({ userId: req.user._id }).populate(
     "exerciseDetails",
   );
 
-  // Separate into gym and home
   req.gymPlan = plans.find((p) => p.type === "Gym") || null;
   req.homePlan = plans.find((p) => p.type === "Home") || null;
   req.workoutPlans = plans;

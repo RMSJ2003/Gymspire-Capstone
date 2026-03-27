@@ -1,23 +1,12 @@
-// If user already has a gym plan, skip straight to home step
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get("type") === "Home") {
-  selectedTypes.add("Home");
-  // Skip step 1 type selection, go directly to home exercises
-  proceedToGym(); // builds gym first internally
-  // Then immediately proceed to home
-  setTimeout(() => proceedFromGym(), 50);
-}
-
 const gymExercises = window.gymExercises || [];
 const homeExercises = window.homeExercises || [];
-const exercises = gymExercises; // default reference kept for modal compatibility
+const exercises = gymExercises;
 
 // Gym mandatory, Home optional
 let selectedTypes = new Set(["Gym"]);
 let gymSelectedSet = new Set();
 let homeSelectedSet = new Set();
 
-// Which set is the modal currently operating on
 let activeSet = gymSelectedSet;
 let activeGridId = "gymTargetGrid";
 let activeGrouped = {};
@@ -71,19 +60,16 @@ function proceedToGym() {
   gymSelectedSet = new Set();
   homeSelectedSet = new Set();
 
-  // Step indicator
   dot1.classList.remove("active");
   dot1.classList.add("done");
   dot2.classList.add("active");
   line1.classList.add("done");
   stepLabel.textContent = "Gym Exercises";
 
-  // Build gym grid — all exercises (admin-curated in future)
   activeSet = gymSelectedSet;
   activeGrouped = buildGrouped(gymExercises);
   renderTargetGrid("gymTargetGrid", activeGrouped, gymSelectedSet);
 
-  // Update Next button label
   const gymNextLabel = document.getElementById("gymNextLabel");
   gymNextLabel.textContent = selectedTypes.has("Home")
     ? "Next: Home Exercises"
@@ -111,20 +97,17 @@ function proceedFromGym() {
   }
   document.getElementById("gymMessage").textContent = "";
 
-  // If Home not selected — submit directly
   if (!selectedTypes.has("Home")) {
     submitPlans();
     return;
   }
 
-  // Go to Step 3
   dot2.classList.remove("active");
   dot2.classList.add("done");
   dot3.classList.add("active");
   line2.classList.add("done");
   stepLabel.textContent = "Home Exercises";
 
-  // Build home grid — home equipment only
   activeSet = homeSelectedSet;
   activeGrouped = buildGrouped(homeExercises);
   renderTargetGrid("homeTargetGrid", activeGrouped, homeSelectedSet);
@@ -182,7 +165,7 @@ function updateCardLabel(card, target, grouped, selectedSet) {
   card.classList.toggle("active", count > 0);
 }
 
-// ── OPEN TARGET MODAL ────────────────────────────────────
+// ── OPEN TARGET MODAL ─────────────────────────────────────
 let currentGridId = null;
 
 function openTargetModal(target, grouped, selectedSet, gridId) {
@@ -254,7 +237,7 @@ function openTargetModal(target, grouped, selectedSet, gridId) {
   exerciseSearch.focus();
 }
 
-// ── SEARCH ───────────────────────────────────────────────
+// ── SEARCH ────────────────────────────────────────────────
 exerciseSearch.addEventListener("input", () => {
   const q = exerciseSearch.value.toLowerCase().trim();
   const rows = targetExerciseList.querySelectorAll(".exercise-row");
@@ -269,7 +252,6 @@ exerciseSearch.addEventListener("input", () => {
 
 // ── INFO BUTTON ───────────────────────────────────────────
 function attachInfoButtons() {
-  // Build a lookup map from both arrays so we can find any exercise by ID
   const allExercises = [...gymExercises, ...homeExercises];
   const exerciseMap = {};
   allExercises.forEach((ex) => {
@@ -312,7 +294,7 @@ toggleInstructions.addEventListener("click", () => {
   toggleInstructions.classList.toggle("open", !isHidden);
 });
 
-// ── CLOSE MODALS ─────────────────────────────────────────
+// ── CLOSE MODALS ──────────────────────────────────────────
 closeTargetModal.onclick = () => targetModal.classList.add("hidden");
 closeModal.onclick = () => modal.classList.add("hidden");
 targetModal.onclick = (e) => {
@@ -328,7 +310,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ── SUBMIT ────────────────────────────────────────────────
+// ── SUBMIT (normal flow — gym + optional home) ────────────
 async function submitPlans() {
   const msgEl = selectedTypes.has("Home")
     ? document.getElementById("homeMessage")
@@ -348,7 +330,6 @@ async function submitPlans() {
 
   msgEl.textContent = "";
 
-  // Build plans array
   const plans = [{ type: "Gym", exerciseIds: Array.from(gymSelectedSet) }];
   if (selectedTypes.has("Home")) {
     plans.push({ type: "Home", exerciseIds: Array.from(homeSelectedSet) });
@@ -366,7 +347,6 @@ async function submitPlans() {
       msgEl.style.color = "#16a34a";
       msgEl.textContent = `Workout plan${plans.length > 1 ? "s" : ""} created!`;
       setTimeout(() => {
-        // Replace current history entry so back button skips this page
         history.replaceState(null, "", "/workoutPlan");
         window.location.href = "/workoutPlan";
       }, 700);
@@ -375,16 +355,16 @@ async function submitPlans() {
         data.message && data.message.toLowerCase().includes("already");
       if (isAlreadyExists) {
         msgEl.innerHTML = `
-      You already have a workout plan.
-      <a href="/workoutPlan" style="
-        display:inline-block; margin-top:0.6rem;
-        padding:0.45rem 1.1rem;
-        background:linear-gradient(135deg,#d25353,#b11226);
-        color:white; text-decoration:none;
-        border-radius:8px; font-weight:700; font-size:0.82rem;
-        box-shadow:0 2px 8px rgba(177,18,38,0.25);
-      ">View My Workout Plan →</a>
-    `;
+          You already have a workout plan.
+          <a href="/workoutPlan" style="
+            display:inline-block; margin-top:0.6rem;
+            padding:0.45rem 1.1rem;
+            background:linear-gradient(135deg,#d25353,#b11226);
+            color:white; text-decoration:none;
+            border-radius:8px; font-weight:700; font-size:0.82rem;
+            box-shadow:0 2px 8px rgba(177,18,38,0.25);
+          ">View My Workout Plan →</a>
+        `;
         msgEl.style.color = "var(--red)";
       } else {
         msgEl.style.color = "var(--red)";
@@ -396,43 +376,8 @@ async function submitPlans() {
     msgEl.textContent = "Network error. Please try again.";
   }
 }
-// ── AUTO-SKIP TO HOME if user already has a gym plan ──────
-(function () {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("skipToHome") !== "true") return;
 
-  // Mark type selection — Home only needed
-  selectedTypes.add("Home");
-
-  // Update step indicator directly
-  dot1.classList.remove("active");
-  dot1.classList.add("done");
-  dot2.classList.add("done");
-  dot3.classList.add("active");
-  document.getElementById("line1").classList.add("done");
-  document.getElementById("line2").classList.add("done");
-  stepLabel.textContent = "Home Exercises";
-
-  // Build home grid
-  activeSet = homeSelectedSet;
-  activeGrouped = buildGrouped(homeExercises);
-  renderTargetGrid("homeTargetGrid", activeGrouped, homeSelectedSet);
-
-  // Hide back button on home step — nothing to go back to
-  const backBtn = document.querySelector("#step-home .step-back-btn");
-  if (backBtn) backBtn.style.display = "none";
-
-  // Show home step directly
-  showStep("step-home");
-
-  // Override the Create button to send Home plan only
-  const homeSubmitBtn = document.querySelector("#step-home .create-btn");
-  if (homeSubmitBtn) {
-    homeSubmitBtn.setAttribute("onclick", "");
-    homeSubmitBtn.addEventListener("click", submitHomePlanOnly);
-  }
-})();
-
+// ── SUBMIT HOME ONLY (skip-to-home mode) ──────────────────
 async function submitHomePlanOnly() {
   const msgEl = document.getElementById("homeMessage");
 
@@ -469,3 +414,39 @@ async function submitHomePlanOnly() {
     msgEl.textContent = "Network error. Please try again.";
   }
 }
+
+// ── SKIP-TO-HOME MODE (user already has gym plan) ─────────
+const _skipToHome =
+  new URLSearchParams(window.location.search).get("skipToHome") === "true";
+
+if (_skipToHome) {
+  selectedTypes.add("Home");
+
+  dot1.classList.remove("active");
+  dot1.classList.add("done");
+  dot2.classList.add("done");
+  dot3.classList.add("active");
+  line1.classList.add("done");
+  line2.classList.add("done");
+  stepLabel.textContent = "Home Exercises";
+
+  activeSet = homeSelectedSet;
+  activeGrouped = buildGrouped(homeExercises);
+  renderTargetGrid("homeTargetGrid", activeGrouped, homeSelectedSet);
+
+  // Hide back button — nothing to go back to
+  const backBtn = document.querySelector("#step-home .step-back-btn");
+  if (backBtn) backBtn.style.display = "none";
+
+  showStep("step-home");
+}
+
+// ── WIRE UP HOME CREATE BUTTON ────────────────────────────
+// Replaces the inline onclick on the pug button entirely.
+document.getElementById("homeCreateBtn").addEventListener("click", function () {
+  if (_skipToHome) {
+    submitHomePlanOnly();
+  } else {
+    submitPlans();
+  }
+});
