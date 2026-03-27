@@ -48,7 +48,7 @@ router.get("/gymHours", authController.protect, adminController.getGymHours);
 router.post(
   "/test-cleanup",
   authController.protect,
-  authController.restrictTo("admin"),
+  authController.restrictTo("admin", "coach"),
   async (req, res) => {
     try {
       const {

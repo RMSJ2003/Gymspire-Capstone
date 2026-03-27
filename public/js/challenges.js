@@ -89,7 +89,7 @@ joinButtons.forEach((btn) => {
 const leaderboardButtons = document.querySelectorAll(".leaderboard-btn");
 
 function buildStatusBadge(row) {
-  if (row.judgeStatus === "approved" && row.videoUrl) {
+  if (row.judgeStatus === "approved") {
     return `<span class="lb-badge lb-verified">✔ Verified</span>`;
   }
   if (row.judgeStatus === "incomplete") {
@@ -128,13 +128,10 @@ leaderboardButtons.forEach((btn) => {
         return;
       }
 
-      const verified = leaderboard.filter(
-        (r) => r.judgeStatus === "approved" && r.videoUrl,
-      );
+      const verified = leaderboard.filter((r) => r.judgeStatus === "approved");
       const unverified = leaderboard.filter(
-        (r) => !(r.judgeStatus === "approved" && r.videoUrl),
+        (r) => r.judgeStatus !== "approved",
       );
-
       const buildRows = (rows, startRank) =>
         rows
           .map(
