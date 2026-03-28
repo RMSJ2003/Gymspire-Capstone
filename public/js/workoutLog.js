@@ -351,7 +351,14 @@ document.querySelectorAll(".warmup-section").forEach((section) => {
   }
 
   lockWorkingSection(workingSection);
-
+  const anySaved =
+    workingSection &&
+    workingSection.querySelector("tr[data-set-id][data-saved='true']");
+  if (anySaved) {
+    section.style.display = "none";
+    unlockWorkingSection(workingSection, exIndex);
+    return;
+  }
   if (estForm) {
     const submitBtn = estForm.querySelector(".est-weight-submit");
     const input = estForm.querySelector(".est-weight-input");
