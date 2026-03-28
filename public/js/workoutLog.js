@@ -336,6 +336,16 @@ document.querySelectorAll(".warmup-section").forEach((section) => {
   const workingSection = document.getElementById(`workingSection-${exIndex}`);
   const warmupTable = document.getElementById(`warmupTable-${exIndex}`);
   const estForm = document.getElementById(`estWeightForm-${exIndex}`);
+  if (estForm) {
+    const estWeightRow = estForm.querySelector(".est-weight-row");
+    if (estWeightRow && !estForm.querySelector(".unit-toggle-wrap")) {
+      const estUnitToggle = buildUnitToggle("LB", `est-unit-${exIndex}`);
+      estUnitToggle.style.marginLeft = "4px";
+      // insert before the Calculate button
+      const submitBtnEl = estWeightRow.querySelector(".est-weight-submit");
+      estWeightRow.insertBefore(estUnitToggle, submitBtnEl);
+    }
+  }
 
   lockWorkingSection(workingSection);
 
@@ -348,12 +358,72 @@ document.querySelectorAll(".warmup-section").forEach((section) => {
         showToast("Please enter a valid weight.", "warning");
         return;
       }
+
+      // Get selected unit from the unit toggle next to the input
+      const unitToggleWrap = estForm.querySelector(".unit-toggle-wrap");
+      const estUnit = unitToggleWrap ? unitToggleWrap.dataset.unit : "LB";
+
       const pcts = [0.25, 0.5, 0.75];
       warmupTable.querySelectorAll(".warmup-row").forEach((row, i) => {
         const wuWeight = Math.round((est * pcts[i]) / 5) * 5;
         const cell = row.querySelector(".wu-weight-val");
-        if (cell) cell.textContent = wuWeight > 0 ? wuWeight : "—";
+        if (cell) {
+          cell.textContent = wuWeight > 0 ? wuWeight : "—";
+          // store for unit toggle
+          cell.dataset.baseWeight = wuWeight;
+        }
+        // inject unit toggle into warmup weight cell
+        const wuWeightCell = row.querySelector(".wu-weight");
+        if (wuWeightCell && !wuWeightCell.querySelector(".unit-toggle-wrap")) {
+          // Remove raw " LB" text node from Pug
+          Array.from(wuWeightCell.childNodes).forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) node.remove();
+          });
+          const toggle = buildUnitToggle(estUnit, `wu-${exIndex}-${i}`);
+          toggle.style.marginLeft = "6px";
+          toggle.addEventListener("click", () => {
+            const newUnit = toggle.dataset.unit;
+            warmupTable.querySelectorAll(".warmup-row").forEach((r, j) => {
+              const c = r.querySelector(".wu-weight-val");
+              if (!c) return;
+              const base = parseFloat(c.dataset.baseWeight) || 0;
+              // convert all rows together when unit changes
+              const converted =
+                newUnit === "KG"
+                  ? Math.round((base * 0.453592) / 0.5) * 0.5
+                  : Math.round(base / 0.453592 / 5) * 5;
+              c.textContent = converted > 0 ? converted : "—";
+              c.dataset.baseWeight = converted;
+            });
+          });
+          wuWeightCell.appendChild(toggle);
+        }
       });
+
+      // ── Pre-fill first working set weight spinner ──
+      const workingSect = document.getElementById(`workingSection-${exIndex}`);
+      if (workingSect) {
+        const firstSpinDisplay = workingSect.querySelector(
+          "tr[data-set-id] .spin-display[data-field='weight']",
+        );
+        if (firstSpinDisplay) {
+          firstSpinDisplay.textContent = est;
+          firstSpinDisplay.dataset.value = est;
+        }
+        // also set unit toggle to match
+        const firstUnitToggle = workingSect.querySelector(
+          "tr[data-set-id] .unit-toggle-wrap",
+        );
+        if (firstUnitToggle) {
+          firstUnitToggle
+            .querySelectorAll(".unit-toggle-btn")
+            .forEach((btn) => {
+              btn.classList.toggle("unit-active", btn.textContent === estUnit);
+            });
+          firstUnitToggle.dataset.unit = estUnit;
+        }
+      }
+
       estForm.style.display = "none";
       warmupTable.classList.remove("hidden");
       activateWuRows(section, exIndex, workingSection);
@@ -373,10 +443,51 @@ document.querySelectorAll(".warmup-section").forEach((section) => {
   });
 });
 
+// AFTER
 function activateWuRows(section, exIndex, workingSection) {
   const rows = Array.from(section.querySelectorAll(".warmup-row"));
   let currentWuIdx = 0;
   let timerRunning = false;
+
+  // Inject unit toggles into warmup weight cells if not already present
+  rows.forEach((row, i) => {
+    const wuWeightCell = row.querySelector(".wu-weight");
+    if (!wuWeightCell || wuWeightCell.querySelector(".unit-toggle-wrap"))
+      return;
+    const valSpan = wuWeightCell.querySelector(".wu-weight-val");
+    if (!valSpan) return;
+    // Remove raw " LB" / " KG" text node injected by Pug
+    Array.from(wuWeightCell.childNodes).forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) node.remove();
+    });
+    const baseWeight = parseFloat(valSpan.textContent) || 0;
+    valSpan.dataset.baseWeight = baseWeight;
+    const toggle = buildUnitToggle("LB", `wu-${exIndex}-${i}`);
+    toggle.style.marginLeft = "6px";
+    toggle.addEventListener("click", () => {
+      const newUnit = toggle.dataset.unit;
+      rows.forEach((r) => {
+        const c = r.querySelector(".wu-weight-val");
+        if (!c) return;
+        const base = parseFloat(c.dataset.baseWeight) || 0;
+        const converted =
+          newUnit === "KG"
+            ? Math.round((base * 0.453592) / 0.5) * 0.5
+            : Math.round(base / 0.453592 / 5) * 5;
+        c.textContent = converted > 0 ? converted : "—";
+        c.dataset.baseWeight = converted;
+        // sync all row toggles to same unit
+        r.querySelectorAll(".unit-toggle-wrap .unit-toggle-btn").forEach(
+          (btn) => {
+            btn.classList.toggle("unit-active", btn.textContent === newUnit);
+          },
+        );
+        r.querySelector(".unit-toggle-wrap") &&
+          (r.querySelector(".unit-toggle-wrap").dataset.unit = newUnit);
+      });
+    });
+    wuWeightCell.appendChild(toggle);
+  });
 
   function activateWuRow(idx) {
     if (idx >= rows.length) {
