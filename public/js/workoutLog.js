@@ -341,6 +341,9 @@ document.querySelectorAll(".warmup-section").forEach((section) => {
     if (estWeightRow && !estForm.querySelector(".unit-toggle-wrap")) {
       const estUnitToggle = buildUnitToggle("LB", `est-unit-${exIndex}`);
       estUnitToggle.style.marginLeft = "4px";
+      // Remove the static "LB" label — replaced by the toggle
+      const staticUnitLabel = estWeightRow.querySelector(".est-weight-unit");
+      if (staticUnitLabel) staticUnitLabel.remove();
       // insert before the Calculate button
       const submitBtnEl = estWeightRow.querySelector(".est-weight-submit");
       estWeightRow.insertBefore(estUnitToggle, submitBtnEl);
