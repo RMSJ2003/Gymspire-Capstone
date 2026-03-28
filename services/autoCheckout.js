@@ -12,6 +12,7 @@ cloudinary.config({
 });
 
 const MAX_CHECKIN_HOURS = 12;
+const PH_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 // ── HELPERS ──────────────────────────────────────────────────
 function computeStrengthScore(workoutLog) {
@@ -62,8 +63,6 @@ function removeUnsavedSets(log) {
 }
 
 // ── TWO-TIER AUTO-FINISH (home & challenge midnight cleanup) ──
-// Rule: all exercises must have ≥1 saved set → auto-complete
-//       any exercise with 0 saved sets → delete entire log
 async function autoFinishWorkoutLog(log) {
   if (!allExercisesHaveOneSet(log)) {
     await WorkoutLog.findByIdAndDelete(log._id);
@@ -79,7 +78,6 @@ async function autoFinishWorkoutLog(log) {
     return;
   }
 
-  // All exercises have ≥1 saved set → remove remaining unsaved, mark done
   removeUnsavedSets(log);
   log.status = "done";
   log.autoCompleted = true;
@@ -139,10 +137,10 @@ const runAutoCheckout = async () => {
 };
 
 // ── CLOSING HOUR CLEANUP — GYM WORKOUTS ONLY ─────────────────
-// Fires every minute, runs when current hour >= gym closing hour
 const runClosingHourCleanup = async () => {
   try {
     const now = new Date();
+    const nowPH = new Date(now.getTime() + PH_OFFSET_MS);
 
     const GymSettings = require("../models/gymSettingsModel");
     const gymSettings = await GymSettings.getSettings();
@@ -156,14 +154,13 @@ const runClosingHourCleanup = async () => {
       "Saturday",
     ];
     const todaySchedule = gymSettings.schedule.find(
-      (s) => s.day === days[now.getDay()],
+      (s) => s.day === days[nowPH.getUTCDay()],
     );
 
     const closeHour = todaySchedule ? todaySchedule.closingHour : 23;
     const gymIsOpen = todaySchedule ? todaySchedule.isOpen : true;
-    const currentHour = now.getHours();
+    const currentHour = nowPH.getUTCHours();
 
-    // Fire at or past closing hour — catches admin mid-day changes
     if (gymIsOpen && currentHour < closeHour) return;
     if (!gymIsOpen && currentHour !== 0) return;
 
@@ -171,7 +168,6 @@ const runClosingHourCleanup = async () => {
       `[AutoCheckout] Closing hour (${closeHour}:00) reached — running GYM cleanup...`,
     );
 
-    // ── GYM WORKOUT LOGS ONLY ─────────────────────────
     const ongoingGymLogs = await WorkoutLog.find({
       status: "ongoing",
       place: "gym",
@@ -179,7 +175,6 @@ const runClosingHourCleanup = async () => {
 
     for (const log of ongoingGymLogs) {
       if (!allExercisesHaveOneSet(log)) {
-        // Not all exercises completed → delete
         await WorkoutLog.findByIdAndDelete(log._id);
         await closeAttendanceForUser(log.userId);
         await User.findByIdAndUpdate(log.userId, {
@@ -191,7 +186,6 @@ const runClosingHourCleanup = async () => {
           `[AutoCheckout] ABANDONED gym log ${log._id} (user ${log.userId}) — not all exercises had ≥1 set`,
         );
       } else {
-        // All exercises have ≥1 set → remove remaining unsaved, mark done
         removeUnsavedSets(log);
         log.status = "done";
         log.autoCompleted = true;
@@ -203,7 +197,6 @@ const runClosingHourCleanup = async () => {
       }
     }
 
-    // ── Close open attendance records ─────────────────
     const openAttendance = await GymAttendance.find({ checkoutTime: null });
     for (const record of openAttendance) {
       record.checkoutTime = now;
@@ -215,7 +208,6 @@ const runClosingHourCleanup = async () => {
         `[AutoCheckout] Closed ${openAttendance.length} open attendance record(s).`,
       );
 
-    // ── Reset all users' gym status ───────────────────
     const result = await User.updateMany(
       { gymStatus: { $ne: "offline" } },
       { gymStatus: "offline", isAtGym: false, gymCheckinTime: null },
@@ -233,7 +225,8 @@ const runClosingHourCleanup = async () => {
 const runNextDayCleanup = async () => {
   try {
     const now = new Date();
-    if (now.getHours() !== 0 || now.getMinutes() !== 0) return;
+    const nowPH = new Date(now.getTime() + PH_OFFSET_MS);
+    if (nowPH.getUTCHours() !== 0 || nowPH.getUTCMinutes() !== 0) return;
 
     console.log("[AutoCheckout] Midnight — cleaning up HOME/CHALLENGE logs...");
 
@@ -256,11 +249,15 @@ const runNextDayCleanup = async () => {
   }
 };
 
-// ── EXPIRED CHALLENGE VIDEO CLEANUP (2 AM daily) ─────────────
+// ── EXPIRED CHALLENGE VIDEO CLEANUP (2 AM PH daily) ──────────
 const runExpiredChallengeCleanup = async (bypassTimeCheck = false) => {
   try {
     const now = new Date();
-    if (!bypassTimeCheck && (now.getHours() !== 2 || now.getMinutes() !== 0))
+    const nowPH = new Date(now.getTime() + PH_OFFSET_MS);
+    if (
+      !bypassTimeCheck &&
+      (nowPH.getUTCHours() !== 2 || nowPH.getUTCMinutes() !== 0)
+    )
       return;
 
     console.log("[AutoCheckout] Running expired challenge video cleanup...");
@@ -312,13 +309,11 @@ const runExpiredChallengeCleanup = async (bypassTimeCheck = false) => {
 
 // ── SCHEDULE ─────────────────────────────────────────────────
 const startAutoCheckoutJob = () => {
-  // Every hour — stale check-in cleanup
   cron.schedule("0 * * * *", () => {
     console.log("[AutoCheckout] Running stale check-in cleanup...");
     runAutoCheckout();
   });
 
-  // Every minute — closing hour (gym) + midnight (home/challenge) + video cleanup
   cron.schedule("* * * * *", () => {
     runClosingHourCleanup();
     runNextDayCleanup();

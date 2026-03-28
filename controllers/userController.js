@@ -133,7 +133,10 @@ exports.gymCheckin = catchAsync(async (req, res, next) => {
     // ── STEP 1: Enforce gym operating hours ──────────
     const GymSettings = require("../models/gymSettingsModel");
     const gymSettings = await GymSettings.getSettings();
+    // AFTER — convert to PH time (UTC+8) before comparing
     const now = new Date();
+    const PH_OFFSET_MS = 8 * 60 * 60 * 1000;
+    const nowPH = new Date(now.getTime() + PH_OFFSET_MS);
     const days = [
       "Sunday",
       "Monday",
@@ -144,17 +147,17 @@ exports.gymCheckin = catchAsync(async (req, res, next) => {
       "Saturday",
     ];
     const todaySchedule = gymSettings.schedule.find(
-      (s) => s.day === days[now.getDay()],
+      (s) => s.day === days[nowPH.getUTCDay()],
     );
 
     if (!todaySchedule || !todaySchedule.isOpen) {
       return res.status(400).json({
         status: "fail",
-        message: `The gym is closed today (${days[now.getDay()]}). Check-in is not available.`,
+        message: `The gym is closed today (${days[nowPH.getUTCDay()]}). Check-in is not available.`,
       });
     }
 
-    const currentHour = now.getHours();
+    const currentHour = nowPH.getUTCHours();
     if (
       currentHour < todaySchedule.openingHour ||
       currentHour >= todaySchedule.closingHour
