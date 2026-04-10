@@ -99,8 +99,8 @@ async function loadCongestion() {
 
       row.innerHTML = `
         <span class="hour-label ${isNow ? "current" : ""}">
-          ${h.time}${isNow ? '<span class="now-badge">NOW</span>' : ""}
-        </span>
+  ${h.time}
+</span>
         <div class="hour-bar-wrap" style="background:${bg};">
           <div class="hour-bar ${isNow ? "current-bar" : ""}"
                style="width:${pct}%; background: linear-gradient(90deg, ${color}dd, ${color}88);">
